@@ -1,5 +1,6 @@
 plugin "devin" {
-  version = "local"
+  source = "github.com/ericlakich/squadron-plugin-devin"
+  version = "v0.0.2"
   settings {
     api_key              = vars.devin_api_key
     org_id               = vars.devin_org_id
