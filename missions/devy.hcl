@@ -1,6 +1,6 @@
 mission "Dev'y" {
   commander {
-    model = models.anthropic.claude_opus_4_6
+    model = models.anthropic.claude_opus_4_7
 
     compaction {
       token_limit    = 250000
