@@ -2,6 +2,14 @@ variable "anthropic_api_key" {
   secret = true  # Mask value in output
 }
 
+variable "claude_routine_fellow_key" {
+  secret = true  # Mask value in output
+}
+
+variable "claude_routine_trigger_id" {
+  secret = true  # Mask value in output
+}
+
 variable "devin_api_key" {
   secret = true  # Mask value in output — service user token (cog_ prefix)
 }

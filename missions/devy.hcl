@@ -76,6 +76,11 @@ mission "Dev'y" {
       Use check_session from the Devin plugin to check the session 
       messages and insights after each run. 
 
+      Things to update/do with every new development task: 
+        1. Ensure test coverage 45% or greater on all changes 
+        2. Ensure Huma contract and openapi spec is updated
+        3. Makes sure README and other documentation is updated 
+
       Move to the next step in this mission when complete. 
     EOT
     agents = [agents.CodeGen]

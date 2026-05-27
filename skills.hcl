@@ -13,3 +13,8 @@ skill "devin_review" {
   instructions = load("./skills/devin_review.md")
 
 }
+
+skill "devin_txc_playbook" {
+  description  = "Load when given a Jira ticket for a TaxCloud customer support issue. Delegates to Devin to diagnose root cause, implement a fix, create a PR, and post a structured summary back to Jira."
+  instructions = load("./skills/devin_txc_support.md")
+}
