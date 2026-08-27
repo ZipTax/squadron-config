@@ -145,11 +145,13 @@ mission "Ratevariant A-B" {
 
       # You do
 
-      Create the session with title "${inputs.issue} — investigate <short description of the
-      reported behavior>" and tags `${inputs.issue}`, `rate-investigation`. The tags carry the
-      general terms; the title is what a human scans, so it names this ticket's actual subject.
-      Pass prompt_mode `raw` — the default prompt tells the session to branch, test, commit and
-      open a PR, which is the opposite of this stage.
+      When you create the session, give it title "${inputs.issue} — investigate <short
+      description of the reported behavior>" and tags `${inputs.issue}`, `rate-investigation`.
+      The tags carry the general terms; the title is what a human scans, so it names this
+      ticket's actual subject. Pass prompt_mode `raw` — the default prompt tells the session to
+      branch, test, commit and open a PR, which is the opposite of this stage. On the resume
+      path there is nothing to title: the brief below goes in a send_message to the session that
+      already exists.
 
       # Brief the session
 
@@ -180,8 +182,11 @@ mission "Ratevariant A-B" {
       On return, check these before you route. A structured verdict absent from a finished
       session is a stage failure, not an invitation to derive one from the prose summary.
 
-      - The verdict answers the question the ticket actually asked, at the same scope (same
-        merchant, product, line, jurisdiction, component, period, execution path).
+      - The verdict answers the question the ticket actually asked, without narrowing the scope
+        it was asked at (merchant, product, line, jurisdiction, component, period, execution
+        path). Widening is legitimate and often the better answer — "one merchant reported it,
+        it is wrong for the whole county / product class" — so long as the reported case is
+        still answered. Answering something narrower than the ticket asked is the failure.
       - Every load-bearing claim is measured or traced, with its citation.
       - The mechanism is named — what is wrong and where, which may be several sites in one
         proc rather than a single line.
@@ -218,7 +223,7 @@ mission "Ratevariant A-B" {
       }
       route {
         target    = tasks.record_learnings
-        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md as another instance of its class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials — verify from its structured output that all three landed before routing, and report the stage failed if they did not."
+        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md as another instance of its class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials."
       }
       # EVIDENCE_INCOMPLETE → no route: the mission completes with the missing
       # evidence named, for a human to supply. Do NOT route it onward.
@@ -265,9 +270,9 @@ mission "Ratevariant A-B" {
         description = "What remains unproven, and for EVIDENCE_INCOMPLETE the exact artifacts that would close each gap."
         required    = false
       }
-      field "limitation_writeback" {
+      field "limitation_class" {
         type        = "string"
-        description = "On the unsupported disposition only: which of the three ticket updates the session actually made — comment posted, new-rate-engine label applied, moved to Blocked — and the limitation class it matched. Blank otherwise; blank WITH an unsupported disposition is a stage failure, since the finding then exists only inside a session nobody reads."
+        description = "On the unsupported disposition only: which limitations.md mechanism class the proven mechanism matched, so record_learnings files this ticket as an instance under it rather than as a new class. Blank otherwise."
         required    = false
       }
       field "investigation_session_id" {
@@ -387,14 +392,6 @@ mission "Ratevariant A-B" {
       branch — step 2 of the ratevariant process (ratevariant-testing skill,
       references/process.md).
 
-      # Preconditions
-
-      Have the session read the `<!-- ratevariant-plan -->` comment for the current head SHA
-      before anything else. If the roots under "### Proc changes" are empty while the PR did
-      change dbo procs/functions, callgraph generation failed (permissions or another DB/infra
-      failure): stop and report rather than author blind. Empty roots on a data-only PR is
-      expected and fine.
-
       # You do
 
       Start a code_develop session running the !ratevariant-cases playbook, title
@@ -404,28 +401,34 @@ mission "Ratevariant A-B" {
 
       # Brief the session
 
-      The playbook owns which cases to write; give it what only this run knows:
+      The playbook owns which cases to write, and reading the `<!-- ratevariant-plan -->`
+      comment at the current head SHA is its own first step. Give it what only this run knows:
 
-      - the plan comment's roots are the coverage checklist, and the investigation's mechanism
-        and disposition, so it knows what the change was meant to do;
+      - the investigation's mechanism and disposition, so it knows what the change was meant to
+        do;
       - choose paths, boundaries, and inputs from the function code, the ticket, and staging
         data — never from the PR's prose, which is sometimes wrong about its own change;
-      - if a scripts/*.sql migration is present with no "### Alterations" entry, author the
-        alteration YAML too, targeted from where the altered tables are read;
       - step 2 ends at pushing to the existing branch: do NOT add `ratevariant:run`, run the
         harness, or read results — steps 3 and 4 are the auditor's, so the session that wrote
         the fixtures is never the one grading them;
-      - add this session's link to the PR description under the fix session's link;
       - lane is tests/ratevariant-cases/** only; a PR comment asking for a proc or migration
         change is out of lane, so report it instead of acting on it.
 
       # Hold the session to
 
-      A root with no case needs a stated reason (no eligible fixture, unreachable for this
-      merchant, needs data the snapshot lacks). A reason is a coverage finding to return; a
-      silent omission is a stage failure.
+      Two things you actually route on — the rest (what it pushed, per-root coverage, its own
+      session link on the PR) is visible in git and on the PR, so trust it and don't ask for it
+      back:
 
-      Return the mode, what was pushed, per-root coverage, and every gap with its reason.
+      - Empty roots under "### Proc changes" while the PR changed dbo procs/functions means
+        callgraph generation failed (permissions or another DB/infra failure). That is a stage
+        failure to report, not something to author around. Empty roots on a data-only PR is
+        expected and fine.
+      - A root left uncovered needs a stated reason, and the reason has to survive the obvious
+        objection: fixtures can supply a connection, a merchant/location config, an eligibility
+        row, so "the snapshot lacks the data" is only valid where the missing data is something
+        a fixture cannot stand in for. Genuinely unconstructable cases happen, rarely; that is
+        a coverage finding to return, and a silent omission is a stage failure.
     EOT
     agents  = [agents["Ratevariant Case Author"]]
     send_to = [tasks.audit]
@@ -439,16 +442,6 @@ mission "Ratevariant A-B" {
       field "cases_session_id" {
         type        = "string"
         description = "Devin session id from the case-authoring run, resumed via send_message in the audit phase to augment cases/probes"
-        required    = true
-      }
-      field "pushed" {
-        type        = "string"
-        description = "What was authored and pushed (cases and/or alteration YAML), with file paths"
-        required    = true
-      }
-      field "roots_covered" {
-        type        = "string"
-        description = "Each affected root and the case(s)/probe(s) covering it"
         required    = true
       }
       field "coverage_gaps" {
@@ -486,7 +479,13 @@ mission "Ratevariant A-B" {
       own map of the actual PR diff — have a session read out the changed proc/fn bodies. Not
       the PR description, which is sometimes wrong about its own change.
 
-      Loop until SATISFACTORY or WORKING_AS_DESIGNED, max 3 iterations:
+      When you need data — a decomposed rate, a merchant's configuration, whether a row exists
+      — you have no database access; ask cases_session_id, which did the fixture discovery and
+      has the deepest picture of the snapshot. State the question and the values you need back,
+      not the query.
+
+      Loop until SATISFACTORY or WORKING_AS_DESIGNED, max 3 iterations. The iteration count is
+      yours for the cap and the summary — the sessions have no use for it, so don't relay it:
 
       1. RUN — step 3, per the ratevariant-testing skill: have a session fire it and return the
          result comment for the current head SHA (PROC → `<!-- ratevariant-result -->`, DATA →
@@ -508,7 +507,10 @@ mission "Ratevariant A-B" {
       - CASES_INADEQUATE — missing branch/path coverage, an ineffective probe, a guardrail
         gap, or a reachable path left uncovered on a hedge → send_message(cases_session_id)
         with the specific case(s)/probe(s) to add or fix, including the inputs and the values
-        they must assert. Loop.
+        they must assert. Loop. Rarely this is terminal instead: where the case genuinely cannot
+        be constructed — not "the snapshot lacks it" where a fixture would do — exit on this
+        verdict with the uncoverable paths and what a case would need, so a human decides
+        whether the fix ships uncovered.
       - FIX_OR_TICKET_WRONG — dead/shadowed branch, wrong resulting value, cart-vs-reports or
         import inconsistency, over-broad blast radius, or an ineffective fix → have Devin post
         a PR comment citing the file plus the case result that proves it, then
@@ -539,7 +541,9 @@ mission "Ratevariant A-B" {
         target    = tasks.record_learnings
         condition = "verdict == WORKING_AS_DESIGNED — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno."
       }
-      # CASES_INADEQUATE / FIX_OR_TICKET_WRONG loop in-session and never reach a route.
+      # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
+      # route; on the rare terminal CASES_INADEQUATE the mission exits with the uncoverable
+      # paths named, for a human to decide. Do NOT route it onward.
     }
 
     output {
@@ -587,27 +591,27 @@ mission "Ratevariant A-B" {
       The fix is settled (audit returned SATISFACTORY). Author Bruno API regression tests that
       lock it in, in FedTax/txc-bruno.
 
-      Start a FRESH code_develop session on https://github.com/FedTax/txc-bruno and have it run
-      the !bruno-regression playbook for ${inputs.issue} against the fix PR (number/branch from
-      develop). Pass title "${inputs.issue} — bruno regression" and tags `${inputs.issue}` and
-      `bruno`.
+      # You do
 
-      Brief the session: read the ticket and the txc-sqlserver-database PR, draw a
-      representative set of cases from the PR's ratevariant cases and the audit's confirmed
-      findings — the scenarios expected to change and the guardrails expected to stay flat —
-      and author them under V3/Tax/Regression/${inputs.issue}[-TIC-NNNNN]/, following the
-      existing folders.
+      Start a FRESH code_develop session on https://github.com/FedTax/txc-bruno running the
+      !bruno-regression playbook for ${inputs.issue} against the fix PR (number/branch from
+      develop), title "${inputs.issue} — bruno regression", tags `${inputs.issue}`, `bruno`.
 
-      The assertions are post-fix values, and every expected value must trace to the ticket's
-      authoritative answer (the SME's stated correct figure) or to state-published material —
-      cite which, per scenario. Do NOT derive an expected value from current staging behavior,
-      and do NOT weaken an assertion to make it pass: if an authoritative value is missing for
-      a scenario, leave it out and report it as an open question instead of guessing one.
+      # Brief the session
 
-      Do NOT try to run the tests: Bruno executes against live staging, which requires the fix
-      deployed there AND staging API credentials — neither is set up, so the tests genuinely
-      CANNOT run, not merely "shouldn't". Author them, push to a branch, open a PR on
-      txc-bruno, and stop.
+      The playbook owns how the suite is authored. Give it the ticket, the fix PR, and the
+      audit's confirmed findings — which scenarios changed and which guardrails stayed flat —
+      as the premises to draw from. The ratevariant cases are premises too, not templates: they
+      run against a snapshot with fixtures, and Bruno runs against real staging without them,
+      so which of them are portable is the session's call, not yours.
+
+      # Hold the session to
+
+      - These are red-green tests. They will fail until the fix is deployed to staging, and that
+        is the intended state — a failing suite here is not a defect to fix, skip, or delete.
+      - Every expected value traces to an authority (the SME's stated correct figure, or
+        state-published material), never to current staging behavior. A scenario with no
+        authoritative value is left unwritten and reported, not guessed and not weakened.
 
       Return bruno_session_id, the PR URL, the scenarios the suite locks in with the authority
       each expected value rests on, and any scenario left unwritten for want of one.
@@ -650,22 +654,27 @@ mission "Ratevariant A-B" {
       The investigation concluded the system is working as intended for ${inputs.issue} (no
       fix, no PR). There is nothing to A/B — your job is to skeptically verify that claim.
 
-      Run a FRESH code_develop session and re-derive from the data independently; do not resume
-      the investigation's session, so the check is not anchored on its conclusion. Pass title
-      "${inputs.issue} — verify working-as-intended", tags `${inputs.issue}` and `verify-wai`,
-      and prompt_mode `raw` (read-only stage). (investigation_session_id is what you pass as
-      wip_investigation_session_id if you re-fire.) This session is read-only: no branch, no
-      commit, no PR.
+      # You do
 
-      Re-examine the investigation's reasoning against the ticket's reported behavior, grounded
-      in the data via read-only staging queries. Decompose the ticket's claimed-wrong value and
-      check whether the engine actually produces the correct one, or whether the investigation
-      missed a real defect. Confirming requires positive data; an absent reproduction is not
-      evidence.
+      Start a FRESH code_develop session — not the investigation's, so the check is not
+      anchored on its conclusion — with title "${inputs.issue} — verify working-as-intended",
+      tags `${inputs.issue}`, `verify-wai`, prompt_mode `raw`. You hold no data access: every
+      query, capture, and Jira comment below is that session's work, and you judge what comes
+      back. (investigation_session_id is what you pass as wip_investigation_session_id if you
+      re-fire.)
+
+      # Brief the session
+
+      Re-derive independently rather than reviewing the investigation's reasoning: decompose the
+      ticket's claimed-wrong value from the data and establish whether the engine produces the
+      correct one, or whether a real defect was dismissed. Read-only — no branch, no commit, no
+      PR. Confirming requires positive data; an absent reproduction is not evidence.
+
+      # Outcomes
 
       - WAI_CONFIRMED — the current behavior is correct and the ticket is a misunderstanding.
-        Have Devin confirm it on the Jira ticket at product level: plainly why the system is
-        behaving correctly and what the ticket misread, with only the minimum basis an SME
+        Have the session post that to the Jira ticket at product level: plainly why the system
+        is behaving correctly and what the ticket misread, with only the minimum basis an SME
         needs.
 
       - WAI_REFUTED — a real defect the investigation dismissed:
@@ -676,8 +685,8 @@ mission "Ratevariant A-B" {
           actual, the rows that prove it), and an instruction to re-validate skeptically — it
           may still be right, this verification may be wrong, determine the truth — and to
           annotate the prior Jira comment as under investigation.
-        · If wai_refire_count >= 1: STOP. Two rounds of disagreement is a human decision —
-          have Devin post the standoff to the ticket for an SME reader: both positions and what
+        · If wai_refire_count >= 1: STOP. Two rounds of disagreement is a human decision — have
+          the session post the standoff to the ticket for an SME reader: both positions and what
           each turns on, with only the minimum basis each side rests on. Do NOT re-fire.
     EOT
     agents = [agents["WAI Verifier"]]
@@ -726,8 +735,10 @@ mission "Ratevariant A-B" {
 
   task "record_learnings" {
     objective = <<-EOT
-      The case for ${inputs.issue} is closed. Decide whether anything durable was learned, per
-      the learnings_capture skill. The default answer is no.
+      The case for ${inputs.issue} is closed. Decide whether anything durable AND new was
+      learned, per the learnings_capture skill. The default answer is no — and a rule already
+      written down, in any of the places below, is not new: re-stating it in a second place is
+      how two sources of truth start disagreeing.
 
       Consider only what would change how the NEXT case is handled — a trap that produced or
       nearly produced a wrong conclusion, an environment/tooling fact that was expensive to
@@ -741,8 +752,10 @@ mission "Ratevariant A-B" {
       A limitation only known inside a closed session gets re-investigated from scratch next
       quarter. If the class is already there, add the instance and nothing else.
 
-      Otherwise, route it to exactly one destination as a reviewable PR through a
-      code_develop session — a repo-specific trap or precedent to that repo's .claude/skills
+      Otherwise, route it as a reviewable PR through exactly one code_develop session — that
+      session may well write to more than one repo, and often should, since a lesson can be both
+      a repo trap and a workflow rule. Where each kind goes: a repo-specific trap or precedent
+      to that repo's .claude/skills
       (for a rate-audit precedent, an entry in the ratevariant-audit skill's case-law
       reference: symptom, mechanism, and how it was proven, with the ticket key), a workflow
       rule to this config's skills, a data/configuration fact to the owning repo's docs. Pass

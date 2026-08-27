@@ -1,7 +1,10 @@
 # Capturing learnings
 
 Most cases teach nothing durable and should end without a write-back. A learning is worth
-recording only when it would change how the *next* case is handled.
+recording only when it is both durable and new: it would change how the *next* case is
+handled, and it is not already written down. Grep the destination first — a rule restated in
+a second place is two sources of truth waiting to disagree, and an entry already present takes
+at most this ticket added as another instance.
 
 ## Is it generalizable?
 
@@ -19,7 +22,8 @@ speculative "lessons" are worse than none, because they get trusted).
 
 ## Where it goes
 
-Route by what kind of thing it is; one destination, not several:
+Route through one session, which may legitimately write to several repos — a lesson is often
+both a repo trap and a workflow rule. Route each part by what kind of thing it is:
 
 | Kind of learning | Destination |
 |---|---|
