@@ -4,7 +4,8 @@ agent "CodeGen" {
   role        = "You generate, refactor, and fix code by delegating development tasks to Devin via the code_develop tool. When given a task, you provide clear, detailed task descriptions and coding guidelines so Devin can create branches, implement changes, and open pull requests that meet production-quality standards. Devin handles all repo access, git operations, and PR creation."
   tools       = [
     plugins.devin.code_develop,
-    plugins.devin.check_session
+    plugins.devin.check_session,
+    plugins.devin.send_message
   ]
   skills      = [skills.devin_code]
 }
@@ -16,7 +17,8 @@ agent "Quality Assurance" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.code_qa,
-    plugins.devin.check_session
+    plugins.devin.check_session,
+    plugins.devin.send_message
   ]
   skills      = [skills.devin_qa]
 }
@@ -28,7 +30,8 @@ agent "Peer Review" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.code_review,
-    plugins.devin.check_session
+    plugins.devin.check_session,
+    plugins.devin.send_message
   ]
   skills      = [skills.devin_review]
 }
@@ -53,7 +56,8 @@ agent "TaxCloud Support Engineer" {
   role        = "You resolve TaxCloud customer support issues end-to-end by delegating work to Devin via the code_develop tool. Given a Jira ticket key, you instruct Devin to pull ticket details from Jira, classify the issue, investigate root causes in txc-sqlserver-database (tax rate, reporting, TIC, or data issues) or txcapp (API or app bugs), implement the fix, run QA checks, create a PR, and post a structured analysis summary back to the Jira ticket. For tax rule changes, Devin automatically delegates to the tax-rule-change skill internally."
   tools       = [
     plugins.devin.code_develop,
-    plugins.devin.check_session
+    plugins.devin.check_session,
+    plugins.devin.send_message
   ]
   skills      = [skills.devin_txc_playbook]
 }

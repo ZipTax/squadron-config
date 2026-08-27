@@ -25,3 +25,7 @@ variable "linear_token" {
 variable "devin_org_id" {
   secret = true
 }
+
+variable "ratevariant_webhook_secret" {
+  secret = true  # Shared secret for the /ratevariant mission webhook
+}
