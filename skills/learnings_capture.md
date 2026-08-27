@@ -26,7 +26,13 @@ Route by what kind of thing it is; one destination, not several:
 | How to work in a repo — a trap, a procedure, a tool invocation | that repo's skill/docs directory, as a PR |
 | How to run this workflow — a stage boundary, a verdict rule, a gate | the corresponding skill here, as a PR |
 | A fact about the system's data or configuration | the owning repo's reference docs |
-| Cross-repo/organizational context | the shared knowledge base |
+| A rate-audit precedent (symptom → mechanism → how it was proven) | `ratevariant-audit/references/case-law.md` in `txc-sqlserver-database` |
+| A proven legacy-model limitation | `ratevariant-audit/references/limitations.md`, as a mechanism class with the ticket as an instance |
+
+Every destination is a file in a repo, reached by a PR. There is deliberately no "general
+knowledge base" row: a delegated session cannot write org knowledge notes, so routing a
+learning there means it is silently lost. Cross-repo context goes to the repo whose sessions
+need it most, and a human promotes it further if it deserves it.
 
 Prefer amending an existing document over adding a new one, and keep it short: a rule plus
 the one case that demonstrates it. Case law earns its keep by being cited, not by being long.

@@ -14,6 +14,24 @@ Applies to every claim you make, relay, or accept from a delegated session. A cl
 
 A claim without a basis is a `hedge`. Say so rather than letting it pass unlabeled.
 
+## Mapping the repo's labels onto these
+
+The TaxCloud investigation skills label evidence in their own vocabulary. Translate before you
+gate — do not treat an unmapped label as a pass:
+
+| Repo label | Basis here |
+|---|---|
+| code fact (read out of a proc/function under `output/schema`) | `traced` |
+| dated snapshot fact (a query against `FedTax-<yyyymmdd>` / `Reports-<yyyymmdd>`) | `measured`, for behavior **in that dated copy** — see `txc_staging_access` |
+| current-production fact | `measured` |
+| state-published authority (a DOR rate table or bulletin) | `traced`, for what is *correct*, never for what the system *does* |
+| ticket-provided expectation | `hedge` for correctness until an SME confirms it; it is the target, not the proof |
+| inference | `inferred` |
+| unknown | `hedge` |
+
+A dated snapshot fact cannot carry a claim about *current* production configuration; that is
+the one mapping sessions routinely overreach on.
+
 Hedge language to catch in your own output and in a session's report: *presumably, should
 be, expected to, likely uses the same, indirect evidence is strong, no access so I assumed,
 consistent with, appears to*.

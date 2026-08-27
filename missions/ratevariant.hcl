@@ -160,6 +160,12 @@ mission "Ratevariant A-B" {
       to (a wrong CA rate reads as a ZIP+4 boundary patch and is really a sourcing-model
       question). A proven ordinary mechanism is an ordinary fix regardless of the label.
 
+      The playbook emits the routing verdict itself, in its structured output, alongside the
+      question-matched verdict it reasons in (`Discrepancy explained` etc.) and the mapping it
+      used. Read it from check_session rather than re-deriving one from the prose summary; a
+      structured verdict absent from a finished session is a stage failure, not an invitation
+      to interpret.
+
       Verdict, exactly one:
       - DEFECT_PROVEN — the divergence is located and its mechanism is traced. Return the
         affected roots and the disposition; the fix stage will be briefed with them.
@@ -171,9 +177,9 @@ mission "Ratevariant A-B" {
         close it (the query, the capture, the transaction id, the authoritative answer needed
         from the ticket's SMEs), then stop: a human decides.
 
-      Have Devin post one product-level comment on the ticket for its SME readers — the
-      customer-facing issue as understood, briefly what was found, and what needs confirming.
-      Proc traces and raw queries stay in the session.
+      Have Devin post one product-level comment on the ticket for its SME readers, per the
+      sme_writeback skill's format — the customer-facing issue as understood, briefly what was
+      found, and what needs confirming. Proc traces and raw queries stay in the session.
 
       Return investigation_session_id and a one-line summary regardless of verdict.
     EOT
@@ -262,11 +268,13 @@ mission "Ratevariant A-B" {
     objective = <<-EOT
       A defect has been proven for ${inputs.issue} in ${inputs.repo_url}. Implement the fix.
 
-      Start a code_develop session and brief it with the investigation's result — the first
-      divergence, the disposition, the affected roots, and the evidence behind them — so it
-      implements against an established diagnosis instead of re-deriving one. Pass title
-      "${inputs.issue} — rate fix" and tags `${inputs.issue}` and `rate-fix`. This is the one
-      stage the default prompt_mode fits: it does branch, commit and open the PR.
+      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook, and
+      brief it with the investigation's result — the first divergence, the disposition, the
+      affected roots, and the evidence behind them — so it implements against an established
+      diagnosis instead of re-deriving one. Pass title "${inputs.issue} — rate fix", tags
+      `${inputs.issue}` and `rate-fix`, and prompt_mode `raw`: this stage does branch, commit
+      and open the PR, but the default prompt also tells it to add tests, which collides with
+      the lane below. The playbook owns the branch/commit/PR sequence instead.
 
       Scope: implement the proven disposition and nothing wider. If the code contradicts the
       diagnosis, stop and report that — do not improvise a different fix, and do not re-open
@@ -274,8 +282,15 @@ mission "Ratevariant A-B" {
 
       Lane: the fix only — procedures and functions under output/schema, and data migrations
       under scripts/. It must NEVER touch tests/ratevariant-cases/** (cases or alterations);
-      those belong to the case-authoring session. If the disposition is a data change, the
-      session authors the scripts/*.sql migration, not the mirroring alteration YAML.
+      those belong to the case-authoring session, which is a separate session on purpose:
+      finding eligible fixture data is a large discovery job with no bearing on the fix, and
+      carrying it here degrades both. If the disposition is a data change, the session authors
+      the scripts/*.sql migration, not the mirroring alteration YAML.
+
+      Every schema object exists as a prod and a staging copy, in both databases where the
+      logic is duplicated. All copies of a changed object must be edited: `ratevariant plan`
+      watches the -prod copies, so a staging-only edit gets no A/B, and a prod-only edit leaves
+      the mirror stale.
 
       Then have the session open the PR and add the label that lets A/B testing run, and
       confirm the label landed:
@@ -356,8 +371,11 @@ mission "Ratevariant A-B" {
       failed (permissions or another DB/infra failure) — stop and report instead of authoring
       blind. Empty roots on a data-only PR is expected.
 
-      Push to the existing branch. Then have Devin find the fix session's link in the PR
-      description and add this session's link immediately after it.
+      Push to the existing branch, and stop there: the session must NOT add the
+      `ratevariant:run` label or run the harness. Audit owns firing and interpreting the run,
+      so the session that wrote the cases is never the one grading them. Then have Devin find
+      the fix session's link in the PR description and add this session's link immediately
+      after it.
 
       Lane: tests/ratevariant-cases/** only. It must NOT edit output/schema or scripts/ — the
       fix session owns those. Any PR comment asking for a proc or migration change is out of
