@@ -268,7 +268,7 @@ mission "Ratevariant A-B" {
     objective = <<-EOT
       A defect has been proven for ${inputs.issue} in ${inputs.repo_url}. Implement the fix.
 
-      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook, and
+      Start a code_develop session on ${inputs.repo_url} running the !rate_fix playbook, and
       brief it with the investigation's result — the first divergence, the disposition, the
       affected roots, and the evidence behind them — so it implements against an established
       diagnosis instead of re-deriving one. Pass title "${inputs.issue} — rate fix", tags
