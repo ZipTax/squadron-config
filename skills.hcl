@@ -65,7 +65,7 @@ skill "learnings_capture" {
 # ---------------------------------------------------------------------------
 
 skill "txc_rate_audit" {
-  description  = "Load with ab_audit when auditing a TaxCloud tax-rate change. Cart/import/Reports-ETL must agree, assert TransactionsWide filing codes not just the rate, decompose expected values against StatesTaxMatrix/TDSData, and the DEV-8126/1927/7082 case law behind each rule."
+  description  = "Load with ab_audit when auditing a TaxCloud tax-rate change. What to demand back from the auditing session — cart/import/Reports-ETL agreement, TransactionsWide filing codes not just the rate, decomposed expected values — plus a pointer to the repo's ratevariant-audit skill and its case-law index, which hold the procedure and the precedents."
   instructions = load("./skills/txc_rate_audit.md")
 }
 

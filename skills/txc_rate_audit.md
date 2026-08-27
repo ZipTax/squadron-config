@@ -1,96 +1,37 @@
-# TaxCloud rate-change audit specifics
+# TaxCloud rate-change audit: what to demand back
 
-Load with `ab_audit`, which holds the general reasoning. This file is only what is specific
-to the TaxCloud tax engine, plus the case law that earned each rule.
+Load with `ab_audit`, which holds the general reasoning. The audit procedure and the case law
+that earned each rule live **in the repo**, where the acting session can load them:
 
-The acting session should load the repo's own skills — `ratevariant-testing`,
-`ratevariant-audit`, `query-staging-snapshot`, `write-taxcloud-sql-query` in
-`txc-sqlserver-database/.claude/skills/` — which carry the operational detail. Your copy is
-for judging what the session reports back.
+- `txc-sqlserver-database/.claude/skills/ratevariant-audit/SKILL.md` — the procedure.
+- `.../ratevariant-audit/references/case-law.md` — precedent index, grep-able by symptom.
+- `ratevariant-testing`, `query-staging-snapshot`, `write-taxcloud-sql-query` — mechanics.
 
-## The three surfaces must agree
+Instruct the auditing session to load `ratevariant-audit` and to grep the case law by symptom
+before diagnosing. Do not relay the procedure as prose; it will be stale and lossy.
 
-A rate change can span all three; check each and confirm they produce the same answer:
+You hold no data, so your job is judging what comes back. Refuse a verdict that doesn't
+answer these:
 
-| Surface | Entry point |
-|---|---|
-| cart | `spTransactionLookup` / `spTransactionLookup_nonssuta` |
-| import | `spImportOfflineTransactions` |
-| Reports / filing ETL | `spGenerateTransactionsWideForTx` → `fnGetTaxRatesforTx[_nonssuta]` |
+1. **Which paths?** cart (`spTransactionLookup[_nonssuta]`), offline import, and filing ETL
+   (`spGenerateTransactionsWideForTx` → `fnGetTaxRatesforTx[_nonssuta]`, FedTax *and* Reports
+   copies) are separate implementations. "Fixed in one copy of four" is this repo's most
+   repeated defect. An ETL no-op leaves the cart right and the **filing** wrong.
+2. **Which value, decomposed?** A diff is not a pass. The variant value must equal the
+   authoritative expected value, decomposed against `StatesTaxMatrix` / `TDSData(NonSsuta)`
+   — not against the PR description, which is sometimes wrong about its own data.
+3. **Filing codes too?** `TransactionsWide` `CityCode`/`CountyCode`, not only the total; a
+   right total remitted under the wrong jurisdiction is still a filing defect.
+4. **Every case classified?** primary positive (must differ, to the right number) vs guardrail
+   (must stay flat). A run with no guardrails was observed, not audited.
+5. **Every unexpected match diagnosed by mechanism?** shadowed / unreachable / not exercised /
+   masked — each has a different remedy, and "it needs a fixture" is a conclusion, not a
+   starting assumption. Fixtures apply to both arms, so a fixture can never create a diff.
+6. **Blast radius, in rows?** for a data change: what `apply` touches, what teardown removes,
+   who else reads those rows.
+7. **Was anything upgraded?** `failed` is a hard blocker and an incomplete run stays
+   incomplete. Never accept a pass that closes the loop over a run that didn't prove it.
 
-- Imports decide taxability from the **merchant-claimed** rate, the cart from the **computed**
-  rate. The same order can split differently, and an import branch can be reachable when the
-  cart's is not.
-- An ETL-side no-op leaves the cart corrected and the **filing** data wrong. TransactionsWide
-  is what gets remitted — always confirm the fix lands there, not only in the cart.
-- For non-SSUTA the cart calculation is inline and the ETL recalculation is a separate
-  implementation. Logic drift between them is a first-class suspect.
-
-## Assert codes, not just the rate
-
-The filing surface must carry the right tax-area **codes**. Assert TransactionsWide
-`CityCode` / `CountyCode` (driven by `TDSData(NonSsuta)` `FIPS_CITY` / `CITY_RPT_CODE` /
-`COUNTY_RPT_CODE`). A correct total can still remit under the wrong jurisdiction.
-
-> **DEV-8126.** After the rate was corrected to 9.75%, the override still filed under Pomona
-> (C03 / FIPS 58072) instead of unincorporated B47: it nulled `CITY_NAME` but kept the base
-> city's FIPS and rpt codes.
-
-## Decompose the expected value against the data
-
-Never accept a diff because it moved. Decompose the expected rate from the data and confirm
-the captured value equals it. If the ticket states a target, decompose that too — when the
-data contradicts the ticket, the answer is working-as-designed, not a fix to chase.
-
-> **DEV-8126.** The cart correctly moved 10.50% → 7.25%, but the target was 9.75%: the
-> override zeroed the entire 3.25% CITY bucket instead of only the 0.75% city portion,
-> dropping district tax that should have stayed.
-
-## No-diff diagnosis, with the local shapes
-
-> **DEV-1927 (shadowed).** The shipping `ISNULL(itemPriceTaxable,…)` sat after a
-> `WHEN ItemPrice > 0` that always won — dead until the WHENs were reordered.
-
-> **DEV-8126 (not exercised).** The transaction date predated the override's `PeriodStart`,
-> so neither arm consulted it — a false no-diff, fixed by patching the date into the window.
-
-> **DEV-7082 (unreachable).** Extending the IL date cutoff in `fnGetTaxSourceAddress_nonssuta`
-> was a no-op: `States.UseOriginSourcing = 1` for IL short-circuits the OR before the date
-> branch is evaluated. The branch is dead on current data, so the fix changes nothing.
-
-> **DEV-1927 (unreachable, not missing coverage).** "All items exempt → exempt shipping" was
-> gated on shipping `Rate > 0`, but follows-cargo already zeroes shipping when all items are
-> exempt — mutually exclusive, so the case cannot exist.
-
-> **DEV-7082 (fixture as signal).** Its working-as-intended conclusion began with "I need to
-> patch StatesTaxMatrix to get a diff" — the tell that the branch was dead rather than
-> untested.
-
-## Noise columns here
-
-`TransactionWideID`, `Created_Date` and other per-execution values belong in the capture's
-ignore list. Cases capture the root's full output by default, so a missing capture/column
-section is normal, not a coverage gap — the reporting codes above are present without any
-override.
-
-> **DEV-1927.** The reports case first surfaced only `Created_Date` / `TransactionWideID`
-> while the tax columns were identical — the change had not taken effect at all.
-
-## Ground every taxability claim in the data
-
-`StatesTaxMatrix`, `PostCalculateTICActions`, `TDSData(NonSsuta)`, `SSTIDs`, `Locations` —
-never intuition, and never the PR's prose, which is sometimes wrong about its own data.
-
-> **DEV-8126.** The PR asserted city tax was 0.75% in `CITY_SALES_TAX`; the row actually held
-> 3.25% with the district lumped in.
-
-Read column meanings from `output/schema`. Have the session query with indexed predicates
-(URLID + date), never a scan, via ratebench's `cmd/sqlprobe` rather than scaffolding a
-querier.
-
-## Data-change (alteration) PRs
-
-Blast radius must match the migration exactly: the targeted jurisdiction differs, adjacent
-ones — neighbouring plus4/zip, other periods — do not, and teardown reverts cleanly. Watch
-for jurisdiction **mislabeling**, a retained component filed under the wrong city or district,
-even when the total rate is right.
+Diffs consisting only of `Created_Date` / `TransactionWideID` / execution ids are not diffs.
+A merchant- or ZIP-scoped change can only diff for that member, so "1 of N differ" is the
+expected shape rather than thin coverage.

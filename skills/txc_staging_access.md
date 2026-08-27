@@ -26,9 +26,10 @@ through you.
 
 ## Querying
 
-Read-only, bounded, indexed. The repo's `write-taxcloud-sql-query` skill produces the query
-and `query-staging-snapshot` executes it with ratebench's `cmd/sqlprobe`; have the session load
-both rather than improvising SQL or scaffolding a querier.
+Read-only, bounded, indexed — but none of the how is yours. The repo owns it: have the session
+load `write-taxcloud-sql-query` (produces the scoped query) and `query-staging-snapshot`
+(executes it with ratebench's `cmd/sqlprobe`, and documents the date/index traps) rather than
+improvising SQL or scaffolding a querier. Relaying query advice from here produces stale SQL.
 
 The session's login is read-only and cannot reach the canonical databases the ratevariant
 deploy/run/cleanup commands default to. Those mutate shared staging and are driven through the
