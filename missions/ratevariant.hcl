@@ -151,6 +151,15 @@ mission "Ratevariant A-B" {
         change, or unsupported at the available granularity;
       - the explicit unknowns.
 
+      Also have it check the repo's `ratevariant-audit/references/limitations.md`, which names the
+      mechanism classes this engine structurally cannot express (Jira label `new-rate-engine`).
+      A proven match there is a terminal answer: disposition `unsupported at available
+      granularity`, no fix, and the mission ends with the limitation stated for the ticket's SMEs.
+      It is a short-circuit, not a shortcut — the mechanism still has to be established from data
+      at the ticket's scope, because these symptoms routinely resemble a class they don't belong
+      to (a wrong CA rate reads as a ZIP+4 boundary patch and is really a sourcing-model
+      question). A proven ordinary mechanism is an ordinary fix regardless of the label.
+
       Verdict, exactly one:
       - DEFECT_PROVEN — the divergence is located and its mechanism is traced. Return the
         affected roots and the disposition; the fix stage will be briefed with them.
@@ -173,7 +182,7 @@ mission "Ratevariant A-B" {
     router {
       route {
         target    = tasks.develop
-        condition = "verdict == DEFECT_PROVEN and evidence_complete == true — a located, traced defect with a disposition, so implement the fix."
+        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and disposition != 'unsupported at available granularity' — a located, traced defect this system can actually express, so implement the fix."
       }
       route {
         target    = tasks.verify_wai
@@ -181,6 +190,12 @@ mission "Ratevariant A-B" {
       }
       # EVIDENCE_INCOMPLETE → no route: the mission completes with the missing
       # evidence named, for a human to supply. Do NOT route it onward.
+      #
+      # disposition == unsupported at available granularity → no route either. The
+      # mechanism is proven and the current engine cannot express the remedy (the
+      # new rate engine owns it, and has no authoring process yet), so the
+      # limitation IS the deliverable. Routing it to develop buys a clean-looking
+      # diff that papers over a modelling gap at state-wide blast radius.
     }
 
     output {
@@ -201,7 +216,7 @@ mission "Ratevariant A-B" {
       }
       field "disposition" {
         type        = "string"
-        description = "Remediation disposition when a defect is proven: existing data/configuration change | procedure/function change | unsupported at available granularity. Blank otherwise."
+        description = "Remediation disposition when a defect is proven: existing data/configuration change | procedure/function change | unsupported at available granularity. The last is terminal — it means the proven mechanism is one this engine cannot express, and no fix follows. Blank otherwise."
         required    = false
       }
       field "first_divergence" {

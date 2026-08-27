@@ -4,11 +4,24 @@ Load with `ab_audit`, which holds the general reasoning. The audit procedure and
 that earned each rule live **in the repo**, where the acting session can load them:
 
 - `txc-sqlserver-database/.claude/skills/ratevariant-audit/SKILL.md` — the procedure.
-- `.../ratevariant-audit/references/case-law.md` — precedent index, grep-able by symptom.
+- `.../ratevariant-audit/references/case-law.md` — proven precedents, grep-able by symptom.
+- `.../ratevariant-audit/references/limitations.md` — tickets deferred to the new rate engine
+  (Jira label `new-rate-engine`), plus open tickets whose mechanism is still a claim.
 - `ratevariant-testing`, `query-staging-snapshot`, `write-taxcloud-sql-query` — mechanics.
 
 Instruct the auditing session to load `ratevariant-audit` and to grep the case law by symptom
 before diagnosing. Do not relay the procedure as prose; it will be stale and lossy.
+
+A `new-rate-engine` ticket has no correct fix in the legacy repo, so a clean-looking diff against
+one is the failure mode to watch for: the remedy belongs to the new rate engine, there is no
+authoring process there yet, and the honest terminal output is the limitation — treat it as a
+complete answer, not an escalation, and do not route it to `develop`.
+
+Demand the analysis anyway. A limitation is a short-circuit, not a shortcut past root cause: the
+session must prove the mechanism from data at the ticket's scope and show it is one of the classes
+that file names, because these symptoms routinely resemble a class they don't belong to (a wrong CA
+rate reads as a ZIP+4 boundary patch and is really a sourcing-model question). A proven ordinary
+mechanism is an ordinary fix regardless of the label.
 
 You hold no data, so your job is judging what comes back. Refuse a verdict that doesn't
 answer these:
