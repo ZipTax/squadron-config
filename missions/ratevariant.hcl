@@ -31,6 +31,15 @@ mission "Ratevariant A-B" {
   # these objectives carry only what is specific to THIS case. In-run loops run
   # audit <-> the owning Devin session via send_message. All credentialed I/O (gh,
   # PR/Jira comments, staging queries) is Devin's; secrets stay in Devin.
+  #
+  # Objective convention, because a stage that misreads who an instruction is for
+  # either does the session's job or relays its own constraints as the task:
+  #   "You" / "# You do"      -> this Squadron stage. Never touches a repo.
+  #   "the session" / "# Brief the session" -> text to put in the Devin task.
+  #   "# Hold the session to" -> what to check on return, not text to send.
+  # Repo mechanics are NOT restated here: the fix/cases/run/audit steps and their
+  # path ownership live in txc-sqlserver-database's ratevariant-testing skill
+  # (references/process.md), which the playbooks load. Cite the step; don't copy it.
   agents = [
     agents["Rate Investigator"],
     agents["Rate Fix Engineer"],
@@ -106,80 +115,93 @@ mission "Ratevariant A-B" {
       Establish, read-only, whether ticket ${inputs.issue} in ${inputs.repo_url} is a real
       defect, and if so where it originates. No fix is authored in this stage.
 
+      # Preconditions
+
       %{ if inputs.wai_challenge != "" ~}
       Re-validation context from a prior run:
       ${inputs.wai_challenge}
       Treat this as authoritative input, not as the answer: a previous attempt concluded
       working-as-intended and verify_wai challenged it. Re-derive from the data — the prior
-      conclusion may be right and the challenge may be wrong. Also have Devin annotate the
+      conclusion may be right and the challenge may be wrong. Brief the session to annotate the
       prior Jira comment(s) as under investigation.
       %{ endif ~}
 
       %{ if inputs.wip_investigation_session_id != "" ~}
-      First check_session(${inputs.wip_investigation_session_id}) — read-only, and Devin
-      usually leaves a summary, so the verdict is often already there. Only send_message when
-      there is something to do: nudge a stalled session, or prompt the re-validation above.
-      You MAY NOT request a new session. If the session is terminated or the id is invalid,
-      report failure so a human can correct it or start blank deliberately.
+      A session is already in flight. You call check_session(${inputs.wip_investigation_session_id})
+      first — Devin usually leaves a summary, so the verdict is often already there. Only
+      send_message when there is something to do: nudge a stalled session, or prompt the
+      re-validation above. You MAY NOT request a new session. If the session is terminated or
+      the id is invalid, report failure so a human can correct it or start blank deliberately.
       %{ else ~}
       %{ if inputs.stale_investigation_session_id != "" ~}
-      Read ${inputs.stale_investigation_session_id} for context ONLY — it is terminated, so
-      you cannot message it. Then start a new read-only code_develop session and brief it with
+      You read ${inputs.stale_investigation_session_id} for context ONLY — it is terminated, so
+      it cannot be messaged. Then start a new read-only code_develop session and brief it with
       what the prior session established, so it re-verifies rather than re-derives from zero.
       %{ else ~}
-      Start a code_develop session on ${inputs.repo_url} and have it run the
-      !rate_investigation playbook for ${inputs.issue}.
+      You start a code_develop session on ${inputs.repo_url} running the !rate_investigation
+      playbook for ${inputs.issue}.
       %{ endif ~}
       %{ endif ~}
 
-      Pass title "${inputs.issue} — rate investigation", tags `${inputs.issue}` and
-      `rate-investigation`, and prompt_mode `raw` — the default prompt tells the session to
-      branch, test, commit and open a PR, which is the opposite of this stage.
+      # You do
 
-      This session's lane is evidence, not change. Tell it plainly, in the task itself:
-      do NOT create a branch, do NOT commit, do NOT open a PR, do NOT edit any file in the
-      repo. Its deliverable is the investigation report and the Jira comment. If it offers a
-      fix, that is out of lane — the finding is what you want.
+      Create the session with title "${inputs.issue} — investigate <short description of the
+      reported behavior>" and tags `${inputs.issue}`, `rate-investigation`. The tags carry the
+      general terms; the title is what a human scans, so it names this ticket's actual subject.
+      Pass prompt_mode `raw` — the default prompt tells the session to branch, test, commit and
+      open a PR, which is the opposite of this stage.
 
-      The playbook owns the method. What you must hold it to on return:
-      - a verdict that answers the question the ticket actually asked, at the same scope
-        (same merchant, product, line, jurisdiction, component, period, execution path);
-      - the FIRST expected-versus-actual divergence, not just the wrong end value;
-      - a basis for every load-bearing claim, each one measured or traced with its citation;
-      - the affected roots (procedures/functions) and, for a data defect, the tables and rows;
-      - one remediation disposition: existing data/configuration change, procedure/function
-        change, or unsupported at the available granularity;
-      - the explicit unknowns.
+      # Brief the session
 
-      Also have it check the repo's `ratevariant-audit/references/limitations.md`, which names the
-      mechanism classes this engine structurally cannot express (Jira label `new-rate-engine`).
-      A proven match there is a terminal answer: disposition `unsupported at available
-      granularity`, no fix, and the mission ends with the limitation stated for the ticket's SMEs.
-      It is a short-circuit, not a shortcut — the mechanism still has to be established from data
-      at the ticket's scope, because these symptoms routinely resemble a class they don't belong
-      to (a wrong CA rate reads as a ZIP+4 boundary patch and is really a sourcing-model
-      question). A proven ordinary mechanism is an ordinary fix regardless of the label.
+      Put in the task text, in these words or close to them:
 
-      The playbook emits the routing verdict itself, in its structured output, alongside the
-      question-matched verdict it reasons in (`Discrepancy explained` etc.) and the mapping it
-      used. Read it from check_session rather than re-deriving one from the prose summary; a
-      structured verdict absent from a finished session is a stage failure, not an invitation
-      to interpret.
+      - Your lane is evidence, not change: do NOT create a branch, commit, open a PR, or edit
+        any file. The deliverable is the investigation report plus one Jira comment.
+      - Check `ratevariant-audit/references/limitations.md` for the mechanism classes this
+        engine structurally cannot express (the ones behind the `new-rate-engine` label). A
+        match is only a match once the mechanism is established from data at this ticket's
+        scope: the symptom does not tell you the class, and the same wrong CA rate can
+        genuinely be a ZIP+4 boundary problem or genuinely be a sourcing-model one. Where it
+        is an ordinary mechanism, it is an ordinary fix regardless of the ticket's labels.
+      - Emit the routing verdict in your structured output — DEFECT_PROVEN,
+        WORKING_AS_INTENDED, or EVIDENCE_INCOMPLETE — alongside the question-matched verdict
+        you reason in (`Discrepancy explained` etc.) and the mapping you used.
+      - Post one product-level Jira comment per the sme_writeback format. State it at the
+        strength the evidence carries: where the load-bearing claims are measured or traced
+        and the gates pass, say plainly what the data shows; where any of it is inference,
+        hedge and name what would settle it. Proc traces and raw queries stay in the session.
+      - If the disposition is that this engine cannot express the remedy, that is the
+        deliverable, and it still gets recorded on the ticket: post the comment stating the
+        limitation for the SMEs, apply the `new-rate-engine` label, and move the ticket to
+        Blocked. Do not author a fix to have something to show.
 
-      Verdict, exactly one:
-      - DEFECT_PROVEN — the divergence is located and its mechanism is traced. Return the
-        affected roots and the disposition; the fix stage will be briefed with them.
-      - WORKING_AS_INTENDED — positive data shows the current behavior is correct and the
-        ticket is a misunderstanding. This requires the decomposed correct value or the
-        precluding condition, never merely the absence of a reproduction.
-      - EVIDENCE_INCOMPLETE — you cannot reach either of the above. Do NOT soften this into
-        one of them. Set evidence_complete = false and name the exact artifacts that would
-        close it (the query, the capture, the transaction id, the authoritative answer needed
-        from the ticket's SMEs), then stop: a human decides.
+      # Hold the session to
 
-      Have Devin post one product-level comment on the ticket for its SME readers, per the
-      sme_writeback skill's format — the customer-facing issue as understood, briefly what was
-      found, and what needs confirming. Proc traces and raw queries stay in the session.
+      On return, check these before you route. A structured verdict absent from a finished
+      session is a stage failure, not an invitation to derive one from the prose summary.
+
+      - The verdict answers the question the ticket actually asked, at the same scope (same
+        merchant, product, line, jurisdiction, component, period, execution path).
+      - Every load-bearing claim is measured or traced, with its citation.
+      - The mechanism is named — what is wrong and where, which may be several sites in one
+        proc rather than a single line.
+      - The disposition is one of: data/configuration change, procedure/function change, both,
+        or unsupported at available granularity. Both is common and is not a hedge: "the rates
+        are wrong AND they are applied wrong" is two changes, and shipping one leaves the
+        ticket half-fixed.
+      - Unknowns are explicit.
+
+      # Outcomes
+
+      - DEFECT_PROVEN — mechanism traced. Its affected_roots are a briefing hint for the fix,
+        not the coverage checklist; the `ratevariant plan` comment derives that empirically
+        from the callgraph later.
+      - WORKING_AS_INTENDED — positive data shows current behavior is correct and the ticket is
+        a misunderstanding. Requires the decomposed correct value or the precluding condition,
+        never merely the absence of a reproduction.
+      - EVIDENCE_INCOMPLETE — neither of the above is reachable. Do NOT soften it into one of
+        them: set evidence_complete = false, name the exact artifacts that would close it (the
+        query, the capture, the transaction id, the answer needed from the SMEs), and stop.
 
       Return investigation_session_id and a one-line summary regardless of verdict.
     EOT
@@ -194,14 +216,12 @@ mission "Ratevariant A-B" {
         target    = tasks.verify_wai
         condition = "verdict == WORKING_AS_INTENDED — no defect claimed; send to verify_wai for an independent check of that claim."
       }
+      route {
+        target    = tasks.record_learnings
+        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md as another instance of its class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials — verify from its structured output that all three landed before routing, and report the stage failed if they did not."
+      }
       # EVIDENCE_INCOMPLETE → no route: the mission completes with the missing
       # evidence named, for a human to supply. Do NOT route it onward.
-      #
-      # disposition == unsupported at available granularity → no route either. The
-      # mechanism is proven and the current engine cannot express the remedy (the
-      # new rate engine owns it, and has no authoring process yet), so the
-      # limitation IS the deliverable. Routing it to develop buys a clean-looking
-      # diff that papers over a modelling gap at state-wide blast radius.
     }
 
     output {
@@ -222,17 +242,17 @@ mission "Ratevariant A-B" {
       }
       field "disposition" {
         type        = "string"
-        description = "Remediation disposition when a defect is proven: existing data/configuration change | procedure/function change | unsupported at available granularity. The last is terminal — it means the proven mechanism is one this engine cannot express, and no fix follows. Blank otherwise."
+        description = "Remediation disposition when a defect is proven: data/configuration change | procedure/function change | both | unsupported at available granularity. 'Both' is common — wrong rates that are also applied wrongly need a migration AND a proc change. The last is terminal: the proven mechanism is one this engine cannot express, so no fix follows and the ticket is labelled new-rate-engine and blocked. Blank otherwise."
         required    = false
       }
-      field "first_divergence" {
+      field "mechanism" {
         type        = "string"
-        description = "The first point where expected and actual part ways: the object/symbol, the input that reaches it, and both values."
+        description = "What is wrong and where expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both values. May legitimately be several sites in one object rather than a single line."
         required    = false
       }
       field "affected_roots" {
         type        = "string"
-        description = "Procedures/functions the defect implicates, and for a data defect the tables/rows — what the fix and the cases must cover."
+        description = "Procedures/functions the defect appears to implicate, and for a data defect the tables/rows. A briefing hint for the fix and a cross-check on coverage — NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
         required    = false
       }
       field "evidence" {
@@ -243,6 +263,11 @@ mission "Ratevariant A-B" {
       field "unknowns" {
         type        = "string"
         description = "What remains unproven, and for EVIDENCE_INCOMPLETE the exact artifacts that would close each gap."
+        required    = false
+      }
+      field "limitation_writeback" {
+        type        = "string"
+        description = "On the unsupported disposition only: which of the three ticket updates the session actually made — comment posted, new-rate-engine label applied, moved to Blocked — and the limitation class it matched. Blank otherwise; blank WITH an unsupported disposition is a stage failure, since the finding then exists only inside a session nobody reads."
         required    = false
       }
       field "investigation_session_id" {
@@ -266,39 +291,47 @@ mission "Ratevariant A-B" {
 
   task "develop" {
     objective = <<-EOT
-      A defect has been proven for ${inputs.issue} in ${inputs.repo_url}. Implement the fix.
+      A defect has been proven for ${inputs.issue} in ${inputs.repo_url}. Implement the fix —
+      step 1 of the ratevariant process (ratevariant-testing skill, references/process.md).
 
-      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook, and
-      brief it with the investigation's result — the first divergence, the disposition, the
-      affected roots, and the evidence behind them — so it implements against an established
-      diagnosis instead of re-deriving one. Pass title "${inputs.issue} — rate fix", tags
-      `${inputs.issue}` and `rate-fix`, and prompt_mode `raw`: this stage does branch, commit
-      and open the PR, but the default prompt also tells it to add tests, which collides with
-      the lane below. The playbook owns the branch/commit/PR sequence instead.
+      # You do
 
-      Scope: implement the proven disposition and nothing wider. If the code contradicts the
-      diagnosis, stop and report that — do not improvise a different fix, and do not re-open
-      the question of whether the ticket is valid; that was settled upstream.
+      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook, with
+      title "${inputs.issue} — fix <short description of what is being corrected>" and tags
+      `${inputs.issue}`, `rate-fix`. The tags carry the general terms; the title names this
+      ticket's actual subject, which is often jurisdictions, dates, or a sourcing quirk rather
+      than a rate. Pass prompt_mode `raw`: the playbook owns the branch/commit/PR sequence, and
+      the default prompt would also tell the session to add tests, which is step 2's lane.
 
-      Lane: the fix only — procedures and functions under output/schema, and data migrations
-      under scripts/. It must NEVER touch tests/ratevariant-cases/** (cases or alterations);
-      those belong to the case-authoring session, which is a separate session on purpose:
-      finding eligible fixture data is a large discovery job with no bearing on the fix, and
-      carrying it here degrades both. If the disposition is a data change, the session authors
-      the scripts/*.sql migration, not the mirroring alteration YAML.
+      # Brief the session
 
-      Every schema object exists as a prod and a staging copy, in both databases where the
-      logic is duplicated. All copies of a changed object must be edited: `ratevariant plan`
-      watches the -prod copies, so a staging-only edit gets no A/B, and a prod-only edit leaves
-      the mirror stale.
+      Give it the investigation's result — the mechanism, the disposition, the affected roots,
+      and the evidence behind them — so it implements against an established diagnosis instead
+      of re-deriving one. Then, in the task text:
 
-      Then have the session open the PR and add the label that lets A/B testing run, and
-      confirm the label landed:
-        gh pr edit <pr> --add-label ratevariant
-        gh pr view <pr> --json number,url,headRefName,labels
+      - You own step 1 only: the procedure/function change under output/schema and/or the data
+        migration under scripts/. Do NOT add anything under tests/ — case authoring is step 2
+        and needs extensive fixture discovery that has no bearing on this fix.
+      - Implement the briefed disposition, including both halves when it is both a data and a
+        proc change. Nothing wider.
+      - Edit every copy of a changed object (prod and staging, both databases where the logic
+        is duplicated); `ratevariant plan` only watches the -prod copies.
+      - Open the PR, add the `ratevariant` label so plan runs, and confirm it landed:
+          gh pr edit <pr> --add-label ratevariant
+          gh pr view <pr> --json number,url,headRefName,labels
+
+      # Hold the session to
+
+      If the reported fix does not line up with what the ticket asks for and the session gives
+      no sound reason for the difference, push back: ask it to confirm the change actually
+      addresses the ticket's ask, and cite the mismatch you see. Take its reasoning if it has
+      one — it is reading the code and you are not — and record the disagreement in
+      diagnosis_contradicted either way.
+
+      Fail the stage if no PR exists at the end. Do not report success without one.
 
       Return the PR URL, number, head branch, develop_session_id, and a one-line summary of
-      what changed. If no PR exists at the end, fail — do not report success without one.
+      what changed.
     EOT
     agents  = [agents["Rate Fix Engineer"]]
     send_to = [tasks.author_tests]
@@ -350,39 +383,49 @@ mission "Ratevariant A-B" {
 
   task "author_tests" {
     objective = <<-EOT
-      Author the ratevariant tests for the PR (number/branch from develop) on the EXISTING
-      branch. Pass title "${inputs.issue} / PR #<n> — ratevariant cases", tags
-      `${inputs.issue}` and `rate-cases`, and prompt_mode `raw` — the default prompt would have
-      it cut a second branch and open a second PR.
+      Author the ratevariant cases for the PR (number/branch from develop) on the EXISTING
+      branch — step 2 of the ratevariant process (ratevariant-testing skill,
+      references/process.md).
 
-      Have Devin wait for the latest `ratevariant plan` at the head SHA to finish, fetch the
-      `<!-- ratevariant-plan -->` comment, and run the !ratevariant-cases playbook covering
-      the affected roots it lists under "### Proc changes". Brief the roots, the investigation's
-      first divergence, and the shape of the change — then let the playbook and the session's
-      own analysis choose the paths, boundaries, and inputs, grounded in the function code, the
-      ticket, and staging data, never in the PR's prose.
+      # Preconditions
 
-      The "### Alterations" entry may be absent. If a scripts/*.sql data migration is present
-      with no alterations file, also author the alteration YAML so the data change gets tested;
-      for targeting, inspect where the altered tables are read and choose jurisdictions,
-      products, and inputs from that.
+      Have the session read the `<!-- ratevariant-plan -->` comment for the current head SHA
+      before anything else. If the roots under "### Proc changes" are empty while the PR did
+      change dbo procs/functions, callgraph generation failed (permissions or another DB/infra
+      failure): stop and report rather than author blind. Empty roots on a data-only PR is
+      expected and fine.
 
-      If the roots list is empty but the PR changed dbo procs/functions, callgraph generation
-      failed (permissions or another DB/infra failure) — stop and report instead of authoring
-      blind. Empty roots on a data-only PR is expected.
+      # You do
 
-      Push to the existing branch, and stop there: the session must NOT add the
-      `ratevariant:run` label or run the harness. Audit owns firing and interpreting the run,
-      so the session that wrote the cases is never the one grading them. Then have Devin find
-      the fix session's link in the PR description and add this session's link immediately
-      after it.
+      Start a code_develop session running the !ratevariant-cases playbook, title
+      "${inputs.issue} / PR #<n> — cases for <short description>", tags `${inputs.issue}`,
+      `rate-cases`, prompt_mode `raw` — the default prompt would cut a second branch and open a
+      second PR. Capture cases_session_id for the audit phase.
 
-      Lane: tests/ratevariant-cases/** only. It must NOT edit output/schema or scripts/ — the
-      fix session owns those. Any PR comment asking for a proc or migration change is out of
-      its lane; tell it to ignore such comments rather than act on them.
+      # Brief the session
 
-      Capture cases_session_id from the code_develop response for the audit phase. Return the
-      mode, what was pushed, per-root coverage, and any gap with the reason the session gave.
+      The playbook owns which cases to write; give it what only this run knows:
+
+      - the plan comment's roots are the coverage checklist, and the investigation's mechanism
+        and disposition, so it knows what the change was meant to do;
+      - choose paths, boundaries, and inputs from the function code, the ticket, and staging
+        data — never from the PR's prose, which is sometimes wrong about its own change;
+      - if a scripts/*.sql migration is present with no "### Alterations" entry, author the
+        alteration YAML too, targeted from where the altered tables are read;
+      - step 2 ends at pushing to the existing branch: do NOT add `ratevariant:run`, run the
+        harness, or read results — steps 3 and 4 are the auditor's, so the session that wrote
+        the fixtures is never the one grading them;
+      - add this session's link to the PR description under the fix session's link;
+      - lane is tests/ratevariant-cases/** only; a PR comment asking for a proc or migration
+        change is out of lane, so report it instead of acting on it.
+
+      # Hold the session to
+
+      A root with no case needs a stated reason (no eligible fixture, unreachable for this
+      merchant, needs data the snapshot lacks). A reason is a coverage finding to return; a
+      silent omission is a stage failure.
+
+      Return the mode, what was pushed, per-root coverage, and every gap with its reason.
     EOT
     agents  = [agents["Ratevariant Case Author"]]
     send_to = [tasks.audit]
@@ -427,33 +470,35 @@ mission "Ratevariant A-B" {
 
   task "audit" {
     objective = <<-EOT
-      Own the A/B verdict for the PR (branch, number, mode from prior outputs). Skip if
-      nothing was pushed since the last run.
+      Own the A/B verdict for the PR (branch, number, mode from prior outputs) — steps 3 and 4
+      of the ratevariant process, which are one owner's on purpose so the session that wrote
+      the fixtures is never the one grading them. Skip if nothing was pushed since the last run.
+
+      # You do
 
       Three sessions are open and each owns a lane: investigation_session_id (the evidence),
       develop_session_id (the fix), cases_session_id (the cases). Do ALL Devin work through
-      them via send_message and check_session — the A/B run, your staging queries, and every
-      routed fix. Never open a new session and never run a code_qa review: your judgment stays
+      them via send_message and check_session — the run, your staging queries, and every routed
+      fix. Never open a new session and never run a code_qa review: your judgment stays
       independent, but the work runs in the session that owns it.
 
-      Anchor your predictions in the investigation's first divergence and required outcome
-      plus your own map of the actual PR diff — read the changed proc/fn bodies. Not the PR
-      description, which is sometimes wrong about its own change.
+      Anchor your predictions in the investigation's mechanism and required outcome plus your
+      own map of the actual PR diff — have a session read out the changed proc/fn bodies. Not
+      the PR description, which is sometimes wrong about its own change.
 
       Loop until SATISFACTORY or WORKING_AS_DESIGNED, max 3 iterations:
 
-      1. RUN — have Devin wait for the latest `ratevariant plan` at the head SHA to pass, then
-         add the `ratevariant:run` label to fire the run, wait for it, and return the result
-         comment for the current SHA (PROC → `<!-- ratevariant-result -->`, DATA →
-         `<!-- ratevariant-alter-result -->`). The plan passing proves NOTHING about behavior;
-         only the per-case captures validate. The run workflow removes `ratevariant:run` each
-         time (the `ratevariant` plan gate persists), so each iteration: wait for the new head
-         SHA's plan to pass, then re-add the label.
+      1. RUN — step 3, per the ratevariant-testing skill: have a session fire it and return the
+         result comment for the current head SHA (PROC → `<!-- ratevariant-result -->`, DATA →
+         `<!-- ratevariant-alter-result -->`). Plan passing proves NOTHING about behavior; only
+         the per-case captures validate.
 
-      2. AUDIT — per the ab_audit and txc_rate_audit skills. Classify every case as primary
-         positive or guardrail before you look, prove each value is RIGHT rather than merely
-         present, and diagnose every unexpected no-diff (shadowed / unreachable /
+      2. AUDIT — step 4, per the ab_audit and txc_rate_audit skills. Classify every case as
+         primary positive or guardrail before you look, prove each value is RIGHT rather than
+         merely present, and diagnose every unexpected no-diff (shadowed / unreachable /
          not-exercised / masked) with data before concluding anything.
+
+      # Outcomes
 
       Exit on exactly one verdict:
       - SATISFACTORY — intended diffs present, each to the correct value, guardrails flat, all
@@ -674,8 +719,9 @@ mission "Ratevariant A-B" {
 
   # ---------------------------------------------------------------------------
   # Task — record_learnings. Terminal. Reached from bruno_tests (send_to), from
-  # audit's WORKING_AS_DESIGNED, and from verify_wai's WAI_CONFIRMED. Most runs
-  # record nothing, and that is a valid outcome.
+  # audit's WORKING_AS_DESIGNED, from verify_wai's WAI_CONFIRMED, and from
+  # investigate's unsupported disposition. Most runs record nothing, and that is
+  # a valid outcome.
   # ---------------------------------------------------------------------------
 
   task "record_learnings" {
@@ -688,13 +734,21 @@ mission "Ratevariant A-B" {
       discover, or a documented-vs-actual behavior mismatch. The outcome of this ticket is not
       a learning: it already lives on the ticket and the PR.
 
-      When there is one, route it to exactly one destination as a reviewable PR through a
+      One entry point is not discretionary: arriving here from investigate's unsupported
+      disposition means a proven instance of a mechanism class the engine cannot express, so it
+      is recorded in the ratevariant-audit skill's limitations reference — stated as the class,
+      with this ticket as an instance under it, and with the data that proved the class applies.
+      A limitation only known inside a closed session gets re-investigated from scratch next
+      quarter. If the class is already there, add the instance and nothing else.
+
+      Otherwise, route it to exactly one destination as a reviewable PR through a
       code_develop session — a repo-specific trap or precedent to that repo's .claude/skills
       (for a rate-audit precedent, an entry in the ratevariant-audit skill's case-law
       reference: symptom, mechanism, and how it was proven, with the ticket key), a workflow
       rule to this config's skills, a data/configuration fact to the owning repo's docs. Pass
-      title "${inputs.issue} — record learnings" and tags `${inputs.issue}` and `learnings`. Prefer amending an existing document; keep it to
-      the rule plus the one case that demonstrates it.
+      title "${inputs.issue} — record <the learning, in a few words>" and tags
+      `${inputs.issue}`, `learnings`. Prefer amending an existing document; keep it to the rule
+      plus the one case that demonstrates it.
 
       Every recorded learning must be citable — the case result, capture, or query that
       establishes it. An uncitable "lesson" is worse than none because it will be trusted.
