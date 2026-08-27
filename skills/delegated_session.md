@@ -22,8 +22,16 @@ Do **not** open a second session for the same work. A new session re-derives con
 open a duplicate branch or PR, and loses everything the first one learned. One session owns
 one lane for the life of the case (see `session_lane`).
 
-Open a session with a searchable task line — ticket key and PR number first — so the
-auto-generated title identifies the case. Pass `tags` for the ticket key and the stage.
+Pass `title` (ticket key and PR number first, so the case is identifiable) and `tags` (the
+ticket key plus the stage, so every session a case spawned can be listed later).
+
+`prompt_mode` decides what the session is told to do beyond your task. The default appends the
+create-a-branch / add-tests / commit / open-a-PR workflow, which is right for exactly one kind
+of stage: the one that authors the fix. For a read-only stage, or a stage that must push to a
+branch and PR that already exist, pass `prompt_mode: "raw"` — otherwise the session is under
+instruction to do the thing you are telling it not to do, and prohibitions in your task text
+are then arguing with its prompt. In `raw` mode your task is the entire prompt, so it carries
+everything, including the prohibitions.
 
 ## Reading a session's result
 

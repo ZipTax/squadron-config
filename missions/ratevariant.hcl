@@ -8,8 +8,9 @@ mission "Ratevariant A-B" {
     }
 
     # Sized for the Devin plugin's current tool responses, which include the raw
-    # message transcript. Drop to ~32000 once the plugin returns structured
-    # output + last message + PR links by default.
+    # message transcript. Drop to ~32000 once plugins.hcl pins a plugin version
+    # that returns structured output + last message + PR links by default (and
+    # that accepts the title/tags/prompt_mode arguments the tasks below pass).
     tool_response {
       max_tokens = 250000
     }
@@ -131,8 +132,9 @@ mission "Ratevariant A-B" {
       %{ endif ~}
       %{ endif ~}
 
-      Open the task line with the ticket key so the session title is searchable, and pass
-      tags `${inputs.issue}` and `rate-investigation`.
+      Pass title "${inputs.issue} — rate investigation", tags `${inputs.issue}` and
+      `rate-investigation`, and prompt_mode `raw` — the default prompt tells the session to
+      branch, test, commit and open a PR, which is the opposite of this stage.
 
       This session's lane is evidence, not change. Tell it plainly, in the task itself:
       do NOT create a branch, do NOT commit, do NOT open a PR, do NOT edit any file in the
@@ -247,8 +249,9 @@ mission "Ratevariant A-B" {
 
       Start a code_develop session and brief it with the investigation's result — the first
       divergence, the disposition, the affected roots, and the evidence behind them — so it
-      implements against an established diagnosis instead of re-deriving one. Open the task
-      line with the ticket key and pass tags `${inputs.issue}` and `rate-fix`.
+      implements against an established diagnosis instead of re-deriving one. Pass title
+      "${inputs.issue} — rate fix" and tags `${inputs.issue}` and `rate-fix`. This is the one
+      stage the default prompt_mode fits: it does branch, commit and open the PR.
 
       Scope: implement the proven disposition and nothing wider. If the code contradicts the
       diagnosis, stop and report that — do not improvise a different fix, and do not re-open
@@ -318,9 +321,9 @@ mission "Ratevariant A-B" {
   task "author_tests" {
     objective = <<-EOT
       Author the ratevariant tests for the PR (number/branch from develop) on the EXISTING
-      branch. Open the code_develop task with the ticket and PR number (e.g. "${inputs.issue}
-      / PR #38 — ratevariant cases: …") so the session title is searchable, and pass tags
-      `${inputs.issue}` and `rate-cases`.
+      branch. Pass title "${inputs.issue} / PR #<n> — ratevariant cases", tags
+      `${inputs.issue}` and `rate-cases`, and prompt_mode `raw` — the default prompt would have
+      it cut a second branch and open a second PR.
 
       Have Devin wait for the latest `ratevariant plan` at the head SHA to finish, fetch the
       `<!-- ratevariant-plan -->` comment, and run the !ratevariant-cases playbook covering
@@ -508,8 +511,8 @@ mission "Ratevariant A-B" {
 
       Start a FRESH code_develop session on https://github.com/FedTax/txc-bruno and have it run
       the !bruno-regression playbook for ${inputs.issue} against the fix PR (number/branch from
-      develop). Open the task line with the ticket (e.g. "${inputs.issue} — bruno regression:
-      …") and pass tags `${inputs.issue}` and `bruno`.
+      develop). Pass title "${inputs.issue} — bruno regression" and tags `${inputs.issue}` and
+      `bruno`.
 
       Brief the session: read the ticket and the txc-sqlserver-database PR, draw a
       representative set of cases from the PR's ratevariant cases and the audit's confirmed
@@ -570,8 +573,9 @@ mission "Ratevariant A-B" {
       fix, no PR). There is nothing to A/B — your job is to skeptically verify that claim.
 
       Run a FRESH code_develop session and re-derive from the data independently; do not resume
-      the investigation's session, so the check is not anchored on its conclusion. Pass tags
-      `${inputs.issue}` and `verify-wai`. (investigation_session_id is what you pass as
+      the investigation's session, so the check is not anchored on its conclusion. Pass title
+      "${inputs.issue} — verify working-as-intended", tags `${inputs.issue}` and `verify-wai`,
+      and prompt_mode `raw` (read-only stage). (investigation_session_id is what you pass as
       wip_investigation_session_id if you re-fire.) This session is read-only: no branch, no
       commit, no PR.
 
@@ -656,7 +660,7 @@ mission "Ratevariant A-B" {
       (for a rate-audit precedent, an entry in the ratevariant-audit skill's case-law
       reference: symptom, mechanism, and how it was proven, with the ticket key), a workflow
       rule to this config's skills, a data/configuration fact to the owning repo's docs. Pass
-      tags `${inputs.issue}` and `learnings`. Prefer amending an existing document; keep it to
+      title "${inputs.issue} — record learnings" and tags `${inputs.issue}` and `learnings`. Prefer amending an existing document; keep it to
       the rule plus the one case that demonstrates it.
 
       Every recorded learning must be citable — the case result, capture, or query that
