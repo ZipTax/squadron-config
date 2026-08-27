@@ -31,7 +31,8 @@ both a repo trap and a workflow rule. Route each part by what kind of thing it i
 | How to run this workflow — a stage boundary, a verdict rule, a gate | the corresponding skill here, as a PR |
 | A fact about the system's data or configuration | the owning repo's reference docs |
 | A rate-audit precedent (symptom → mechanism → how it was proven) | `ratevariant-audit/references/case-law.md` in `txc-sqlserver-database` |
-| A proven legacy-model limitation | `ratevariant-audit/references/limitations.md`, as a mechanism class with the ticket as an instance |
+| A proven instance of a `new-rate-engine`-labelled deferral | `ratevariant-audit/references/limitations.md`, under the labelled ticket it instances |
+| An unproven mechanism hypothesis for an open ticket | `ratevariant-audit/references/open-theories.md`, labelled as a hypothesis |
 
 Every destination is a file in a repo, reached by a PR. There is deliberately no "general
 knowledge base" row: a delegated session cannot write org knowledge notes, so routing a

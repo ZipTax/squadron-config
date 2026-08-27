@@ -159,12 +159,14 @@ mission "Ratevariant A-B" {
 
       - Your lane is evidence, not change: do NOT create a branch, commit, open a PR, or edit
         any file. The deliverable is the investigation report plus one Jira comment.
-      - Check `ratevariant-audit/references/limitations.md` for the mechanism classes this
-        engine structurally cannot express (the ones behind the `new-rate-engine` label). A
-        match is only a match once the mechanism is established from data at this ticket's
-        scope: the symptom does not tell you the class, and the same wrong CA rate can
-        genuinely be a ZIP+4 boundary problem or genuinely be a sourcing-model one. Where it
-        is an ordinary mechanism, it is an ordinary fix regardless of the ticket's labels.
+      - Check `ratevariant-audit/references/limitations.md`: the tickets carrying the
+        `new-rate-engine` label, whose general remedy was deferred to the new engine. A match is
+        only a match once the mechanism is established from data at this ticket's scope: the
+        symptom does not tell you which entry applies, and the same wrong CA rate can genuinely
+        be a boundary-data problem or genuinely be a mixed-sourcing one. Where it is an ordinary
+        mechanism, it is an ordinary fix regardless of the ticket's labels, and even on a match a
+        scoped partial fix stays legitimate — this is best-effort work. Unproven hypotheses live
+        in `references/open-theories.md` and are not limitations.
       - Emit the routing verdict in your structured output — DEFECT_PROVEN,
         WORKING_AS_INTENDED, or EVIDENCE_INCOMPLETE — alongside the question-matched verdict
         you reason in (`Discrepancy explained` etc.) and the mapping you used.
@@ -172,10 +174,11 @@ mission "Ratevariant A-B" {
         strength the evidence carries: where the load-bearing claims are measured or traced
         and the gates pass, say plainly what the data shows; where any of it is inference,
         hedge and name what would settle it. Proc traces and raw queries stay in the session.
-      - If the disposition is that this engine cannot express the remedy, that is the
+      - If the disposition is that this engine cannot express the general remedy, that is the
         deliverable, and it still gets recorded on the ticket: post the comment stating the
         limitation for the SMEs, apply the `new-rate-engine` label, and move the ticket to
-        Blocked. Do not author a fix to have something to show.
+        Blocked. Do not author a fix to have something to show — but do say whether a scoped
+        partial fix would help, since deferring the class does not forbid patching a case.
 
       # Hold the session to
 
@@ -191,7 +194,8 @@ mission "Ratevariant A-B" {
       - The mechanism is named — what is wrong and where, which may be several sites in one
         proc rather than a single line.
       - The disposition is one of: data/configuration change, procedure/function change, both,
-        or unsupported at available granularity. Both is common and is not a hedge: "the rates
+        or unsupported at available granularity (the general remedy deferred to the new engine).
+        Both is common and is not a hedge: "the rates
         are wrong AND they are applied wrong" is two changes, and shipping one leaves the
         ticket half-fixed.
       - Unknowns are explicit.
@@ -223,7 +227,7 @@ mission "Ratevariant A-B" {
       }
       route {
         target    = tasks.record_learnings
-        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md as another instance of its class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials."
+        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md under the labelled ticket it instances. A scoped partial fix may still be worth filing separately — what develop must not do is present one as closing the class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials."
       }
       # EVIDENCE_INCOMPLETE → no route: the mission completes with the missing
       # evidence named, for a human to supply. Do NOT route it onward.
@@ -272,7 +276,7 @@ mission "Ratevariant A-B" {
       }
       field "limitation_class" {
         type        = "string"
-        description = "On the unsupported disposition only: which limitations.md mechanism class the proven mechanism matched, so record_learnings files this ticket as an instance under it rather than as a new class. Blank otherwise."
+        description = "On the unsupported disposition only: which limitations.md entry (a ticket carrying the new-rate-engine label) the proven mechanism matched, so record_learnings files this ticket as an instance under it. Blank otherwise."
         required    = false
       }
       field "investigation_session_id" {
@@ -746,9 +750,10 @@ mission "Ratevariant A-B" {
       a learning: it already lives on the ticket and the PR.
 
       One entry point is not discretionary: arriving here from investigate's unsupported
-      disposition means a proven instance of a mechanism class the engine cannot express, so it
-      is recorded in the ratevariant-audit skill's limitations reference — stated as the class,
-      with this ticket as an instance under it, and with the data that proved the class applies.
+      disposition means a proven instance of a deferred limitation, so it is recorded in the
+      ratevariant-audit skill's limitations reference — under the labelled ticket it instances,
+      with the data that proved the mechanism is that one. Only tickets carrying `new-rate-engine`
+      belong in that file; an unproven mechanism goes to `references/open-theories.md` instead.
       A limitation only known inside a closed session gets re-investigated from scratch next
       quarter. If the class is already there, add the instance and nothing else.
 
