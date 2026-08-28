@@ -1,4 +1,4 @@
-mission "Fellow>>Linear" {
+mission "fellow_linear" {
   commander {
     model = models.anthropic.claude_opus_4_7
 
@@ -12,7 +12,7 @@ mission "Fellow>>Linear" {
     }
   }
 
-  agents = [agents["Claude Code Routines"]]
+  agents = [agents.claude_code_routines]
 
   # ---------------------------------------------------------------------------
   # Inputs
@@ -46,6 +46,6 @@ mission "Fellow>>Linear" {
 
     
     EOT
-    agents = [agents["Claude Code Routines"]]
+    agents = [agents.claude_code_routines]
   }
 }

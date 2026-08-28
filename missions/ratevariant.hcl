@@ -1,4 +1,4 @@
-mission "Ratevariant A-B" {
+mission "ratevariant_ab" {
   commander {
     model = models.anthropic.claude_opus_4_7
 
@@ -7,12 +7,11 @@ mission "Ratevariant A-B" {
       turn_retention = 3
     }
 
-    # Sized for the Devin plugin's current tool responses, which include the raw
-    # message transcript. Drop to ~32000 once plugins.hcl pins a plugin version
-    # that returns structured output + last message + PR links by default (and
-    # that accepts the title/tags/prompt_mode arguments the tasks below pass).
+    # Plugin v0.0.4 returns structured output + Devin's last message + PR links
+    # instead of the raw transcript, so a stage result is now small. Raise this
+    # again only if the plugin is configured with raw_messages = "true".
     tool_response {
-      max_tokens = 250000
+      max_tokens = 32000
     }
   }
 
@@ -41,13 +40,13 @@ mission "Ratevariant A-B" {
   # path ownership live in txc-sqlserver-database's ratevariant-testing skill
   # (references/process.md), which the playbooks load. Cite the step; don't copy it.
   agents = [
-    agents["Rate Investigator"],
-    agents["Rate Fix Engineer"],
-    agents["Ratevariant Case Author"],
-    agents["Ratevariant Auditor"],
-    agents["WAI Verifier"],
-    agents["Bruno Author"],
-    agents["Learnings Curator"]
+    agents.rate_investigator,
+    agents.rate_fix_engineer,
+    agents.ratevariant_case_author,
+    agents.ratevariant_auditor,
+    agents.wai_verifier,
+    agents.bruno_author,
+    agents.learnings_curator
   ]
 
   # ---------------------------------------------------------------------------
@@ -97,9 +96,8 @@ mission "Ratevariant A-B" {
 
   # Allow triggering via webhook - Triage Bot uses this to auto-attempt rate tickets
   trigger {
-    # Set this explicitly. The default path is the mission name, and
-    # "Ratevariant A-B" doesn't make a clean URL — "/ratevariant" is what
-    # the triage bot's `squadron:ratevariant` cell posts to.
+    # Set explicitly so the path survives a mission rename: "/ratevariant" is
+    # what the triage bot's `squadron:ratevariant` cell posts to.
     webhook_path = "/ratevariant"
     secret       = vars.ratevariant_webhook_secret
   }
@@ -214,7 +212,7 @@ mission "Ratevariant A-B" {
 
       Return investigation_session_id and a one-line summary regardless of verdict.
     EOT
-    agents = [agents["Rate Investigator"]]
+    agents = [agents.rate_investigator]
 
     router {
       route {
@@ -342,7 +340,7 @@ mission "Ratevariant A-B" {
       Return the PR URL, number, head branch, develop_session_id, and a one-line summary of
       what changed.
     EOT
-    agents  = [agents["Rate Fix Engineer"]]
+    agents  = [agents.rate_fix_engineer]
     send_to = [tasks.author_tests]
 
     output {
@@ -434,7 +432,7 @@ mission "Ratevariant A-B" {
         a fixture cannot stand in for. Genuinely unconstructable cases happen, rarely; that is
         a coverage finding to return, and a silent omission is a stage failure.
     EOT
-    agents  = [agents["Ratevariant Case Author"]]
+    agents  = [agents.ratevariant_case_author]
     send_to = [tasks.audit]
 
     output {
@@ -534,7 +532,7 @@ mission "Ratevariant A-B" {
       At the cap, exit on the verdict the evidence supports — never upgrade to SATISFACTORY to
       close out the run. Track the iteration count and summarize what changed and why on exit.
     EOT
-    agents = [agents["Ratevariant Auditor"]]
+    agents = [agents.ratevariant_auditor]
 
     router {
       route {
@@ -620,7 +618,7 @@ mission "Ratevariant A-B" {
       Return bruno_session_id, the PR URL, the scenarios the suite locks in with the authority
       each expected value rests on, and any scenario left unwritten for want of one.
     EOT
-    agents  = [agents["Bruno Author"]]
+    agents  = [agents.bruno_author]
     send_to = [tasks.record_learnings]
 
     output {
@@ -693,11 +691,11 @@ mission "Ratevariant A-B" {
           the session post the standoff to the ticket for an SME reader: both positions and what
           each turns on, with only the minimum basis each side rests on. Do NOT re-fire.
     EOT
-    agents = [agents["WAI Verifier"]]
+    agents = [agents.wai_verifier]
 
     router {
       route {
-        target    = missions["Ratevariant A-B"]
+        target    = missions.ratevariant_ab
         condition = "verdict == WAI_REFUTED (a real defect exists) AND wai_refire_count < 1. If wai_refire_count >= 1, do NOT take this route — escalate to the SMEs and exit."
       }
       route {
@@ -775,7 +773,7 @@ mission "Ratevariant A-B" {
       If nothing qualifies, set recorded = false and say why in one line. Do not manufacture
       something to record.
     EOT
-    agents = [agents["Learnings Curator"]]
+    agents = [agents.learnings_curator]
 
     output {
       field "recorded" {

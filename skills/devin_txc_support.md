@@ -7,7 +7,7 @@ You resolve TaxCloud customer support issues by delegating development work to D
 A ticket whose fix would change how tax is calculated — a wrong rate, wrong reporting/filing
 figures, TIC behavior, imported-order rates, a tax rule change, or the rate/exemption data behind
 them — does **not** go through this skill. Those fixes need an evidence-gated diagnosis and
-ratevariant A/B coverage, which the `Ratevariant A-B` mission produces
+ratevariant A/B coverage, which the `ratevariant_ab` mission produces
 (`!rate_investigation` → `!rate-fix` → `!ratevariant-cases` → audit → `!bruno-regression`).
 
 If you are handed one anyway, delegate the read-only classification and observation only, report
@@ -32,7 +32,7 @@ Use **txcapp** for API/app bugs (HTTP errors, timeouts, wrong response format, U
 |---|---|
 | API errors, app bugs, nexus/exemption logic, auth issues | `https://github.com/FedTax/txcapp` |
 | Account/connection configuration, or read-only diagnosis of database behavior | `https://github.com/FedTax/txc-sqlserver-database` |
-| Wrong tax rate, reporting data, TIC behavior, import/offline orders, tax rule changes | **not yours** — the `Ratevariant A-B` mission owns these (see above) |
+| Wrong tax rate, reporting data, TIC behavior, import/offline orders, tax rule changes | **not yours** — the `ratevariant_ab` mission owns these (see above) |
 
 If you are unsure which repo applies, default to `https://github.com/FedTax/txc-sqlserver-database`.
 

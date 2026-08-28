@@ -1,4 +1,4 @@
-mission "TaxCloud Support" {
+mission "taxcloud_support" {
   commander {
     model = models.anthropic.claude_opus_4_7
 
@@ -12,14 +12,14 @@ mission "TaxCloud Support" {
     }
   }
 
-  agents = [agents.CodeGen]
+  agents = [agents.codegen]
 
   input "issue" {
     type        = "string"
     description = "Jira issue ID"
   }
 
-  task "Get Linear Ticket Details" {
+  task "get_ticket_details" {
     objective = <<-EOT
       You have been given Jira issue ${inputs.issue}.
 
@@ -30,6 +30,6 @@ mission "TaxCloud Support" {
 
       Monitor the Devin session with check_session and report the outcome including any PR links, Jira comments posted, and open questions.
     EOT
-    agents = [agents["TaxCloud Support Engineer"]]
+    agents = [agents.taxcloud_support_engineer]
   }
 }
