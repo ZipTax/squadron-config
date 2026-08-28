@@ -44,8 +44,9 @@ citation that decides it:
 1. **Question match** — the verdict answers the question that was asked, at the same scope
    (same entity, period, path, component). A different-but-related answer is a `fail`.
 2. **Basis** — every load-bearing claim is `measured` or `traced`.
-3. **Divergence located** — for a disputed value, the *first* point where expected and
-   actual part ways is named, not just the end result.
+3. **Mechanism located** — for a disputed value, the object(s)/symbol(s) where expected and
+   actual part ways are named, with the input that reaches them, not just the end result.
+   Several sites in one object is a legitimate answer; a single line is not required.
 4. **Alternative killed** — the competing explanation you considered is disproven by cited
    evidence, not left unmentioned.
 5. **Scope stated** — what this does NOT cover is written down.

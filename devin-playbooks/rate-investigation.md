@@ -64,8 +64,8 @@ identifier is required to distinguish the reported subject from a broader popula
    - Pass the original request, attachment cases, expected versus actual behavior, known
      identifiers, environment/date requirements, and final question unchanged.
    - Require its selected proof outcomes, complete path trace, jurisdiction-component
-     equation and first divergence when applicable, invalidation-gate result, matched
-     verdict, and remediation disposition when requested.
+     equation and the mechanism (where expected and actual part ways) when applicable,
+     invalidation-gate result, matched verdict, and remediation disposition when requested.
 
 4. **Invoke the SQL skills for each database proof.**
    - Invoke `write-taxcloud-sql-query` before composing or delivering SQL.
@@ -77,7 +77,7 @@ identifier is required to distinguish the reported subject from a broader popula
 
 5. **Prepare separate deliverables.**
    - Engineering artifact: retain the frozen question, evidence outcomes, cited code,
-     exact query evidence, component equation/first divergence, limitations, verdict, and
+     exact query evidence, component equation and mechanism, limitations, verdict, and
      disposition.
    - Support/Jira response: state why the observed result differs and whether the expected
      result requires a data/configuration change, procedure/function change, or is
@@ -91,8 +91,8 @@ identifier is required to distinguish the reported subject from a broader popula
    - Confirm every explicit case is answered or labeled blocked.
    - Confirm no qualifier, execution path, tax component, product scope, or period was
      dropped.
-   - Confirm the actual rate is reconciled and the first divergence or exact missing
-     expected detail is named.
+   - Confirm the actual rate is reconciled and the mechanism, or the exact missing expected
+     detail needed to locate it, is named.
    - Confirm every material statement is a code fact, dated snapshot fact, current
      production fact, ticket expectation, state-published authority, inference, or unknown.
    - Reject any workaround whose blast radius exceeds the requested outcome.
@@ -103,7 +103,8 @@ When an orchestrator invokes you rather than a human — the squadron `ratevaria
 — these overrides apply, and nothing else changes:
 
 - **Never block.** There is no interactive user, so a question you would have asked goes in
-  `blocking_question` and you proceed on what the evidence supports. A question that genuinely
+  `blocking_questions` (there may be more than one — a jurisdiction question and a rate question
+  are separate) and you proceed on what the evidence supports. A question that genuinely
   cannot be answered without a human makes the verdict `EVIDENCE_INCOMPLETE`, which the
   orchestrator escalates — it is a result, not a stall.
 - **Read-only, whatever the session prompt says.** No branch, no commit, no PR, no file edits.
@@ -119,7 +120,7 @@ When an orchestrator invokes you rather than a human — the squadron `ratevaria
   | any `Unknown from available evidence`, `Partially explained` | `EVIDENCE_INCOMPLETE` |
 
   Label every load-bearing claim `measured`, `traced`, `inferred`, or `hedge`. `DEFECT_PROVEN` and
-  `WORKING_AS_INTENDED` both require the divergence to be measured or traced and the disposition
+  `WORKING_AS_INTENDED` both require the mechanism to be measured or traced and the disposition
   known; an inferred chain, however plausible, is `EVIDENCE_INCOMPLETE` with `unknowns` naming the
   exact artifact that would close each gap. Do not upgrade a verdict because a stage downstream is
   waiting on it.
@@ -131,10 +132,12 @@ When an orchestrator invokes you rather than a human — the squadron `ratevaria
   assume the challenge is right; you exist because two readings disagree.
 - **One product-level ticket comment, if the caller asks for it.** You hold the Jira
   credentials, so the writeback is yours. A couple of sentences in product language for a
-  merchant-facing reader, opening with the automated-review attribution line, plus the PR link
-  when one exists and the one thing a human must confirm. No SQL, schema paths, query output,
-  checklists, or process narration; engineering detail lives in your structured output and on the
-  PR. The caller states how strongly the evidence reads and you write at that strength — a traced,
+  merchant-facing reader, opening with the automated-review attribution line, plus whatever a
+  human must confirm — often one thing, sometimes two (the jurisdiction *and* the rate), sometimes
+  nothing. No SQL, schema paths, query output, checklists, or process narration; engineering detail
+  lives in your structured output and on the PR. Don't paste the PR link: Jira already surfaces it
+  from the ticket key in the branch name and PR title, and a second copy in prose just ages.
+  The caller states how strongly the evidence reads and you write at that strength — a traced,
   evidence-complete finding may read as a finding, an inferred one still reads as a theory. When
   the gap is something the SMEs hold, ask for the specific artifacts by name (the transaction
   ids, the expected rate and its published authority, the period), not for generic confirmation.
@@ -150,8 +153,10 @@ When an orchestrator invokes you rather than a human — the squadron `ratevaria
   - discrepancy: `Discrepancy explained`, `No discrepancy reproduced`, or
     `Unknown from available evidence`.
 - The shortest evidence chain sufficient to support that verdict.
-- For a discrepancy, the actual component equation and first divergence—or the exact
-  missing expected detail needed to locate it.
+- For a discrepancy, the actual component equation and the mechanism: what is wrong and where
+  expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both
+  values. Several sites in one object is a legitimate answer; a single line is not required.
+  Failing that, the exact missing expected detail needed to locate it.
 - When remediation is requested, a disposition: `data/configuration change`,
   `procedure/function change`, `both`, or `unsupported at available granularity`. `both` is common
   and is not a hedge — rate rows that are wrong *and* applied wrongly need the migration and the

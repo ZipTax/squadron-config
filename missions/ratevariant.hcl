@@ -53,7 +53,21 @@ mission "ratevariant_ab" {
   # Repo mechanics are NOT restated here: the fix/cases/run/audit steps and their
   # path ownership live in txc-sqlserver-database's ratevariant-testing skill
   # (references/process.md), which the playbooks load. Cite the step; don't copy it.
-  memories = [memories.rate_case_log]
+  #
+  # Blocking on a human, and resuming:
+  #   No stage waits. A stage that needs an answer only a human has returns the
+  #   question and the run ends where it is — Squadron runs are not suspendable, and
+  #   a session parked on a question burns its context waiting.
+  #   The resumption is the NEXT run on the same ticket, and it is not a re-do:
+  #   discover_sessions finds the ticket's sessions by tag (so a live investigation
+  #   or fix session is continued in place, with its context intact) and reads
+  #   rate_open_items/<TICKET>.md for what the last run was waiting on and which
+  #   stages already finished. record_learnings writes that file when it closes a
+  #   run with anything outstanding, and deletes it when the case actually closes.
+  #   So the answer arriving is the trigger: re-fire /ratevariant with the same
+  #   issue (plus wai_challenge or a session-id override when a human wants to
+  #   force a lane) and the mission picks up rather than restarts.
+  memories = [memories.rate_case_log, memories.rate_open_items]
 
   agents = [
     agents.session_scout,
@@ -135,13 +149,17 @@ mission "ratevariant_ab" {
 
       # You do
 
-      1. find_sessions(tags: ["${inputs.issue}"]). Every stage tags its sessions with the ticket
+      1. `file_read` the `rate_open_items` slot, path `${inputs.issue}.md`. If it exists, a prior
+         run on this ticket stopped on something a human had to supply, and that file says what:
+         the questions outstanding, which stages already finished, and their PRs. This run is the
+         resumption of that one. Absent file means either a first run or a case that closed.
+      2. find_sessions(tags: ["${inputs.issue}"]). Every stage tags its sessions with the ticket
          key, so this is the whole history of the ticket: prior investigations, fix sessions, case
          sessions, verifications. Zero matches is a real answer, not a failure.
-      2. check_session on each candidate that could be an investigation (tagged
+      3. check_session on each candidate that could be an investigation (tagged
          `rate-investigation` or `verify-wai`, or titled as one). A search result gives status and
          PR links; only the session itself says whether it reached a verdict, and what of.
-      3. Honor the overrides if they are set — they are a human or an automation telling you
+      4. Honor the overrides if they are set — they are a human or an automation telling you
          something the search cannot know:
          %{ if inputs.wip_investigation_session_id != "" ~}
          · wip_investigation_session_id = ${inputs.wip_investigation_session_id} — treat this
@@ -183,6 +201,11 @@ mission "ratevariant_ab" {
       Return the mode, the one session id it applies to, that session's state, whatever verdict
       the read already found, and the prior context worth carrying — what was established, what
       was left open — so no downstream session re-derives what is already known.
+
+      Carry the open-items file forward verbatim in outstanding_work when there is one, including
+      the answers this run's inputs supply to questions it lists. Downstream stages route on it:
+      work a prior run finished is not re-done, and a question already answered is not asked
+      again.
     EOT
     agents = [agents.session_scout]
 
@@ -215,6 +238,11 @@ mission "ratevariant_ab" {
       field "prior_context" {
         type        = "string"
         description = "What prior sessions established and what they left open, with the session each came from — the briefing material that stops a downstream session re-deriving known work. Blank on start."
+        required    = false
+      }
+      field "outstanding_work" {
+        type        = "string"
+        description = "What rate_open_items/<TICKET>.md said a prior run was waiting on and which stages it had already finished, plus which of those questions this run's inputs answer. Blank when there is no such file — a first run, or a closed case."
         required    = false
       }
       field "sessions_found" {
@@ -497,6 +525,16 @@ mission "ratevariant_ab" {
       terminated and nobody noticed here, audit reaches a finding it is structurally unable to act
       on, at the end of a run, with a wrong fix on an open PR. A false flag routes through develop
       instead, which adopts the PR and becomes the owner.
+
+      # When the run stops here
+
+      EVIDENCE_INCOMPLETE has no route: the gap needs a human, and this run ends. Before it does,
+      write `rate_open_items` path `${inputs.issue}.md` — the exact artifacts that would close each
+      gap (whose transaction ids, which published rate and period), the sessions this ticket has
+      and whether each is still messageable, any fix PR already open, and one line on where the
+      next run should pick up. The next /ratevariant fire on this ticket reads it in
+      discover_sessions, so what you leave out is what somebody re-derives. Overwrite the file if
+      it is already there; it describes the current state, not a history.
     EOT
     agents = [agents.rate_investigator]
 
@@ -508,7 +546,7 @@ mission "ratevariant_ab" {
       }
       field "evidence_complete" {
         type        = "boolean"
-        description = "Whether every load-bearing claim is measured or traced with a citation, and the question-match, divergence, and alternative-killed gates pass. False forces escalation."
+        description = "Whether every load-bearing claim is measured or traced with a citation, and the question-match, mechanism-located, and alternative-killed gates pass. False forces escalation."
         required    = true
       }
       field "working_as_intended" {
@@ -1196,6 +1234,18 @@ mission "ratevariant_ab" {
 
       One line. Anything longer belongs in the reviewable document, not here, and the log is only
       useful while it stays greppable.
+
+      # Open items
+
+      Last, settle the ticket's `rate_open_items` file, path `${inputs.issue}.md`:
+
+      - Anything still outstanding — an unanswered question, a bruno scenario left unwritten for
+        want of an authoritative figure, a coverage gap nobody could close, a WAI still contested
+        — means the case is not really closed. Write the file: what is outstanding, who has to
+        answer it, which stages finished and their PRs, and where the next run resumes. Overwrite
+        any existing file; it is current state, not history.
+      - Nothing outstanding: `file_delete` it if it exists. A stale open-items file makes the next
+        run resume a case that already closed, and it will believe the file over the ticket.
     EOT
     agents = [agents.learnings_curator]
 
@@ -1214,6 +1264,11 @@ mission "ratevariant_ab" {
         type        = "string"
         description = "PR URL of the write-back, when one was made"
         required    = false
+      }
+      field "open_items" {
+        type        = "string"
+        description = "What was left outstanding and therefore written to rate_open_items/<TICKET>.md, or 'none — file deleted' when the case closed clean. Never blank: silence here is indistinguishable from a stale file."
+        required    = true
       }
     }
   }

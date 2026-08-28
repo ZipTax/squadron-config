@@ -61,6 +61,11 @@ These exist because past sessions have gone wrong here. Follow them exactly.
    would have asked (with the exact figure needed, per scenario) in your report instead of
    waiting. Everything else below is unchanged.
 
+   An unwritten scenario is not lost work: name it precisely (the scenario, and the exact figure
+   and authority you need), because the orchestrator records it against the ticket and the next
+   run on that ticket resumes from it — and it will message this session rather than start a new
+   one, if this session is still alive. What cannot be resumed is a vague "needs confirmation".
+
 1. **Gathering context**: read the ticket (`https://taxcloud.atlassian.net/browse/<TICKET>`)
    and the txc-sqlserver-database PR. Take the scenarios from the PR's test cases — the ones
    that should now differ and the guardrails that should not — and the expected rate/amount for

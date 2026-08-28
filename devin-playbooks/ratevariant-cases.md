@@ -14,9 +14,13 @@ on the existing branch of a labeled `FedTax/txc-sqlserver-database` PR.
   literal values. Fixtures and alterations are lists of raw `sql:` strings. There is no
   test framework, no assertion DSL, no Go/Python to write, no helper to build. If you
   find yourself scaffolding code, stop — you are off the rails.
-- **You author and validate; you do not run.** Adding `ratevariant:run`, reading the
-  result comment, and judging whether the fix is right belong to a separate auditor, so
-  that the session which wrote the cases is not the one grading them. Push and report.
+- **You author and validate; you do not run — unless the auditor asks you to.** Firing
+  `ratevariant:run`, reading the result comment, and judging whether the fix is right belong to
+  a separate auditor, so that the session which wrote the cases is not the one grading them.
+  Default to pushing and reporting, and defer the run rather than refusing it: if the audit
+  session later messages you to add the label or push a case and re-label, do it. What stays
+  out of your hands is the *judgment* — don't read the result comment and decide the fix is
+  right.
 
 The mechanics live in repo skills and docs — load them instead of re-deriving:
 
@@ -32,8 +36,9 @@ The mechanics live in repo skills and docs — load them instead of re-deriving:
 
 - The PR number/branch in `txc-sqlserver-database` and the ticket key.
 - Which surface(s) to cover — usually from the `<!-- ratevariant-plan -->` PR comment.
-- The investigation's first divergence and the shape of the change, when available: cases
-  aimed at the proven mechanism beat cases aimed at the ticket's prose.
+- The investigation's proven mechanism (what is wrong and where expected and actual part ways)
+  and the shape of the change, when available: cases aimed at the mechanism beat cases aimed at
+  the ticket's prose.
 
 ## Tools & Building Blocks
 
@@ -95,7 +100,7 @@ supposed to do, and that is a finding.
    `alterations/dev-7443-phase2-tic-41025-stm-exemption.yaml`.
 
 4. **Author one case per root on the checklist**, grounded in the ticket's real
-   merchant/state/situation and aimed at the proven divergence. Add the neighbors the
+   merchant/state/situation and aimed at the proven mechanism. Add the neighbors the
    change implies: an adjacent jurisdiction that must stay untouched, a gate that should
    switch the branch off, a boundary date. Filename `<state>-<merchant>-<scenario>.yaml`;
    description names the eligibility profile + destination + path exercised; tag the axes
@@ -118,9 +123,10 @@ supposed to do, and that is a finding.
    the database. `tests/ratevariant-cases/README.md` lists exactly what the loader checks
    and what only surfaces at run time.
 
-8. **Push only.** `git add` the case/alteration files and push to the PR branch. Do **not**
-   add the `ratevariant:run` label and do not run the harness: the audit stage fires the
-   run and interprets it.
+8. **Push, and stop there.** `git add` the case/alteration files and push to the PR branch. Do
+   not add the `ratevariant:run` label on your own initiative and do not run the harness — the
+   audit stage fires the run and interprets it. If the auditor messages you to label or
+   re-label, that is a direct request and you carry it out.
 
    Then append your session link to the PR description — and note that the description is
    shared state (`CLAUDE.md` § "Sharing a PR with other sessions"): read the current
@@ -150,6 +156,7 @@ the gaps, and report.
 - No file, name, description, or tag contains a rate, amount, or expected outcome.
 - The loader passes offline (`run-alter --dry-run`), and the report states per-root
   coverage plus any gap with its reason.
+- No run result is interpreted here, and `ratevariant:run` appears only if the auditor asked.
 
 ## Advice & Pointers
 
@@ -176,7 +183,9 @@ the gaps, and report.
 - Never put a real `api_key` in a case; it resolves at run time from the URL row.
 - Never write files outside `tests/ratevariant-cases/`, or off the PR's branch. Procs and
   migrations belong to the fix session.
-- Never add `ratevariant:run`, and never run `ratevariant deploy/run/run-alter` (without
-  `--dry-run`) or `cleanup` — they mutate shared staging and the audit stage owns the run.
+- Never add `ratevariant:run` on your own initiative (when the auditor asks, do it), and never
+  run `ratevariant deploy/run/run-alter` (without `--dry-run`) or `cleanup` from the session —
+  those mutate shared staging and the read-only login can't reach the databases they default to.
+- Never interpret a run result: labeling on request is mechanics, grading is the auditor's job.
 - Staging access is read-only — never mutate staging outside a fixture/alteration
   teardown pair.

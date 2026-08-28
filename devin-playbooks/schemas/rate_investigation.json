@@ -48,9 +48,9 @@
           "type": "string",
           "description": "pass | fail | n/a -- every load-bearing claim is measured or traced."
         },
-        "divergence_located": {
+        "mechanism_located": {
           "type": "string",
-          "description": "pass | fail | n/a -- the first divergence is at an object/line, not a symptom."
+          "description": "pass | fail | n/a -- the mechanism is pinned to the object(s)/symbol(s) and the input that reaches them, not left as a symptom. Several sites in one object is fine; a single line is not required."
         },
         "alternative_killed": {
           "type": "string",
@@ -64,15 +64,15 @@
       "required": [
         "question_match",
         "basis",
-        "divergence_located",
+        "mechanism_located",
         "alternative_killed",
         "scope_stated"
       ],
       "additionalProperties": false
     },
-    "first_divergence": {
+    "mechanism": {
       "type": "string",
-      "description": "The first point where expected and actual diverge — the proc/function or table, and the value on each side."
+      "description": "What is wrong and where expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both values. May legitimately be several sites in one object rather than a single line. Mirrors the mission's `mechanism` field."
     },
     "affected_roots": {
       "type": "array",
@@ -121,9 +121,9 @@
         "additionalProperties": false
       }
     },
-    "limitation_match": {
+    "limitation_class": {
       "type": "string",
-      "description": "The limitations.md mechanism class this matches and the data proving the match, or 'none'. A match is a hypothesis proven from data, never a shortcut past cause analysis."
+      "description": "The limitations.md entry (a ticket carrying the new-rate-engine label) this matches and the data proving the match, or 'none'. A match is a hypothesis proven from data, never a shortcut past cause analysis. Mirrors the mission's `limitation_class` field."
     },
     "unknowns": {
       "type": "array",
@@ -132,9 +132,12 @@
       },
       "description": "What remains unknown, and what would resolve it."
     },
-    "blocking_question": {
-      "type": "string",
-      "description": "The one question a human must answer, or empty. State it here rather than waiting on a reply — no interactive user may be present."
+    "blocking_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Every question a human must answer, one per entry — often none, sometimes several (the jurisdiction and the rate are separate questions). State them here rather than waiting on a reply; no interactive user may be present."
     },
     "investigation_summary": {
       "type": "string",
@@ -147,7 +150,7 @@
     "evidence_complete",
     "working_as_intended",
     "disposition",
-    "first_divergence",
+    "mechanism",
     "gates",
     "affected_roots",
     "paths",

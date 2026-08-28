@@ -4,7 +4,7 @@ Implement a tax-rate fix in `FedTax/txc-sqlserver-database` whose cause has **al
 proven** by a separate evidence-only investigation (`!rate_investigation`), then open the PR and
 label it so ratevariant A/B testing can run.
 
-You implement a diagnosis; you do not re-derive one. If the caller has not given you a divergence
+You implement a diagnosis; you do not re-derive one. If the caller has not given you a mechanism
 and a disposition, say so rather than starting an investigation of your own — that is a different
 stage with different rules, and an investigation run from a session that can write code tends to
 stop at the first plausible cause.
@@ -22,8 +22,9 @@ Reusable mechanics live in the repo's skills — load them rather than re-derivi
 
 ## What's Needed From User
 
-- The ticket key, and the investigation's result: the expected-vs-actual divergence, the
-  remediation disposition, the affected roots (procs/functions) or tables/rows.
+- The ticket key, and the investigation's result: the proven mechanism (what is wrong and where
+  expected and actual part ways), the remediation disposition, the affected roots
+  (procs/functions) or tables/rows.
 - The base branch, if not the repo default.
 - Whether you are writing the fix or **adopting** one that already exists (see below).
 
@@ -46,7 +47,7 @@ A/B has run, not a rewrite before anyone has seen a result.
 ## Procedure
 
 1. **Confirm the brief against the code.** Read the affected roots and check the briefed
-   divergence is actually there. If the code contradicts the diagnosis, stop and report what you
+   mechanism is actually there. If the code contradicts the diagnosis, stop and report what you
    found instead — do not improvise a different fix, and do not re-open whether the ticket is
    valid.
 
@@ -93,8 +94,10 @@ A/B has run, not a rewrite before anyone has seen a result.
    started, and what is lost is the last thing written — usually the investigation link or a
    coverage note a reviewer needs.
 
-6. **Do not run or interpret the A/B.** Never add `ratevariant:run`. A separate auditor owns
-   running it and reading the result, precisely so the session that wrote the fix is not the one
+6. **Do not run or interpret the A/B.** Don't add `ratevariant:run` unless the auditor asks you
+   to directly — it is theirs to fire. If they do ask (a re-run after your correction lands, say),
+   that is mechanics: label it and report, don't read the result and decide. A separate auditor
+   owns running it and reading the result, precisely so the session that wrote the fix is not the one
    grading it. Expect to be messaged mid-audit with a specific correction and its supporting data;
    implement exactly that, and push to the same branch.
 
@@ -106,29 +109,36 @@ A/B has run, not a rewrite before anyone has seen a result.
 
 - The change implements the briefed disposition at the briefed scope — both halves when the
   disposition is `both` — with every copy of each edited object updated.
-- The `ratevariant` label is present on the PR.
+- The `ratevariant` label is present on the PR; `ratevariant:run` is absent unless the auditor
+  asked for it.
 - No file outside `output/schema/**` and `scripts/**` is modified.
 - Product-level ticket comments belong to the investigating session, which holds the Jira
   credentials, unless the caller asks you for one.
 
 ## Advice & Pointers
 
-- The repo's `CLAUDE.md` describes `output/` as generated; for tax fixes the `output/schema`
-  procedure/function sources **are** the editable source of truth, which is how every recent rate
-  fix shipped. The weekly extract job reconciles them with the live databases, so the change has
-  to reach the database too or the next extraction reverts your file.
+- The repo's `CLAUDE.md` forbids *adding* generated artifacts under `output/`; editing the
+  procedure/function sources already tracked there is exactly how every recent rate fix shipped,
+  and for a proc fix those files are the source of truth. That distinction is also why a data fix
+  goes in `scripts/`: a migration is new material, so it belongs where new material is allowed.
+  Never create a new file under `output/`.
+- The weekly extract job reconciles `output/schema` with the live databases, so the change has to
+  reach the database too or the next extraction reverts your file.
 - Keep the blast radius minimal and mechanical. A fix that also cleans up adjacent logic makes the
   A/B unreadable, because the auditor can no longer predict a per-case outcome from the diff.
 - Effective dates are part of the fix. An override effective tomorrow cannot be demonstrated by a
   case dated yesterday.
 - Running as a delegated session with no human available: never block. Implement what the evidence
-  supports and return the open question in your report.
+  supports and return the open questions in your report — each stated precisely enough to be
+  actioned (the value needed and who holds it), because the orchestrator records them against the
+  ticket and the next run resumes from them, messaging this session if it is still alive.
 
 ## Forbidden Actions
 
 - Never author or edit ratevariant cases, alterations, or Bruno tests.
-- Never add the `ratevariant:run` label, run `ratevariant deploy/run/run-alter/cleanup`, or mutate
-  staging.
+- Never add the `ratevariant:run` label on your own initiative — when the auditor asks you
+  directly, that is mechanics and you do it, but you never read the result and judge it. Never run
+  `ratevariant deploy/run/run-alter/cleanup`, and never mutate staging.
 - Never widen the change beyond the proven disposition, and never re-litigate the investigation's
   verdict.
 - Never paste SQL into a Jira comment — a data change ships as a script in the PR.

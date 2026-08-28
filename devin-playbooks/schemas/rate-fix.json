@@ -49,17 +49,16 @@
       "type": "boolean",
       "description": "Whether the non-SSUTA cart (inline in spTransactionLookup_nonssuta) and ETL (fnGetTaxRatesforTx_nonssuta) counterparts were checked for drift."
     },
-    "deployed_to_staging": {
-      "type": "boolean",
-      "description": "Whether the change reaches the databases the A/B harness deploys from, or is source-only."
-    },
     "diagnosis_disagreement": {
       "type": "string",
       "description": "If implementing contradicted the investigation's diagnosis, what the code showed. Empty otherwise. Do not silently re-diagnose."
     },
-    "blocking_question": {
-      "type": "string",
-      "description": "The one question a human must answer, or empty."
+    "blocking_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Every question a human must answer, one per entry; empty array when none."
     },
     "fix_summary": {
       "type": "string",

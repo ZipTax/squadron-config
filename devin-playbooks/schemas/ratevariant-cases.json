@@ -91,7 +91,7 @@
     },
     "run_label_added": {
       "type": "boolean",
-      "description": "Must be false. The audit stage owns firing ratevariant:run and interpreting the result; the session that wrote the cases never grades them."
+      "description": "False unless the audit stage explicitly asked this session to label. The audit stage owns firing ratevariant:run and interpreting the result; labeling on its request is mechanics, but the session that wrote the cases never grades them."
     },
     "suspected_dead_branches": {
       "type": "array",
