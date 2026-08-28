@@ -431,11 +431,9 @@ mission "ratevariant_ab" {
       Return investigation_session_id — the new session's, or the terminated one's when its
       verdict stood — the verdict, and its report.
 
-      When you return the terminated session's id, say so in session_messageable: later stages
+      When you return the terminated session's id, say so in session_messageable — later stages
       (assess, audit) reach back to the investigation to close a gate gap or ask a follow-up, and
-      a dead id makes that fail at the point of use, halfway through a run. Flagged, the stage
-      that needs an answer knows the report is all there is, and can start a session of its own
-      deliberately instead of retrying a send that cannot land.
+      the delegated_session rules tell them what to do instead once they know they cannot.
     EOT
     agents  = [agents.rate_investigator]
 
@@ -481,11 +479,9 @@ mission "ratevariant_ab" {
       to derive from prose. Only that session can query; you judge what comes back.
 
       Unless it cannot be messaged: forward_investigation returns session_messageable = false when
-      the verdict it carried forward came from a terminated session. A failing gate then has no one
-      to ask, so do not send and do not pass the gate on the strength of a report you cannot
-      question — either start one fresh read-only session to close that specific gap, or return
-      EVIDENCE_INCOMPLETE naming it. Carry the flag forward: the stages after you message this
-      session too.
+      the verdict it carried forward came from a terminated session. Follow the delegated_session
+      rules for that case — here the gap-closing session is a fresh read-only one, and the verdict
+      to return when you cannot get the evidence is EVIDENCE_INCOMPLETE, naming it.
 
       Emit the verdict, disposition, mechanism, evidence and unknowns as its own words support
       them — not upgraded, and not softened. Carry existing_fix_pr_url through if discover_sessions
@@ -775,9 +771,9 @@ mission "ratevariant_ab" {
       Three sessions are open and each owns a lane: investigation_session_id (the evidence),
       develop_session_id (the fix), cases_session_id (the cases). Do ALL Devin work through
       them via send_message and check_session — the run, your staging queries, and every routed
-      fix. One caveat on the first: when session_messageable is false, that id is a terminated
-      session whose verdict was carried forward, so its report is all you get — take an evidence
-      question you would have asked it to the cases session, which has the snapshot. Never open a
+      fix. When session_messageable is false on the first, the delegated_session rules for an
+      unmessageable session apply: don't send, and take an evidence question you would have asked
+      it to the cases session, which has the snapshot. Never open a
       new session and never run a code_qa review: your judgment stays
       independent, but the work runs in the session that owns it.
 
@@ -793,10 +789,17 @@ mission "ratevariant_ab" {
       Loop until SATISFACTORY or WORKING_AS_DESIGNED, up to 10 iterations. The cap is a runaway
       guard, not a budget to spend: what actually ends the loop is progress. Keep going while each
       pass closes a specific named gap — a case gained coverage, a wrong value became right, a
-      no-diff got diagnosed. Stop early and report when two consecutive passes change nothing you
-      can name, because that is a stuck loop, and a fifth identical re-run is not going to unstick
-      it; say what it is stuck on. The iteration count is yours for the cap and the summary — the
-      sessions have no use for it, so don't relay it:
+      no-diff got diagnosed.
+
+      Two things end it before the cap, and neither is a failure to keep trying. A terminal
+      judgment: the evidence settles the question against a further pass — the case genuinely
+      cannot be constructed, the fix is wrong in a way another run will only re-demonstrate, the
+      ticket asked for behavior that is already correct. And a stall: two consecutive passes change
+      nothing you can name, which is a stuck loop, and a fifth identical re-run will not unstick
+      it; say what it is stuck on. Either way you exit on the verdict the evidence supports.
+
+      The iteration count is yours for the cap and the summary — the sessions have no use for it,
+      so don't relay it:
 
       1. RUN — step 3, per the ratevariant-testing skill: have a session fire it and return the
          result comment for the current head SHA (PROC → `<!-- ratevariant-result -->`, DATA →
@@ -838,9 +841,9 @@ mission "ratevariant_ab" {
         It must NOT push code, close the PR, or remove labels. Return the comment URL. Tell
         the cases session to stand down. Don't loop; exit.
 
-      At the cap, or on a stall, exit on the verdict the evidence supports — never upgrade to
-      SATISFACTORY to close out the run. Track the iteration count and summarize what changed and
-      why on exit; on a stall, what the loop could not move.
+      However you exit — terminal judgment, stall, or the cap — exit on the verdict the evidence
+      supports; never upgrade to SATISFACTORY to close out the run. Summarize what changed and why,
+      and on a stall what the loop could not move.
     EOT
     agents = [agents.ratevariant_auditor]
 

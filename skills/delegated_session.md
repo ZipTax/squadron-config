@@ -50,6 +50,22 @@ Two things a search result does not settle, and `check_session` does: whether a 
 looks finished actually reached a verdict, and whether one that opened a PR opened the PR *for
 this ticket's fix*.
 
+## When a session cannot be messaged
+
+A terminated or archived session is readable but not messageable, and a stage can inherit one:
+a verdict may be carried forward from a session that is already closed. Where a stage passes an
+id on, it passes a `session_messageable` flag with it, and a false flag changes what you may do
+with that id — not just how you send to it:
+
+- Do not send. The failure lands at the point of use, halfway through a run, which is the worst
+  time to discover it.
+- Its report is the whole record. Treat every claim in it as inherited, not as something you
+  can question or have re-checked.
+- Do not pass a gate on the strength of a report you cannot question. Either get the specific
+  missing evidence from a session that *is* open and holds the same context, or — if none does —
+  open one deliberately for that gap, or return the incomplete-evidence verdict naming it.
+- Carry the flag onward. The next stage messages this session too.
+
 ## Reading a session's result
 
 `check_session(session_id)` returns status, messages, PR links, and structured output. Use
