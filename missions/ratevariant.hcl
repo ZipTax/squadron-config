@@ -7,9 +7,9 @@ mission "ratevariant_ab" {
       turn_retention = 3
     }
 
-    # Plugin v0.0.5 returns structured output + Devin's last message + PR links
-    # instead of the raw transcript, so a stage result is now small. Raise this
-    # again only if the plugin is configured with raw_messages = "true".
+    # A stage result is structured output + Devin's last message + PR links, not
+    # the raw transcript, so it is small. Raise this only if the devin plugin is
+    # configured with raw_messages = "true" (see plugins.hcl).
     tool_response {
       max_tokens = 32000
     }
@@ -26,7 +26,8 @@ mission "ratevariant_ab" {
   #                      \--> verify_wai   (working-as-intended)
   #                      \--> record_learnings (proven, but the remedy is unsupported)
   #                      \--> (no route: evidence incomplete -> escalate and stop)
-  #   develop     --send_to--> author_tests --send_to--> audit
+  #   develop     --send_to--> author_tests
+  #   author_tests --send_to--> audit
   #   audit       --router--> bruno_tests   (SATISFACTORY: lock the settled fix into Bruno)
   #                      \--> record_learnings (WORKING_AS_DESIGNED: the fix was a no-op)
   #   bruno_tests --send_to--> record_learnings
@@ -184,25 +185,6 @@ mission "ratevariant_ab" {
     EOT
     agents = [agents.session_scout]
 
-    router {
-      route {
-        target    = tasks.confirm_wai
-        condition = "entry_mode == confirm_wai — a prior working-as-intended conclusion is under challenge, so it gets an independent re-investigation rather than a resumption of the session that reached it."
-      }
-      route {
-        target    = tasks.continue_investigation
-        condition = "entry_mode == continue — a messageable investigation session exists for this ticket, so it continues in that session; a new one would re-derive its context and may answer differently."
-      }
-      route {
-        target    = tasks.forward_investigation
-        condition = "entry_mode == forward — an investigation session exists but is terminated/archived, so its findings are carried into a fresh session instead of being re-derived from zero."
-      }
-      route {
-        target    = tasks.start_investigation
-        condition = "entry_mode == start — nothing has investigated this ticket, so start fresh."
-      }
-    }
-
     output {
       field "entry_mode" {
         type        = "string"
@@ -240,6 +222,26 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    router {
+      route {
+        target    = tasks.confirm_wai
+        condition = "entry_mode == confirm_wai — a prior working-as-intended conclusion is under challenge, so it gets an independent re-investigation rather than a resumption of the session that reached it."
+      }
+      route {
+        target    = tasks.continue_investigation
+        condition = "entry_mode == continue — a messageable investigation session exists for this ticket, so it continues in that session; a new one would re-derive its context and may answer differently."
+      }
+      route {
+        target    = tasks.forward_investigation
+        condition = "entry_mode == forward — an investigation session exists but is terminated/archived, so its findings are carried into a fresh session instead of being re-derived from zero."
+      }
+      route {
+        target    = tasks.start_investigation
+        condition = "entry_mode == start — nothing has investigated this ticket, so start fresh."
+      }
+    }
+
   }
 
   # ---------------------------------------------------------------------------
@@ -260,11 +262,14 @@ mission "ratevariant_ab" {
       # You do
 
       Start a code_develop session on ${inputs.repo_url} running the !rate_investigation playbook
-      for ${inputs.issue}. Title it "${inputs.issue} — investigate <short description of the
-      reported behavior>" and tag it `${inputs.issue}`, `rate-investigation`. The tags carry the
-      general terms; the title is what a human scans, so it names this ticket's actual subject.
-      Pass prompt_mode `raw` — the default prompt tells the session to branch, test, commit and
-      open a PR, which is the opposite of this stage.
+      for ${inputs.issue}.
+
+      - title: "${inputs.issue} — investigate <short description of the reported behavior>" — the
+        tags carry the general terms, so the title is where this ticket's actual subject goes; it
+        is what a human scans.
+      - tags: `${inputs.issue}`, `rate-investigation`
+      - prompt_mode: `raw` — the default prompt tells the session to branch, test, commit and open
+        a PR, which is the opposite of this stage.
 
       # Brief the session
 
@@ -273,7 +278,6 @@ mission "ratevariant_ab" {
       Return investigation_session_id, the verdict it reached, and its report.
     EOT
     agents  = [agents.rate_investigator]
-    send_to = [tasks.assess_investigation]
 
     output {
       field "investigation_session_id" {
@@ -287,6 +291,8 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    send_to = [tasks.assess_investigation]
   }
 
   task "confirm_wai" {
@@ -313,8 +319,13 @@ mission "ratevariant_ab" {
 
       Start a FRESH code_develop session — never the one that reached the working-as-intended
       conclusion, which is anchored on it — on ${inputs.repo_url} running the !rate_investigation
-      playbook. Title "${inputs.issue} — re-investigate <the disputed behavior>", tags
-      `${inputs.issue}`, `rate-investigation`, prompt_mode `raw`.
+      playbook.
+
+      - title: "${inputs.issue} — re-investigate <the disputed behavior>"
+      - tags: `${inputs.issue}`, `rate-investigation`, `wai-challenge` — the third one is what makes
+        this lane findable later: a search for the ticket's investigations otherwise cannot tell
+        the challenged conclusion from the challenge to it.
+      - prompt_mode: `raw`
 
       # Brief the session
 
@@ -329,7 +340,6 @@ mission "ratevariant_ab" {
       Return investigation_session_id, the verdict it reached, and its report.
     EOT
     agents  = [agents.rate_investigator]
-    send_to = [tasks.assess_investigation]
 
     output {
       field "investigation_session_id" {
@@ -343,6 +353,8 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    send_to = [tasks.assess_investigation]
   }
 
   task "continue_investigation" {
@@ -362,7 +374,10 @@ mission "ratevariant_ab" {
         session mid-investigation invites exactly that.
       - It turns out to be unmessageable after all → report that as a stage failure rather than
         substituting a new session. discover_sessions routes terminated sessions to
-        forward_investigation, and the difference matters; if that call was wrong, say so.
+        forward_investigation, and the difference matters; if that call was wrong, say so — name
+        what the read showed and what discover_sessions concluded from it. A misroute is a
+        learning about the routing rule, and record_learnings can only turn it into one if the
+        discrepancy is on the record rather than papered over by carrying on.
 
       Anything you do send follows the rate_investigation skill's brief — the parts it has not
       already covered — and the re-briefing format in delegated_session.
@@ -370,7 +385,6 @@ mission "ratevariant_ab" {
       Return investigation_session_id, the verdict, and its report.
     EOT
     agents  = [agents.rate_investigator]
-    send_to = [tasks.assess_investigation]
 
     output {
       field "investigation_session_id" {
@@ -384,6 +398,8 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    send_to = [tasks.assess_investigation]
   }
 
   task "forward_investigation" {
@@ -399,8 +415,11 @@ mission "ratevariant_ab" {
       contradict the first.
 
       Otherwise start a new read-only code_develop session on ${inputs.repo_url} running the
-      !rate_investigation playbook, title "${inputs.issue} — investigate <short description of the
-      reported behavior>", tags `${inputs.issue}`, `rate-investigation`, prompt_mode `raw`.
+      !rate_investigation playbook.
+
+      - title: "${inputs.issue} — investigate <short description of the reported behavior>"
+      - tags: `${inputs.issue}`, `rate-investigation`
+      - prompt_mode: `raw`
 
       # Brief the session
 
@@ -411,14 +430,24 @@ mission "ratevariant_ab" {
 
       Return investigation_session_id — the new session's, or the terminated one's when its
       verdict stood — the verdict, and its report.
+
+      When you return the terminated session's id, say so in session_messageable: later stages
+      (assess, audit) reach back to the investigation to close a gate gap or ask a follow-up, and
+      a dead id makes that fail at the point of use, halfway through a run. Flagged, the stage
+      that needs an answer knows the report is all there is, and can start a session of its own
+      deliberately instead of retrying a send that cannot land.
     EOT
     agents  = [agents.rate_investigator]
-    send_to = [tasks.assess_investigation]
 
     output {
       field "investigation_session_id" {
         type        = "string"
         description = "The session whose verdict is being returned: the new one, or the terminated one when its conclusion already settled the question."
+        required    = true
+      }
+      field "session_messageable" {
+        type        = "boolean"
+        description = "Whether the returned session can still be messaged. False when the terminated session's verdict stood and its id is what is being returned — downstream stages must then treat the report as the whole record instead of sending to a dead session."
         required    = true
       }
       field "result" {
@@ -427,6 +456,8 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    send_to = [tasks.assess_investigation]
   }
 
   # ---------------------------------------------------------------------------
@@ -449,32 +480,18 @@ mission "ratevariant_ab" {
       session naming the exact gap — a conclusion with no basis is a stage failure, not a verdict
       to derive from prose. Only that session can query; you judge what comes back.
 
+      Unless it cannot be messaged: forward_investigation returns session_messageable = false when
+      the verdict it carried forward came from a terminated session. A failing gate then has no one
+      to ask, so do not send and do not pass the gate on the strength of a report you cannot
+      question — either start one fresh read-only session to close that specific gap, or return
+      EVIDENCE_INCOMPLETE naming it. Carry the flag forward: the stages after you message this
+      session too.
+
       Emit the verdict, disposition, mechanism, evidence and unknowns as its own words support
       them — not upgraded, and not softened. Carry existing_fix_pr_url through if discover_sessions
       or the investigation found a fix PR already open for this ticket.
     EOT
     agents = [agents.rate_investigator]
-
-    router {
-      route {
-        target    = tasks.author_tests
-        condition = "verdict == DEFECT_PROVEN and existing_fix_pr_url is not blank — a prior run already implemented and opened the fix. Re-running develop would author a second fix for a defect that already has one; what the ticket is missing is A/B coverage of the PR that exists."
-      }
-      route {
-        target    = tasks.develop
-        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and existing_fix_pr_url is blank and disposition != 'unsupported at available granularity' — a located, traced defect this system can actually express, so implement the fix."
-      }
-      route {
-        target    = tasks.verify_wai
-        condition = "verdict == WORKING_AS_INTENDED — no defect claimed; send to verify_wai for an independent check of that claim."
-      }
-      route {
-        target    = tasks.record_learnings
-        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md under the labelled ticket it instances. A scoped partial fix may still be worth filing separately — what develop must not do is present one as closing the class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials."
-      }
-      # EVIDENCE_INCOMPLETE → no route: the mission completes with the missing
-      # evidence named, for a human to supply. Do NOT route it onward.
-    }
 
     output {
       field "verdict" {
@@ -532,11 +549,37 @@ mission "ratevariant_ab" {
         description = "Devin session id that holds the investigation, resumed later via send_message rather than recreated."
         required    = true
       }
+      field "session_messageable" {
+        type        = "boolean"
+        description = "Whether investigation_session_id can still be messaged. False when the verdict was carried forward from a terminated session: audit and record_learnings must then work from its report, or start a session of their own, rather than sending to a dead id."
+        required    = true
+      }
       field "investigation_summary" {
         type        = "string"
         description = "One-line summary of the verdict and its basis."
         required    = true
       }
+    }
+
+    router {
+      route {
+        target    = tasks.author_tests
+        condition = "verdict == DEFECT_PROVEN and existing_fix_pr_url is not blank — a prior run already implemented and opened the fix. Re-running develop would author a second fix for a defect that already has one; what the ticket is missing is A/B coverage of the PR that exists."
+      }
+      route {
+        target    = tasks.develop
+        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and existing_fix_pr_url is blank and disposition != 'unsupported at available granularity' — a located, traced defect this system can actually express, so implement the fix."
+      }
+      route {
+        target    = tasks.verify_wai
+        condition = "verdict == WORKING_AS_INTENDED — no defect claimed; send to verify_wai for an independent check of that claim."
+      }
+      route {
+        target    = tasks.record_learnings
+        condition = "verdict == DEFECT_PROVEN and disposition == 'unsupported at available granularity' — the mechanism is proven and this engine cannot express the remedy, so the limitation IS the deliverable and belongs in limitations.md under the labelled ticket it instances. A scoped partial fix may still be worth filing separately — what develop must not do is present one as closing the class. Routing it to develop instead buys a clean-looking diff that papers over a modelling gap at state-wide blast radius. The ticket's own writeback (comment, new-rate-engine label, Blocked) is the investigating session's, since it holds the Jira credentials."
+      }
+      # EVIDENCE_INCOMPLETE → no route: the mission completes with the missing
+      # evidence named, for a human to supply. Do NOT route it onward.
     }
   }
 
@@ -553,12 +596,13 @@ mission "ratevariant_ab" {
 
       # You do
 
-      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook, with
-      title "${inputs.issue} — fix <short description of what is being corrected>" and tags
-      `${inputs.issue}`, `rate-fix`. The tags carry the general terms; the title names this
-      ticket's actual subject, which is often jurisdictions, dates, or a sourcing quirk rather
-      than a rate. Pass prompt_mode `raw`: the playbook owns the branch/commit/PR sequence, and
-      the default prompt would also tell the session to add tests, which is step 2's lane.
+      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook.
+
+      - title: "${inputs.issue} — fix <short description of what is being corrected>" — the actual
+        subject, which is often jurisdictions, dates, or a sourcing quirk rather than a rate.
+      - tags: `${inputs.issue}`, `rate-fix`
+      - prompt_mode: `raw` — the playbook owns the branch/commit/PR sequence, and the default
+        prompt would also tell the session to add tests, which is step 2's lane.
 
       # Brief the session
 
@@ -591,7 +635,6 @@ mission "ratevariant_ab" {
       what changed.
     EOT
     agents  = [agents.rate_fix_engineer]
-    send_to = [tasks.author_tests]
 
     output {
       field "pr_url" {
@@ -630,6 +673,8 @@ mission "ratevariant_ab" {
         required    = false
       }
     }
+
+    send_to = [tasks.author_tests]
   }
 
   # ---------------------------------------------------------------------------
@@ -648,10 +693,13 @@ mission "ratevariant_ab" {
 
       # You do
 
-      Start a code_develop session running the !ratevariant-cases playbook, title
-      "${inputs.issue} / PR #<n> — cases for <short description>", tags `${inputs.issue}`,
-      `rate-cases`, prompt_mode `raw` — the default prompt would cut a second branch and open a
-      second PR. Capture cases_session_id for the audit phase.
+      Start a code_develop session running the !ratevariant-cases playbook.
+
+      - title: "${inputs.issue} / PR #<n> — cases for <short description>"
+      - tags: `${inputs.issue}`, `rate-cases`
+      - prompt_mode: `raw` — the default prompt would cut a second branch and open a second PR.
+
+      Capture cases_session_id for the audit phase.
 
       # Brief the session
 
@@ -685,7 +733,6 @@ mission "ratevariant_ab" {
         a coverage finding to return, and a silent omission is a stage failure.
     EOT
     agents  = [agents.ratevariant_case_author]
-    send_to = [tasks.audit]
 
     output {
       field "mode" {
@@ -704,6 +751,8 @@ mission "ratevariant_ab" {
         required    = false
       }
     }
+
+    send_to = [tasks.audit]
   }
 
   # ---------------------------------------------------------------------------
@@ -726,7 +775,10 @@ mission "ratevariant_ab" {
       Three sessions are open and each owns a lane: investigation_session_id (the evidence),
       develop_session_id (the fix), cases_session_id (the cases). Do ALL Devin work through
       them via send_message and check_session — the run, your staging queries, and every routed
-      fix. Never open a new session and never run a code_qa review: your judgment stays
+      fix. One caveat on the first: when session_messageable is false, that id is a terminated
+      session whose verdict was carried forward, so its report is all you get — take an evidence
+      question you would have asked it to the cases session, which has the snapshot. Never open a
+      new session and never run a code_qa review: your judgment stays
       independent, but the work runs in the session that owns it.
 
       Anchor your predictions in the investigation's mechanism and required outcome plus your
@@ -738,8 +790,13 @@ mission "ratevariant_ab" {
       has the deepest picture of the snapshot. State the question and the values you need back,
       not the query.
 
-      Loop until SATISFACTORY or WORKING_AS_DESIGNED, max 3 iterations. The iteration count is
-      yours for the cap and the summary — the sessions have no use for it, so don't relay it:
+      Loop until SATISFACTORY or WORKING_AS_DESIGNED, up to 10 iterations. The cap is a runaway
+      guard, not a budget to spend: what actually ends the loop is progress. Keep going while each
+      pass closes a specific named gap — a case gained coverage, a wrong value became right, a
+      no-diff got diagnosed. Stop early and report when two consecutive passes change nothing you
+      can name, because that is a stuck loop, and a fifth identical re-run is not going to unstick
+      it; say what it is stuck on. The iteration count is yours for the cap and the summary — the
+      sessions have no use for it, so don't relay it:
 
       1. RUN — step 3, per the ratevariant-testing skill: have a session fire it and return the
          result comment for the current head SHA (PROC → `<!-- ratevariant-result -->`, DATA →
@@ -781,24 +838,11 @@ mission "ratevariant_ab" {
         It must NOT push code, close the PR, or remove labels. Return the comment URL. Tell
         the cases session to stand down. Don't loop; exit.
 
-      At the cap, exit on the verdict the evidence supports — never upgrade to SATISFACTORY to
-      close out the run. Track the iteration count and summarize what changed and why on exit.
+      At the cap, or on a stall, exit on the verdict the evidence supports — never upgrade to
+      SATISFACTORY to close out the run. Track the iteration count and summarize what changed and
+      why on exit; on a stall, what the loop could not move.
     EOT
     agents = [agents.ratevariant_auditor]
-
-    router {
-      route {
-        target    = tasks.bruno_tests
-        condition = "verdict == SATISFACTORY — the fix is settled and correct, so author the Bruno regression suite."
-      }
-      route {
-        target    = tasks.record_learnings
-        condition = "verdict == WORKING_AS_DESIGNED — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno."
-      }
-      # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
-      # route; on the rare terminal CASES_INADEQUATE the mission exits with the uncoverable
-      # paths named, for a human to decide. Do NOT route it onward.
-    }
 
     output {
       field "verdict" {
@@ -832,6 +876,21 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    router {
+      route {
+        target    = tasks.bruno_tests
+        condition = "verdict == SATISFACTORY — the fix is settled and correct, so author the Bruno regression suite."
+      }
+      route {
+        target    = tasks.record_learnings
+        condition = "verdict == WORKING_AS_DESIGNED — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno."
+      }
+      # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
+      # route; on the rare terminal CASES_INADEQUATE the mission exits with the uncoverable
+      # paths named, for a human to decide. Do NOT route it onward.
+    }
+
   }
 
   # ---------------------------------------------------------------------------
@@ -849,7 +908,10 @@ mission "ratevariant_ab" {
 
       Start a FRESH code_develop session on https://github.com/FedTax/txc-bruno running the
       !bruno-regression playbook for ${inputs.issue} against the fix PR (number/branch from
-      develop), title "${inputs.issue} — bruno regression", tags `${inputs.issue}`, `bruno`.
+      develop).
+
+      - title: "${inputs.issue} — bruno regression"
+      - tags: `${inputs.issue}`, `bruno`
 
       # Brief the session
 
@@ -866,12 +928,22 @@ mission "ratevariant_ab" {
       - Every expected value traces to an authority (the SME's stated correct figure, or
         state-published material), never to current staging behavior. A scenario with no
         authoritative value is left unwritten and reported, not guessed and not weakened.
+      - Two harness limits will block some scenarios outright, and neither is a reason to weaken
+        a test: the suite runs against a fixed merchant (20), so a case that depends on a
+        different merchant's configuration needs that configuration added there first; and only
+        v3 is covered, so behavior that only exists on the v1 surface — meal tax among it — cannot
+        be expressed at all. Either one is a finding: it goes in unwritten_scenarios with what it
+        would take, and the session states it in the PR body's testing section so a reviewer does
+        not read the gap as coverage.
+      - Editing that PR body is a read-then-append: fetch the current description, add to it, put
+        the whole thing back. A session that writes a description it composed from memory silently
+        deletes whatever another session added since — which is how the findings that matter get
+        lost, since they are the last thing written and the first thing overwritten.
 
       Return bruno_session_id, the PR URL, the scenarios the suite locks in with the authority
       each expected value rests on, and any scenario left unwritten for want of one.
     EOT
     agents  = [agents.bruno_author]
-    send_to = [tasks.record_learnings]
 
     output {
       field "bruno_session_id" {
@@ -891,10 +963,12 @@ mission "ratevariant_ab" {
       }
       field "unwritten_scenarios" {
         type        = "string"
-        description = "Scenarios not authored because no authoritative expected value was available, with what is needed"
+        description = "Scenarios not authored, with what each would need: no authoritative expected value, a merchant other than the fixed 20, or a v1-only surface the suite cannot reach"
         required    = false
       }
     }
+
+    send_to = [tasks.record_learnings]
   }
 
   # ---------------------------------------------------------------------------
@@ -911,8 +985,13 @@ mission "ratevariant_ab" {
       # You do
 
       Start a FRESH code_develop session — not the investigation's, so the check is not
-      anchored on its conclusion — with title "${inputs.issue} — verify working-as-intended",
-      tags `${inputs.issue}`, `verify-wai`, prompt_mode `raw`. You hold no data access: every
+      anchored on its conclusion.
+
+      - title: "${inputs.issue} — verify working-as-intended"
+      - tags: `${inputs.issue}`, `verify-wai`
+      - prompt_mode: `raw`
+
+      You hold no data access: every
       query, capture, and Jira comment below is that session's work, and you judge what comes
       back. (investigation_session_id is what you pass as wip_investigation_session_id if you
       re-fire.)
@@ -945,17 +1024,6 @@ mission "ratevariant_ab" {
     EOT
     agents = [agents.wai_verifier]
 
-    router {
-      route {
-        target    = missions.ratevariant_ab
-        condition = "verdict == WAI_REFUTED (a real defect exists) AND wai_refire_count < 1. If wai_refire_count >= 1, do NOT take this route — escalate to the SMEs and exit."
-      }
-      route {
-        target    = tasks.record_learnings
-        condition = "verdict == WAI_CONFIRMED — the ticket was a misunderstanding; a recurring misunderstanding is worth recording."
-      }
-    }
-
     output {
       field "verdict" {
         type        = "string"
@@ -978,6 +1046,18 @@ mission "ratevariant_ab" {
         required    = true
       }
     }
+
+    router {
+      route {
+        target    = missions.ratevariant_ab
+        condition = "verdict == WAI_REFUTED (a real defect exists) AND wai_refire_count < 1. If wai_refire_count >= 1, do NOT take this route — escalate to the SMEs and exit."
+      }
+      route {
+        target    = tasks.record_learnings
+        condition = "verdict == WAI_CONFIRMED — the ticket was a misunderstanding; a recurring misunderstanding is worth recording."
+      }
+    }
+
   }
 
   # ---------------------------------------------------------------------------
@@ -999,6 +1079,27 @@ mission "ratevariant_ab" {
       discover, or a documented-vs-actual behavior mismatch. The outcome of this ticket is not
       a learning: it already lives on the ticket and the PR.
 
+      This run's own misfires count, and they are the ones that can actually be fixed in
+      configuration: a stage that reported the entry mode was wrong for the session it got, a
+      brief a session read the wrong way, a gate that passed something it should have caught. Those
+      are workflow rules, so they land in this config's skills.
+
+      # Ask the sessions first
+
+      You did not do the work and cannot see where it went slowly — a session that spent two hours
+      finding out which merchant has an eligibility row knows that, and nothing in its final report
+      says so. So ask each session still open on this case (investigation, fix, cases, bruno) in
+      these words or close to them, before you decide anything:
+
+      > Please tell me the two most complex, unclear, or difficult things you had to figure out
+      > this session that would have saved you time and/or effort. These should be reusable and
+      > focused on future effort of a similar nature or having a similar requirement. You do not
+      > need to provide any, if you do not think there are any that are relevant or worthwhile.
+
+      Their answers are candidates, not learnings: hold each to the same bar as your own —
+      durable, new, citable, and not already written down. A session's frustration with a
+      one-off flake is not a rule.
+
       One entry point is not discretionary: arriving here from the investigation's unsupported
       disposition means a proven instance of a deferred limitation, so it is recorded in the
       ratevariant-audit skill's limitations reference — under the labelled ticket it instances,
@@ -1014,9 +1115,9 @@ mission "ratevariant_ab" {
       (for a rate-audit precedent, an entry in the ratevariant-audit skill's case-law
       reference: symptom, mechanism, and how it was proven, with the ticket key), a workflow
       rule to this config's skills, a data/configuration fact to the owning repo's docs. Pass
-      title "${inputs.issue} — record <the learning, in a few words>" and tags
-      `${inputs.issue}`, `learnings`. Prefer amending an existing document; keep it to the rule
-      plus the one case that demonstrates it.
+      title "${inputs.issue} — record <the learning, in a few words>" and tags `${inputs.issue}`,
+      `learnings`. Prefer amending an existing document; keep it to the rule plus the one case
+      that demonstrates it.
 
       Every recorded learning must be citable — the case result, capture, or query that
       establishes it. An uncitable "lesson" is worse than none because it will be trusted.

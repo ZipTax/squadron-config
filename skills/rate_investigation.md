@@ -1,9 +1,9 @@
 # Briefing and judging a rate investigation
 
-Four stages start or resume a rate investigation, and one stage judges what comes back. They
-share this brief and these gates, so a verdict means the same thing whichever entry the case
-came in through. What differs per stage is only *how the session is obtained* — that stays in
-the objective.
+This is the brief a rate investigation gets and the gates its result must pass, so a verdict
+means the same thing however the case reached it. How the session is obtained belongs to the
+calling stage, not here — with one exception the brief itself has to know about: whether the
+session has already done part of the work.
 
 ## The brief — put this in the session's task text
 
@@ -29,11 +29,24 @@ In these words or close to them:
 - If the disposition is that this engine cannot express the general remedy, that is the
   deliverable, and it still gets recorded on the ticket: post the comment stating the limitation
   for the SMEs, apply the `new-rate-engine` label, and move the ticket to Blocked. Do not author
-  a fix to have something to show — but do say whether a scoped partial fix would help, since
-  deferring the class does not forbid patching a case.
+  a fix to have something to show — but do say whether a scoped partial fix is *feasible*, and at
+  what accuracy. Not whether it would help; of course it would. A ZIP+4 patch for a CA district
+  case is feasible, and is worth filing if the values it writes are right for every address it
+  covers — not merely right for the address on the ticket, which trades a reported wrong answer
+  for unreported ones.
 
-A session that is being *continued* gets only the part it has not already done. Repeating the
-whole brief to a session mid-investigation invites it to start over.
+## A continued session
+
+A session already mid-investigation gets only the part it has not done, and it needs to be told
+which part that is: cite what it already established, then ask for the gap. Repeating the whole
+brief invites it to start over, and re-deriving what it already had is how the second answer
+ends up disagreeing with the first.
+
+Where findings are *inherited* rather than established in-session — carried forward from a
+terminated session's report — say so, and say they are claims to re-check: the session cannot
+see the evidence behind them, so it must not cite them as measured or traced. A verdict resting
+on an inherited claim is only as good as that claim, and the gates below cannot tell the
+difference unless the provenance is on the record.
 
 ## The gates — check these on return, before anything routes
 
@@ -52,6 +65,7 @@ derive one from the prose summary.
   unsupported at available granularity (the general remedy deferred to the new engine). Both is
   common and is not a hedge: "the rates are wrong AND they are applied wrong" is two changes,
   and shipping one leaves the ticket half-fixed.
+- Any claim inherited from another session is labelled as inherited, not as measured or traced.
 - Unknowns are explicit.
 
 ## The three verdicts
