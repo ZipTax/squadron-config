@@ -51,6 +51,8 @@ mission "ratevariant_ab" {
   # Repo mechanics are NOT restated here: the fix/cases/run/audit steps and their
   # path ownership live in txc-sqlserver-database's ratevariant-testing skill
   # (references/process.md), which the playbooks load. Cite the step; don't copy it.
+  memories = [memories.rate_case_log]
+
   agents = [
     agents.session_scout,
     agents.rate_investigator,
@@ -1022,6 +1024,22 @@ mission "ratevariant_ab" {
 
       If nothing qualifies, set recorded = false and say why in one line. Do not manufacture
       something to record.
+
+      # The case log
+
+      Read it before you decide, and append to it after. `file_grep` the `rate_case_log` slot for
+      this case's mechanism class first: a mechanism appearing for the second or third time is
+      itself the durable finding, and it is the one thing this stage cannot see from the ticket in
+      front of it — recurrence is what turns "one odd case" into a precedent worth writing down.
+      Cite the prior tickets you found when it does.
+
+      Then `file_create` (append) one line to `rate_case_log`, path `cases.md`, whatever the
+      outcome — including recorded = false, since a case that taught nothing is still a case:
+
+      `<date> | ${inputs.issue} | <mechanism class, few words> | <verdict> | <written back where, or none>`
+
+      One line. Anything longer belongs in the reviewable document, not here, and the log is only
+      useful while it stays greppable.
     EOT
     agents = [agents.learnings_curator]
 
