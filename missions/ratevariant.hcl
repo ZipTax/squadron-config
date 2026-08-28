@@ -813,6 +813,11 @@ mission "ratevariant_ab" {
 
       # Outcomes
 
+      Every fix you route below lands in a session that has been working for hours and will update
+      the PR on its way out from what it remembers, so each message carries the session_lane rule
+      with it: fetch the current description, add, put the whole thing back. This is where
+      descriptions actually get clobbered — and the earlier stages' findings are what disappears.
+
       Exit on exactly one verdict:
       - SATISFACTORY — intended diffs present, each to the correct value, guardrails flat, all
         paths the change spans in agreement, and every path it actually reaches covered by a
@@ -938,10 +943,8 @@ mission "ratevariant_ab" {
         be expressed at all. Either one is a finding: it goes in unwritten_scenarios with what it
         would take, and the session states it in the PR body's testing section so a reviewer does
         not read the gap as coverage.
-      - Editing that PR body is a read-then-append: fetch the current description, add to it, put
-        the whole thing back. A session that writes a description it composed from memory silently
-        deletes whatever another session added since — which is how the findings that matter get
-        lost, since they are the last thing written and the first thing overwritten.
+      - Say how to edit that PR body, per session_lane: fetch the current description, add, put
+        the whole thing back.
 
       Return bruno_session_id, the PR URL, the scenarios the suite locks in with the authority
       each expected value rests on, and any scenario left unwritten for want of one.

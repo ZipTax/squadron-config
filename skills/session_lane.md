@@ -25,12 +25,17 @@ unreviewable.
 
 Each session should leave its session link on the PR, so a reviewer can walk the chain
 without asking who did what. **Append only, and read before writing.** A session's PR
-description or comment edit must start from the current text and add its link after the
-links already there — never regenerate the description from a template, and never write a
-description that omits a link it did not put there. Devin's own PR tooling rewrites the
-description wholesale, so a later stage that "updates the PR" the easy way deletes the
-earlier stages' links; the earlier ones are the ones with the investigation and the
-diagnosis in them, so that loss is the expensive direction.
+description or comment edit must start from the current text and add to what is there —
+never regenerate the description from a template, and never write one that omits something
+it did not put there. Devin's own PR tooling rewrites the description wholesale, so a later
+stage that "updates the PR" the easy way deletes what earlier stages wrote; the earlier ones
+hold the investigation and the diagnosis, so that loss is the expensive direction.
+
+This binds every instruction you send, not just the one that adds a link. A session you
+message mid-case to fix something is the likeliest offender: it has been working for hours,
+it updates the PR on its way out, and it composes the description from what it remembers —
+which is its own work, plus whatever was there when it started. So say it in the message:
+fetch the current description, add, put the whole thing back.
 
 ## Lane discipline for yourself
 
