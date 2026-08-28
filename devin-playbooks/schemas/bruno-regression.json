@@ -54,21 +54,21 @@
       "items": {
         "type": "string"
       },
-      "description": "Scenarios deliberately not written because no authority established the expected value."
+      "description": "Scenarios deliberately not written, each with its reason: 'needs authority' (no authority established the expected value \u2014 pair it with an entry in open_questions) or 'covered by the A/B' (a V1 path, config-only behavior, or anything the endpoint cannot observe). The second is a decision, not a gap."
     },
     "authority_conflicts": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Where SME statement and state-published material disagree — escalate, never pick."
+      "description": "Where SME statement and state-published material disagree \u2014 escalate, never pick."
     },
     "open_questions": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Questions a human must answer."
+      "description": "Questions a human must answer, each actionable on its own: the scenario, the exact figure needed, and the authority that would supply it. 'Needs confirmation' cannot be resumed by the next run."
     }
   },
   "required": [

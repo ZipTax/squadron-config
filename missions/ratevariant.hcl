@@ -67,6 +67,20 @@ mission "ratevariant_ab" {
   #   So the answer arriving is the trigger: re-fire /ratevariant with the same
   #   issue (plus wai_challenge or a session-id override when a human wants to
   #   force a lane) and the mission picks up rather than restarts.
+  #
+  #   The trigger contract, so nobody has to notice the answer by hand:
+  #   the stage that ends a run blocked has its session comment the questions on
+  #   the ticket and label it `ratevariant:awaiting-info` (sme_writeback owns the
+  #   wording). A Jira automation fires /ratevariant on a new comment on any
+  #   ticket carrying that label — and the FIRST Devin session this run briefs
+  #   removes the label before it does anything else, exactly once. That is the
+  #   sentinel: without the removal, every subsequent comment on the ticket
+  #   (including this run's own writeback) fires another run, and the discussion a
+  #   ticket normally accumulates would burn a mission per message. The label is
+  #   re-added only by a run that again ends blocked, which is what makes it mean
+  #   "a human owes us something" rather than "this ticket is in the flow".
+  #   Squadron holds no Atlassian credentials, so both the comment and the label
+  #   are the session's to do — the stage briefs them and checks they happened.
   memories = [memories.rate_case_log, memories.rate_open_items]
 
   agents = [
@@ -202,10 +216,17 @@ mission "ratevariant_ab" {
       the read already found, and the prior context worth carrying — what was established, what
       was left open — so no downstream session re-derives what is already known.
 
-      Carry the open-items file forward verbatim in outstanding_work when there is one, including
-      the answers this run's inputs supply to questions it lists. Downstream stages route on it:
-      work a prior run finished is not re-done, and a question already answered is not asked
-      again.
+      Carry the open-items file forward verbatim in outstanding_work when there is one. Downstream
+      stages route on it: work a prior run finished is not re-done, and a question already answered
+      is not asked again.
+
+      You cannot read the ticket — no Atlassian credentials here — so you do not judge whether the
+      open questions were answered. Hand them to the entry stage as questions to check, and the
+      session it briefs (which can read the comments) says which are answered usably and which are
+      still open because the reply was general. That judgment is deliberately the session's: it is
+      the one that knows what "usable" means for the evidence it needs. Treat a resumption whose
+      questions all come back unanswered as an escalation, not a failure — the run ends where it
+      began and the ticket says so.
     EOT
     agents = [agents.session_scout]
 
@@ -528,13 +549,23 @@ mission "ratevariant_ab" {
 
       # When the run stops here
 
-      EVIDENCE_INCOMPLETE has no route: the gap needs a human, and this run ends. Before it does,
-      write `rate_open_items` path `${inputs.issue}.md` — the exact artifacts that would close each
+      EVIDENCE_INCOMPLETE has no route: the gap needs a human, and this run ends. Two things before
+      it does.
+
+      Write `rate_open_items` path `${inputs.issue}.md` — the exact artifacts that would close each
       gap (whose transaction ids, which published rate and period), the sessions this ticket has
       and whether each is still messageable, any fix PR already open, and one line on where the
       next run should pick up. The next /ratevariant fire on this ticket reads it in
       discover_sessions, so what you leave out is what somebody re-derives. Overwrite the file if
       it is already there; it describes the current state, not a history.
+
+      And get the questions onto the ticket, because that is the only place a human answers and
+      this file is invisible to them: send_message the investigation session (or, if it cannot be
+      messaged, the fresh read-only session you opened to close gaps) to post them per
+      sme_writeback — every question, in one comment — and to label the ticket
+      `ratevariant:awaiting-info`, which is what makes the answer fire the next run. Squadron holds
+      no Atlassian credentials; check on return that both happened. A run that ends blocked without
+      that comment has asked nobody anything, and the ticket sits until a human notices.
     EOT
     agents = [agents.rate_investigator]
 
@@ -936,6 +967,14 @@ mission "ratevariant_ab" {
       However you exit — terminal judgment, stall, or the cap — exit on the verdict the evidence
       supports; never upgrade to SATISFACTORY to close out the run. Summarize what changed and why,
       and on a stall what the loop could not move.
+
+      When that exit is a terminal CASES_INADEQUATE, a stall, or the cap, the mission ends here
+      with no record_learnings after it, so write `rate_open_items` path `${inputs.issue}.md`
+      yourself: the uncoverable paths and why, the fix PR, the sessions and whether each is still
+      messageable, and what a human has to decide. Overwrite an existing file. If the decision
+      needs a person rather than another run, have the fix session post it on the ticket per
+      sme_writeback and label it `ratevariant:awaiting-info` — the memory file is for the next run,
+      the ticket is what reaches a human and what makes their reply fire one.
     EOT
     agents = [agents.ratevariant_auditor]
 
@@ -1246,6 +1285,11 @@ mission "ratevariant_ab" {
         any existing file; it is current state, not history.
       - Nothing outstanding: `file_delete` it if it exists. A stale open-items file makes the next
         run resume a case that already closed, and it will believe the file over the ticket.
+
+      When something is outstanding *and* a human has to supply it, the questions also go on the
+      ticket: have your session post them per sme_writeback — all of them, one comment — and label
+      it `ratevariant:awaiting-info`. Same reason as everywhere else: the memory file is for the
+      next run, the ticket is for the human, and only the ticket triggers anything.
     EOT
     agents = [agents.learnings_curator]
 

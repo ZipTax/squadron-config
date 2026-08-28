@@ -54,6 +54,21 @@ effective date, the merchant configuration. "Please confirm" comes back in a wee
 nothing; "were these three orders expected at 7.975%, and from which notice?" comes back
 usable.
 
+## The ticket is the only place questions are asked
+
+Every question a run blocks on goes in the ticket comment — all of them, in one comment, each
+naming the artifact that answers it. A question that exists only in a session's structured output
+or a PR comment does not get answered, because nobody who has the answer is reading either. If a
+stage returned three questions, the comment carries three; consolidate wording, never the set.
+
+Don't route them. No @-mentions, no naming who should answer, no severity — bandwidth on the tax
+side is scarce and a human decides who to pull in. Say what is needed and from what authority; the
+ticket's watchers do the rest.
+
+When the run is ending on those questions, label the ticket `ratevariant:awaiting-info` in the same
+breath. That label is the resume trigger (see the mission's resumption contract) — the comment
+without it asks a question nobody will act on, and the label without the comment asks nothing.
+
 Two claims are never the comment's regardless of basis, because they are lifecycle facts owned
 elsewhere: that something is "fixed"/"resolved" (a human merges and deploys), and any risk
 rating.
