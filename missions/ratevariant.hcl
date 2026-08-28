@@ -21,8 +21,9 @@ mission "ratevariant_ab" {
   #                            \--> continue_investigation (a messageable session exists)
   #                            \--> forward_investigation (a terminated session exists)
   #   all four    --send_to--> assess_investigation (conditional fan-in)
-  #   assess      --router--> develop      (a defect is proven, read-only stages end)
-  #                      \--> author_tests (a prior run's fix PR already exists)
+  #   assess      --router--> develop      (a defect is proven — write the fix, or adopt an
+  #                                         existing PR whose session is gone)
+  #                      \--> author_tests (a prior run's fix PR exists, owner still live)
   #                      \--> verify_wai   (working-as-intended)
   #                      \--> record_learnings (proven, but the remedy is unsupported)
   #                      \--> (no route: evidence incomplete -> escalate and stop)
@@ -486,6 +487,16 @@ mission "ratevariant_ab" {
       Emit the verdict, disposition, mechanism, evidence and unknowns as its own words support
       them — not upgraded, and not softened. Carry existing_fix_pr_url through if discover_sessions
       or the investigation found a fix PR already open for this ticket.
+
+      # Settle who owns the fix
+
+      On an existing fix PR, one more thing is yours, and no later stage can do it for you: say
+      whether that PR still has a live owner. check_session the session that opened it and return
+      it in fix_session_id with fix_session_messageable. Audit routes every FIX_OR_TICKET_WRONG
+      finding to the session that owns the fix and opens no session itself — so if that owner is
+      terminated and nobody noticed here, audit reaches a finding it is structurally unable to act
+      on, at the end of a run, with a wrong fix on an open PR. A false flag routes through develop
+      instead, which adopts the PR and becomes the owner.
     EOT
     agents = [agents.rate_investigator]
 
@@ -537,7 +548,17 @@ mission "ratevariant_ab" {
       }
       field "existing_fix_pr_url" {
         type        = "string"
-        description = "A fix PR a prior session already opened for this ticket. Set it and the mission continues at case authoring instead of develop — the fix exists, the A/B coverage does not. Blank when there is no such PR."
+        description = "A fix PR a prior session already opened for this ticket. With a live owning session the mission continues at case authoring instead of develop — the fix exists, the A/B coverage does not; with a dead one it goes through develop to adopt the PR. Blank when there is no such PR."
+        required    = false
+      }
+      field "fix_session_id" {
+        type        = "string"
+        description = "On an existing fix PR only: the session that opened it. Blank when there is no such PR, or when its session cannot be identified."
+        required    = false
+      }
+      field "fix_session_messageable" {
+        type        = "boolean"
+        description = "On an existing fix PR only: whether fix_session_id can still be messaged. False (or unknown) sends the mission through develop to adopt that PR, because audit routes fixes to the owning session and cannot create one."
         required    = false
       }
       field "investigation_session_id" {
@@ -560,11 +581,11 @@ mission "ratevariant_ab" {
     router {
       route {
         target    = tasks.author_tests
-        condition = "verdict == DEFECT_PROVEN and existing_fix_pr_url is not blank — a prior run already implemented and opened the fix. Re-running develop would author a second fix for a defect that already has one; what the ticket is missing is A/B coverage of the PR that exists."
+        condition = "verdict == DEFECT_PROVEN and existing_fix_pr_url is not blank and fix_session_messageable == true — a prior run already implemented and opened the fix AND its session is still reachable, so the fix lane has an owner audit can route findings to. Re-running develop would author a second fix for a defect that already has one; what the ticket is missing is A/B coverage of the PR that exists."
       }
       route {
         target    = tasks.develop
-        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and existing_fix_pr_url is blank and disposition != 'unsupported at available granularity' — a located, traced defect this system can actually express, so implement the fix."
+        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and disposition != 'unsupported at available granularity' and (existing_fix_pr_url is blank, or fix_session_messageable is false/unknown) — a located, traced defect this system can actually express. Either no fix exists yet and develop writes it, or one exists whose session is gone and develop adopts it: the fix lane must have a session that can still be messaged before audit starts, since audit routes fixes and never opens a session."
       }
       route {
         target    = tasks.verify_wai
@@ -589,6 +610,20 @@ mission "ratevariant_ab" {
     objective = <<-EOT
       A defect has been proven for ${inputs.issue} in ${inputs.repo_url}. Implement the fix —
       step 1 of the ratevariant process (ratevariant-testing skill, references/process.md).
+
+      # Two ways you get here
+
+      Usually no fix exists and this stage writes it. But when assess_investigation reports an
+      existing_fix_pr_url whose fix_session_messageable is false, the fix exists and its session is
+      gone, and this stage exists to give that PR a living owner — audit routes corrections to the
+      fix session and cannot create one, so an unowned PR strands every finding it reaches.
+
+      In that adopt case the session's job is to take over, not to redo: have it read the PR diff
+      and the branch, confirm the change matches the briefed mechanism, and say what it found —
+      then stop and hold the lane. It must not re-implement, revert, or widen what is there, and it
+      must not open a second PR. If the existing change contradicts the diagnosis, that goes in
+      diagnosis_contradicted; correcting it is audit's call, routed back here, not a silent rewrite
+      before anyone has run the A/B.
 
       # You do
 
@@ -616,6 +651,9 @@ mission "ratevariant_ab" {
       - Open the PR, add the `ratevariant` label so plan runs, and confirm it landed:
           gh pr edit <pr> --add-label ratevariant
           gh pr view <pr> --json number,url,headRefName,labels
+        Adopting an existing PR: check out its head branch, do not open a PR, and check the label
+        rather than assuming — a prior run may or may not have applied it, and plan never ran if it
+        did not.
 
       # Hold the session to
 
@@ -628,7 +666,8 @@ mission "ratevariant_ab" {
       Fail the stage if no PR exists at the end. Do not report success without one.
 
       Return the PR URL, number, head branch, develop_session_id, and a one-line summary of
-      what changed.
+      what changed — or, when adopting, what the existing change does and that the lane is now
+      owned.
     EOT
     agents  = [agents.rate_fix_engineer]
 
@@ -655,7 +694,7 @@ mission "ratevariant_ab" {
       }
       field "develop_session_id" {
         type        = "string"
-        description = "Devin session id that owns the fix, resumed via send_message during the audit loop."
+        description = "Devin session id that owns the fix — the one it wrote, or the existing PR it adopted. author_tests forwards it as fix_session_id, and audit resumes it via send_message during the audit loop."
         required    = true
       }
       field "development_summary" {
@@ -684,8 +723,12 @@ mission "ratevariant_ab" {
       Author the ratevariant cases on the EXISTING branch of the fix PR — step 2 of the
       ratevariant process (ratevariant-testing skill, references/process.md). The PR is
       develop's, or the one assess_investigation reported in existing_fix_pr_url when a prior run had
-      already opened it; in that case read the PR diff for the change under test, since no
-      develop stage in this run described it.
+      already opened it and its session is still live; in that case read the PR diff for the change
+      under test, since no develop stage in this run described it.
+
+      Pass the fix lane's session id through to audit either way — develop_session_id when develop
+      ran, otherwise assess's fix_session_id. Audit routes corrections to whichever it is and cannot
+      open a session of its own, so a lane id that stops here strands them.
 
       # You do
 
@@ -741,6 +784,11 @@ mission "ratevariant_ab" {
         description = "Devin session id from the case-authoring run, resumed via send_message in the audit phase to augment cases/probes"
         required    = true
       }
+      field "fix_session_id" {
+        type        = "string"
+        description = "The session that owns the fix and receives audit's corrections: develop's when develop ran, otherwise the live session assess_investigation identified behind the existing PR."
+        required    = true
+      }
       field "coverage_gaps" {
         type        = "string"
         description = "Roots/paths not coverable on the reporting merchant, with reasons (including reasons Devin gives)"
@@ -769,7 +817,8 @@ mission "ratevariant_ab" {
       # You do
 
       Three sessions are open and each owns a lane: investigation_session_id (the evidence),
-      develop_session_id (the fix), cases_session_id (the cases). Do ALL Devin work through
+      fix_session_id (the fix — develop's session, or the live one that already owned the PR),
+      cases_session_id (the cases). Do ALL Devin work through
       them via send_message and check_session — the run, your staging queries, and every routed
       fix. When session_messageable is false on the first, the delegated_session rules for an
       unmessageable session apply: don't send, and take an evidence question you would have asked
@@ -833,14 +882,14 @@ mission "ratevariant_ab" {
       - FIX_OR_TICKET_WRONG — dead/shadowed branch, wrong resulting value, cart-vs-reports or
         import inconsistency, over-broad blast radius, or an ineffective fix → have Devin post
         a PR comment citing the file plus the case result that proves it, then
-        send_message(develop_session_id) with ONLY that fix and its supporting data. If the
+        send_message(fix_session_id) with ONLY that fix and its supporting data. If the
         fix changes a scripts/*.sql migration, the mirroring alteration is now stale — also
         send_message(cases_session_id) to re-sync it. Loop.
       - WORKING_AS_DESIGNED — the A/B, grounded in data, shows the fix changes nothing: the
         pre-change behavior was already correct, or the changed branch is provably dead. This
         requires POSITIVE data (the decomposed correct value, or the precluding condition),
         never an absent diff or an inability to construct one. The fix session made the change
-        and is best placed to confirm it: send_message(develop_session_id) with the
+        and is best placed to confirm it: send_message(fix_session_id) with the
         data-grounded finding and have it verify in-situ, then post ONE product-level Jira
         comment routing to the SMEs, plus a brief PR note so the reviewer knows it is a no-op.
         It must NOT push code, close the PR, or remove labels. Return the comment URL. Tell

@@ -66,6 +66,13 @@ with that id — not just how you send to it:
   open one deliberately for that gap, or return the incomplete-evidence verdict naming it.
 - Carry the flag onward. The next stage messages this session too.
 
+And one thing the stage that *notices* has to do rather than pass along: if the dead session owned
+a lane someone downstream must be able to act on — the fix, the cases — that lane needs a living
+owner established before the stage that routes work to it starts. A stage forbidden from opening
+sessions cannot rescue itself, and it discovers the problem at the moment it has a finding and
+nowhere to send it. Establishing ownership belongs where the lanes are assigned, not where the
+work arrives.
+
 ## Reading a session's result
 
 `check_session(session_id)` returns status, messages, PR links, and structured output. Use
