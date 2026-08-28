@@ -86,7 +86,7 @@ block's spec rather than a UI setting.
 
 No stage waits for an answer. A session that needs something only a person has names it precisely
 and returns; the mission records what is outstanding against the ticket
-(`rate_open_items/<TICKET>.md`) and the run ends. The **next** `/ratevariant` fire on that ticket is
+(`rate_resume_state/<TICKET>.md`) and the run ends. The **next** `/ratevariant` fire on that ticket is
 the resumption: `discover_sessions` reads that file and finds the ticket's sessions by tag, so live
 sessions are continued in place rather than restarted. What makes this work is precision — "needs
 confirmation" cannot be resumed; "need the June rate for Cook County and its published source" can.
@@ -95,7 +95,9 @@ Two halves, and both are required. The **ticket** is where the questions go — 
 comment, since nobody who can answer reads a session's structured output — and the blocking stage
 labels it `TaxRates:Needs-Info`, which is the sentinel a Jira automation fires `/ratevariant` on when
 a new comment lands. The **memory file** is for the next run, not the human, and it records *where*
-the run blocked so the resumption re-enters at that stage instead of re-running finished work. The
+the run blocked so the resumption re-enters at that stage instead of re-running finished work —
+along with the verdict it may proceed on, the messageable sessions, the branches, the loop counters,
+and a marker of which ticket replies were already read. The
 entry session removes the label before doing anything else, so an ordinary ticket discussion doesn't
 spawn a mission per message, and it reads the comments since the last run to say whether each answer
 is enough to act on. The mechanics live in the `blocked_run` skill, not in the playbooks.

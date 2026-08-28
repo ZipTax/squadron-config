@@ -60,16 +60,16 @@ mission "ratevariant_ab" {
   # Blocking on a human, and resuming:
   #   The mechanics are the blocked_run skill, both ends of them — the entry
   #   steps for whichever stage a run starts at, and the close-out (end rather
-  #   than wait, write the open-items index, put the questions on the ticket)
+  #   than wait, write the resume-state record, put the questions on the ticket)
   #   for whichever stage hits the wall.
-  #   What is specific to this mission: the open-items slot is rate_open_items,
+  #   What is specific to this mission: the resume-state slot is rate_resume_state,
   #   path <TICKET>.md; a Jira automation fires /ratevariant when a comment lands
   #   on a labelled ticket, so the answer arriving is the trigger; and the
   #   resumption is not a re-do — discover_sessions reads that file and finds the
   #   ticket's sessions by tag, so a live investigation or fix session is
   #   continued in place and the run re-enters at the stage that blocked.
   #   A human can still force a lane with wai_challenge or a session-id override.
-  memories = [memories.rate_case_log, memories.rate_open_items]
+  memories = [memories.rate_case_log, memories.rate_resume_state]
 
   agents = [
     agents.session_scout,
@@ -151,7 +151,7 @@ mission "ratevariant_ab" {
 
       # You do
 
-      1. `file_read` the `rate_open_items` slot, path `${inputs.issue}.md`. If it exists, a prior
+      1. `file_read` the `rate_resume_state` slot, path `${inputs.issue}.md`. If it exists, a prior
          run on this ticket stopped on something a human had to supply, and that file says what:
          the questions outstanding, which stages already finished, and their PRs. This run is the
          resumption of that one. Absent file means either a first run or a case that closed.
@@ -182,13 +182,13 @@ mission "ratevariant_ab" {
 
       # What you are deciding
 
-      First, whether this run re-enters the flow past the investigation at all. The open-items file
+      First, whether this run re-enters the flow past the investigation at all. The resume-state file
       records which stage the last run blocked at, and a ticket that stopped in case authoring or
       bruno does not need another investigation — re-running one wastes the expensive stage and
       risks a second verdict that disagrees with the one the fix was built on. So if the file names
       a blocked stage downstream of assessment, and the verdict and fix PR it records are intact,
       set resume_stage to that stage and carry its state (fix PR, session ids, what was
-      outstanding). Say in outstanding_work that the stage you route to is this run's entry, so its
+      outstanding). Say in resume_state that the stage you route to is this run's entry, so its
       session does the blocked_run entry steps — clearing the label is the entry's job wherever the
       run re-enters, and you hold no credentials to do it yourself.
 
@@ -218,7 +218,7 @@ mission "ratevariant_ab" {
       the read already found, and the prior context worth carrying — what was established, what
       was left open — so no downstream session re-derives what is already known.
 
-      Carry the open-items file forward verbatim in outstanding_work when there is one. Downstream
+      Carry the resume-state file forward verbatim in resume_state when there is one. Downstream
       stages route on it: work a prior run finished is not re-done, and a question already answered
       is not asked again.
 
@@ -238,7 +238,7 @@ mission "ratevariant_ab" {
       }
       field "resume_stage" {
         type        = "string"
-        description = "author_tests | audit | bruno_tests | record_learnings, when the open-items file says the last run blocked at that stage AND the verdict and fix PR it records are intact — the flow re-enters there instead of investigating again. Blank otherwise, which is the default: a doubt about the recorded state is a reason to leave it blank."
+        description = "author_tests | audit | bruno_tests | record_learnings, when the resume-state file says the last run blocked at that stage AND the verdict and fix PR it records are intact — the flow re-enters there instead of investigating again. Blank otherwise, which is the default: a doubt about the recorded state is a reason to leave it blank."
         required    = false
       }
       field "investigation_session_id" {
@@ -266,9 +266,9 @@ mission "ratevariant_ab" {
         description = "What prior sessions established and what they left open, with the session each came from — the briefing material that stops a downstream session re-deriving known work. Blank on start."
         required    = false
       }
-      field "outstanding_work" {
+      field "resume_state" {
         type        = "string"
-        description = "What rate_open_items/<TICKET>.md said a prior run was waiting on and which stages it had already finished, plus which of those questions this run's inputs answer, and — when there was a file — that the routed stage is this run's entry and owes the blocked_run entry steps. Blank when there is no such file: a first run, or a closed case."
+        description = "What rate_resume_state/<TICKET>.md said a prior run was waiting on and which stages it had already finished, plus which of those questions this run's inputs answer, and — when there was a file — that the routed stage is this run's entry and owes the blocked_run entry steps. Blank when there is no such file: a first run, or a closed case."
         required    = false
       }
       field "sessions_found" {
@@ -571,7 +571,7 @@ mission "ratevariant_ab" {
       # When the run stops here
 
       EVIDENCE_INCOMPLETE has no route: the gap needs a human, and this run ends. Close it out per
-      blocked_run — open-items slot `rate_open_items`, path `${inputs.issue}.md`, blocked at this
+      blocked_run — resume-state slot `rate_resume_state`, path `${inputs.issue}.md`, blocked at this
       stage — and the session that gets told to post is the investigation session, or the fresh
       read-only one you opened to close gaps if that one cannot be messaged.
 
@@ -981,7 +981,7 @@ mission "ratevariant_ab" {
       and on a stall what the loop could not move.
 
       A terminal CASES_INADEQUATE, a stall, or the cap ends the mission here — no record_learnings
-      runs after it — so close it out yourself per blocked_run (slot `rate_open_items`, path
+      runs after it — so close it out yourself per blocked_run (slot `rate_resume_state`, path
       `${inputs.issue}.md`, blocked at audit, the fix session posting). What this stage owes the
       file: the uncoverable paths and why, the fix PR, and what a human has to decide. Skip the
       ticket comment only when the open item is a coverage limit for a reviewer rather than a
@@ -1285,16 +1285,18 @@ mission "ratevariant_ab" {
       One line. Anything longer belongs in the reviewable document, not here, and the log is only
       useful while it stays greppable.
 
-      # Open items
+      # Resume state
 
-      Last, settle the ticket's `rate_open_items` file, path `${inputs.issue}.md`:
+      Last, settle the ticket's `rate_resume_state` file, path `${inputs.issue}.md`:
 
       - Anything still outstanding — an unanswered question, a bruno scenario left unwritten for
         want of an authoritative figure, a coverage gap nobody could close, a WAI still contested
         — means the case is not really closed. Write the file: what is outstanding, who has to
-        answer it, which stages finished and their PRs, and where the next run resumes. Overwrite
-        any existing file; it is current state, not history.
-      - Nothing outstanding: `file_delete` it if it exists. A stale open-items file makes the next
+        answer it, which stages finished and their PRs, and where the next run resumes — the full
+        contents blocked_run specifies, including the run marker a resumption needs to tell new
+        ticket replies from the ones already read. Overwrite any existing file; it is current
+        state, not history.
+      - Nothing outstanding: `file_delete` it if it exists. A stale resume-state file makes the next
         run resume a case that already closed, and it will believe the file over the ticket.
 
       When something outstanding needs a person, the ticket side of blocked_run applies here too:
@@ -1319,9 +1321,9 @@ mission "ratevariant_ab" {
         description = "PR URL of the write-back, when one was made"
         required    = false
       }
-      field "open_items" {
+      field "resume_state" {
         type        = "string"
-        description = "What was left outstanding and therefore written to rate_open_items/<TICKET>.md, or 'none — file deleted' when the case closed clean. Never blank: silence here is indistinguishable from a stale file."
+        description = "What was left outstanding and therefore written to rate_resume_state/<TICKET>.md, or 'none — file deleted' when the case closed clean. Never blank: silence here is indistinguishable from a stale file."
         required    = true
       }
     }
