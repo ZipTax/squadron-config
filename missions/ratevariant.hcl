@@ -16,9 +16,15 @@ mission "ratevariant_ab" {
   }
 
   # Routed graph (Squadron is acyclic — no backward edges):
-  #   investigate --router--> develop      (a defect is proven, read-only stage ends)
+  #   discover_sessions --router--> start_investigation    (nothing exists yet)
+  #                            \--> confirm_wai            (a WAI conclusion is challenged)
+  #                            \--> continue_investigation (a messageable session exists)
+  #                            \--> forward_investigation (a terminated session exists)
+  #   all four    --send_to--> assess_investigation (conditional fan-in)
+  #   assess      --router--> develop      (a defect is proven, read-only stages end)
   #                      \--> author_tests (a prior run's fix PR already exists)
   #                      \--> verify_wai   (working-as-intended)
+  #                      \--> record_learnings (proven, but the remedy is unsupported)
   #                      \--> (no route: evidence incomplete -> escalate and stop)
   #   develop     --send_to--> author_tests --send_to--> audit
   #   audit       --router--> bruno_tests   (SATISFACTORY: lock the settled fix into Bruno)
@@ -27,7 +33,12 @@ mission "ratevariant_ab" {
   #   verify_wai  --router--> this mission (WAI refuted, capped) | record_learnings (confirmed)
   #
   # Each task is single-mode; the branch lives in the router, not in objective
-  # conditionals. The durable know-how lives in skills the stage agents compose —
+  # conditionals — discover_sessions is the only task with no dependency, so a
+  # webhook fires one stage, and it decides which entry the case takes. The four
+  # entries differ only in how the session is obtained: the brief they give it and
+  # the gates its result must pass live once, in the rate_investigation skill, and
+  # the verdict schema and downstream routes live once in assess_investigation.
+  # The durable know-how lives in skills the stage agents compose —
   # these objectives carry only what is specific to THIS case. In-run loops run
   # audit <-> the owning Devin session via send_message. All credentialed I/O (gh,
   # PR/Jira comments, staging queries) is Devin's; secrets stay in Devin.
@@ -41,6 +52,7 @@ mission "ratevariant_ab" {
   # path ownership live in txc-sqlserver-database's ratevariant-testing skill
   # (references/process.md), which the playbooks load. Cite the step; don't copy it.
   agents = [
+    agents.session_scout,
     agents.rate_investigator,
     agents.rate_fix_engineer,
     agents.ratevariant_case_author,
@@ -73,25 +85,25 @@ mission "ratevariant_ab" {
 
   input "wip_investigation_session_id" {
     type        = "string"
-    description = "Optional: an existing in-flight Devin session to resume for the investigate step (an automation already started it, or a prior instance's session being re-validated). Blank = create a new session via code_develop."
+    description = "Optional override: an in-flight Devin session discover_sessions must treat as the one to continue, when a human or an automation knows something the ticket-tag search cannot. Blank = discovery decides from the tagged sessions it finds."
     default     = ""
   }
 
   input "stale_investigation_session_id" {
     type        = "string"
-    description = "Optional: an existing, but expired/archived, Devin session that previously investigated this ticket. Read it for context only; a new session does the investigation. Blank = create a new session."
+    description = "Optional override: an expired/archived Devin session discover_sessions must treat as terminated context to carry forward rather than as resumable. Blank = discovery decides from the tagged sessions it finds."
     default     = ""
   }
 
   input "wai_challenge" {
     type        = "string"
-    description = "Optional authoritative challenge from a prior run — a working-as-intended conclusion that verify_wai refuted, with the rebuttal and an instruction to re-investigate skeptically and annotate the prior Jira comment. Blank on a first run."
+    description = "Optional authoritative challenge from a prior run — a working-as-intended conclusion that verify_wai refuted, with the rebuttal and an instruction to re-investigate skeptically and annotate the prior Jira comment. Present = discovery routes to confirm_wai. Blank on a first run."
     default     = ""
   }
 
   input "wai_refire_count" {
     type        = "number"
-    description = "How many times this ticket has been re-fired after a working-as-intended refute. Caps the investigate<->verify standoff: verify_wai will not re-fire once this is >= 1."
+    description = "How many times this ticket has been re-fired after a working-as-intended refute. Caps the investigation<->verify standoff: verify_wai will not re-fire once this is >= 1."
     default     = 0
   }
 
@@ -104,130 +116,340 @@ mission "ratevariant_ab" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — investigate. READ-ONLY. Decides whether there is a defect at all, and
-  # where it originates, BEFORE any session is incentivized to produce a fix.
-  # Startable task (no deps). Routes on the verdict.
+  # Task — discover_sessions. The mission's only startable task, and the single
+  # place the entry mode is decided. It asks what this ticket already has —
+  # find_sessions by ticket tag, since every stage tags its sessions with the key
+  # — instead of relying on ids being passed in, then routes exactly one of the
+  # four investigation entries. Read-only: it creates no session and messages
+  # none, which is why it holds no code_develop tool.
   # ---------------------------------------------------------------------------
 
-  task "investigate" {
+  task "discover_sessions" {
     objective = <<-EOT
-      Establish, read-only, whether ticket ${inputs.issue} in ${inputs.repo_url} is a real
-      defect, and if so where it originates. No fix is authored in this stage.
+      Decide how the investigation of ${inputs.issue} starts, from what this ticket already has.
+      You read only: no session is created, messaged, or briefed in this stage.
 
-      # Entry mode — exactly one of these renders. Do that one, and only what it leaves undone.
+      # You do
+
+      1. find_sessions(tags: ["${inputs.issue}"]). Every stage tags its sessions with the ticket
+         key, so this is the whole history of the ticket: prior investigations, fix sessions, case
+         sessions, verifications. Zero matches is a real answer, not a failure.
+      2. check_session on each candidate that could be an investigation (tagged
+         `rate-investigation` or `verify-wai`, or titled as one). A search result gives status and
+         PR links; only the session itself says whether it reached a verdict, and what of.
+      3. Honor the overrides if they are set — they are a human or an automation telling you
+         something the search cannot know:
+         %{ if inputs.wip_investigation_session_id != "" ~}
+         · wip_investigation_session_id = ${inputs.wip_investigation_session_id} — treat this
+           session as the one to continue, even if the search surfaced others.
+         %{ endif ~}
+         %{ if inputs.stale_investigation_session_id != "" ~}
+         · stale_investigation_session_id = ${inputs.stale_investigation_session_id} — treat this
+           session as terminated context to carry forward, not as resumable.
+         %{ endif ~}
+         %{ if inputs.wai_challenge != "" ~}
+         · A wai_challenge is present, so this run is a re-fire of a refuted working-as-intended
+           conclusion. That decides the route: confirm_wai. Carry the challenge text through
+           verbatim — it is authoritative input and the confirming stage needs all of it.
+         %{ endif ~}
+         %{ if inputs.wip_investigation_session_id == "" && inputs.stale_investigation_session_id == "" && inputs.wai_challenge == "" ~}
+         · No overrides were passed on this run, so the search is all you have to go on.
+         %{ endif ~}
+
+      # What you are deciding
+
+      One entry mode, and the state the chosen entry needs. Distinguish carefully, because each
+      wrong answer costs a different way: routing a live session to start_investigation abandons
+      work and can produce a second contradictory verdict; routing a terminated one to
+      continue_investigation strands the mission on a session that cannot be messaged.
+
+      - No investigation session exists → `start`.
+      - A prior investigation concluded working-as-intended and this run is challenging it (a
+        wai_challenge, or a verify-wai session that refuted it) → `confirm_wai`.
+      - An investigation session exists and can still be messaged — running, waiting on a
+        message, or finished-but-resumable → `continue`.
+      - An investigation session exists but is terminated, expired or archived, so it can be read
+        and not messaged → `forward`.
+
+      A fix PR is not itself an entry mode: it is state. If any session for this ticket already
+      opened a fix PR in ${inputs.repo_url}, put it in existing_fix_pr_url and say which session
+      opened it — the fix may exist while its A/B coverage does not, and the assessing stage
+      routes on that. Confirm it is this ticket's fix and not an unrelated PR the session touched.
+
+      Return the mode, the one session id it applies to, that session's state, whatever verdict
+      the read already found, and the prior context worth carrying — what was established, what
+      was left open — so no downstream session re-derives what is already known.
+    EOT
+    agents = [agents.session_scout]
+
+    router {
+      route {
+        target    = tasks.confirm_wai
+        condition = "entry_mode == confirm_wai — a prior working-as-intended conclusion is under challenge, so it gets an independent re-investigation rather than a resumption of the session that reached it."
+      }
+      route {
+        target    = tasks.continue_investigation
+        condition = "entry_mode == continue — a messageable investigation session exists for this ticket, so it continues in that session; a new one would re-derive its context and may answer differently."
+      }
+      route {
+        target    = tasks.forward_investigation
+        condition = "entry_mode == forward — an investigation session exists but is terminated/archived, so its findings are carried into a fresh session instead of being re-derived from zero."
+      }
+      route {
+        target    = tasks.start_investigation
+        condition = "entry_mode == start — nothing has investigated this ticket, so start fresh."
+      }
+    }
+
+    output {
+      field "entry_mode" {
+        type        = "string"
+        description = "start | confirm_wai | continue | forward. Exactly one; it is what the router acts on."
+        required    = true
+      }
+      field "investigation_session_id" {
+        type        = "string"
+        description = "The one session the chosen mode applies to: to continue, or to read for context. Blank on start."
+        required    = false
+      }
+      field "session_state" {
+        type        = "string"
+        description = "That session's state as check_session reports it, and whether it can still be messaged — this is what separates continue from forward. Blank on start."
+        required    = false
+      }
+      field "prior_verdict" {
+        type        = "string"
+        description = "A verdict the read already found in that session, if it reached one, so the assessing stage can take it rather than re-running an investigation that is already done. Blank when none."
+        required    = false
+      }
+      field "existing_fix_pr_url" {
+        type        = "string"
+        description = "A fix PR for THIS ticket that some prior session already opened. State, not a mode: the fix exists and its A/B coverage may not. Blank when there is none."
+        required    = false
+      }
+      field "prior_context" {
+        type        = "string"
+        description = "What prior sessions established and what they left open, with the session each came from — the briefing material that stops a downstream session re-deriving known work. Blank on start."
+        required    = false
+      }
+      field "sessions_found" {
+        type        = "string"
+        description = "The tagged sessions found for this ticket — id, stage tag, state — and one line on why the chosen one was chosen over the others."
+        required    = true
+      }
+    }
+  }
+
+  # ---------------------------------------------------------------------------
+  # Tasks — the four investigation entries. Dynamic targets (no depends_on), so
+  # only the one discover_sessions routes to runs. They differ ONLY in how the
+  # session is obtained; the brief they give it and the gates its result must
+  # pass are shared, and live in the rate_investigation skill. Each pushes into
+  # assess_investigation, which owns the verdict and the routing — conditional
+  # fan-in, so the verdict schema and the four downstream routes exist once
+  # instead of four times drifting apart.
+  # ---------------------------------------------------------------------------
+
+  task "start_investigation" {
+    objective = <<-EOT
+      Nothing has investigated ${inputs.issue} yet. Establish, read-only, whether it is a real
+      defect and where it originates. No fix is authored in this stage.
+
+      # You do
+
+      Start a code_develop session on ${inputs.repo_url} running the !rate_investigation playbook
+      for ${inputs.issue}. Title it "${inputs.issue} — investigate <short description of the
+      reported behavior>" and tag it `${inputs.issue}`, `rate-investigation`. The tags carry the
+      general terms; the title is what a human scans, so it names this ticket's actual subject.
+      Pass prompt_mode `raw` — the default prompt tells the session to branch, test, commit and
+      open a PR, which is the opposite of this stage.
+
+      # Brief the session
+
+      Per the rate_investigation skill, in full: this session knows nothing about the case.
+
+      Return investigation_session_id, the verdict it reached, and its report.
+    EOT
+    agents  = [agents.rate_investigator]
+    send_to = [tasks.assess_investigation]
+
+    output {
+      field "investigation_session_id" {
+        type        = "string"
+        description = "Devin session id that ran the investigation, resumed later via send_message rather than recreated."
+        required    = true
+      }
+      field "result" {
+        type        = "string"
+        description = "What the session reported: its verdict, the mechanism, the evidence behind each load-bearing claim, and its explicit unknowns. The assessing stage judges this against the gates."
+        required    = true
+      }
+    }
+  }
+
+  task "confirm_wai" {
+    objective = <<-EOT
+      A prior investigation concluded the system works as intended for ${inputs.issue}, and that
+      conclusion is under challenge. Re-establish, read-only and independently, what the system
+      actually does.
 
       %{ if inputs.wai_challenge != "" ~}
-      ## Re-validate a refuted working-as-intended conclusion
+      # The challenge
 
       ${inputs.wai_challenge}
-
-      This is authoritative input, not the answer: the prior conclusion may be right and the
-      challenge wrong. Start a fresh read-only session — a session already anchored on
-      working-as-intended is the wrong one to ask — brief it with the challenge plus the brief
-      below, and have it annotate the prior Jira comment(s) as under investigation.
       %{ else ~}
-      %{ if inputs.wip_investigation_session_id != "" ~}
-      ## Continue an in-flight investigation
+      # The challenge
 
-      Read before doing anything: check_session(${inputs.wip_investigation_session_id}). Then do
-      only what that read leaves undone.
+      Take it from discover_sessions' prior_context: the working-as-intended conclusion, and the
+      refutation or dispute that reopened it.
+      %{ endif ~}
 
-      - It already reached a verdict → you are done. Extract the verdict, disposition and
-        evidence and return them. Do NOT re-brief it and do not send the brief below.
-      - It already opened a fix PR → return it in existing_fix_pr_url along with the verdict.
-        The fix exists; what this ticket still needs is A/B coverage, not another fix.
+      This is authoritative input, not the answer. The prior conclusion may be right and the
+      challenge wrong; determine the truth rather than picking a side.
+
+      # You do
+
+      Start a FRESH code_develop session — never the one that reached the working-as-intended
+      conclusion, which is anchored on it — on ${inputs.repo_url} running the !rate_investigation
+      playbook. Title "${inputs.issue} — re-investigate <the disputed behavior>", tags
+      `${inputs.issue}`, `rate-investigation`, prompt_mode `raw`.
+
+      # Brief the session
+
+      Per the rate_investigation skill, plus:
+
+      - The challenge above, in full, as input to test rather than a conclusion to confirm.
+      - Re-derive the behavior from the code and the data. Do not audit the prior session's
+        reasoning for internal consistency — that inherits its blind spot.
+      - Annotate the prior Jira comment(s) as under investigation, so nobody acts on a conclusion
+        that is being re-examined.
+
+      Return investigation_session_id, the verdict it reached, and its report.
+    EOT
+    agents  = [agents.rate_investigator]
+    send_to = [tasks.assess_investigation]
+
+    output {
+      field "investigation_session_id" {
+        type        = "string"
+        description = "Devin session id of the fresh re-investigation — not the challenged session."
+        required    = true
+      }
+      field "result" {
+        type        = "string"
+        description = "What the session reported: its verdict, the mechanism, the evidence behind each load-bearing claim, and whether the challenged conclusion survived."
+        required    = true
+      }
+    }
+  }
+
+  task "continue_investigation" {
+    objective = <<-EOT
+      An investigation of ${inputs.issue} is already in flight in the session discover_sessions
+      identified. Finish it in THAT session. You may not create a session on this path: a second
+      one re-derives context, costs a full investigation, and can reach a different answer for no
+      reason other than being asked twice.
+
+      # You do
+
+      check_session on it first, then do only what that read leaves undone:
+
+      - It already reached a verdict → you are done. Return it as reported. Do NOT re-brief it.
       - It is mid-investigation or stalled → send_message with only what is missing, citing what
-        it has already established so it does not start over.
-      - The id is invalid or the session is terminated → report failure. You MAY NOT create a new
-        session on this path; a human corrects the id or fires the mission blank deliberately.
-      %{ else ~}
-      %{ if inputs.stale_investigation_session_id != "" ~}
-      ## Carry a terminated investigation forward
+        it has already established so it does not start over. Repeating the whole brief to a
+        session mid-investigation invites exactly that.
+      - It turns out to be unmessageable after all → report that as a stage failure rather than
+        substituting a new session. discover_sessions routes terminated sessions to
+        forward_investigation, and the difference matters; if that call was wrong, say so.
 
-      Read ${inputs.stale_investigation_session_id} for context ONLY — terminated sessions cannot
-      be messaged. If it already established a verdict, return that; if it already opened a fix
-      PR, return it in existing_fix_pr_url. Re-proving a settled conclusion costs a session and
-      changes nothing. Otherwise start a new read-only session, brief it with what the prior one
-      established so it re-verifies rather than re-derives from zero, plus the brief below.
-      %{ else ~}
-      ## Start fresh
+      Anything you do send follows the rate_investigation skill's brief — the parts it has not
+      already covered — and the re-briefing format in delegated_session.
 
-      Start a read-only code_develop session on ${inputs.repo_url} running the !rate_investigation
-      playbook for ${inputs.issue}, with the brief below.
-      %{ endif ~}
-      %{ endif ~}
-      %{ endif ~}
+      Return investigation_session_id, the verdict, and its report.
+    EOT
+    agents  = [agents.rate_investigator]
+    send_to = [tasks.assess_investigation]
 
-      # When you create a session
+    output {
+      field "investigation_session_id" {
+        type        = "string"
+        description = "The session that was continued — the same id discover_sessions identified, never a new one."
+        required    = true
+      }
+      field "result" {
+        type        = "string"
+        description = "What the session concluded: verdict, mechanism, evidence, unknowns — whether it was already there on the read or came from the follow-up."
+        required    = true
+      }
+    }
+  }
 
-      Title it "${inputs.issue} — investigate <short description of the reported behavior>" and
-      tag it `${inputs.issue}`, `rate-investigation`. The tags carry the general terms; the title
-      is what a human scans, so it names this ticket's actual subject. Pass prompt_mode `raw` —
-      the default prompt tells the session to branch, test, commit and open a PR, which is the
-      opposite of this stage.
+  task "forward_investigation" {
+    objective = <<-EOT
+      A prior investigation of ${inputs.issue} exists in a terminated session — readable, not
+      messageable. Carry it forward.
 
-      # Brief the session — only when you are briefing one
+      # You do
 
-      Skip this section entirely when the read above already produced the verdict. Otherwise put
-      it in the task text (or in the send_message that continues the session), in these words or
-      close to them:
+      Read it first (check_session on the id discover_sessions identified) and stop there if it
+      settled the question: a verdict already established is returned as is. Re-proving a settled
+      conclusion costs a session and changes nothing, and a second run of the same question can
+      contradict the first.
 
-      - Your lane is evidence, not change: do NOT create a branch, commit, open a PR, or edit
-        any file. The deliverable is the investigation report plus one Jira comment.
-      - Check `ratevariant-audit/references/limitations.md`: the tickets carrying the
-        `new-rate-engine` label, whose general remedy was deferred to the new engine. A match is
-        only a match once the mechanism is established from data at this ticket's scope: the
-        symptom does not tell you which entry applies, and the same wrong CA rate can genuinely
-        be a boundary-data problem or genuinely be a mixed-sourcing one. Where it is an ordinary
-        mechanism, it is an ordinary fix regardless of the ticket's labels, and even on a match a
-        scoped partial fix stays legitimate — this is best-effort work. Unproven hypotheses live
-        in `references/open-theories.md` and are not limitations.
-      - Emit the routing verdict in your structured output — DEFECT_PROVEN,
-        WORKING_AS_INTENDED, or EVIDENCE_INCOMPLETE — alongside the question-matched verdict
-        you reason in (`Discrepancy explained` etc.) and the mapping you used.
-      - Post one product-level Jira comment per the sme_writeback format. State it at the
-        strength the evidence carries: where the load-bearing claims are measured or traced
-        and the gates pass, say plainly what the data shows; where any of it is inference,
-        hedge and name what would settle it. Proc traces and raw queries stay in the session.
-      - If the disposition is that this engine cannot express the general remedy, that is the
-        deliverable, and it still gets recorded on the ticket: post the comment stating the
-        limitation for the SMEs, apply the `new-rate-engine` label, and move the ticket to
-        Blocked. Do not author a fix to have something to show — but do say whether a scoped
-        partial fix would help, since deferring the class does not forbid patching a case.
+      Otherwise start a new read-only code_develop session on ${inputs.repo_url} running the
+      !rate_investigation playbook, title "${inputs.issue} — investigate <short description of the
+      reported behavior>", tags `${inputs.issue}`, `rate-investigation`, prompt_mode `raw`.
 
-      # Hold the session to
+      # Brief the session
 
-      On return, check these before you route. A structured verdict absent from a finished
-      session is a stage failure, not an invitation to derive one from the prose summary.
+      Per the rate_investigation skill, plus what the terminated session established and what it
+      left open (discover_sessions' prior_context), so this session re-verifies rather than
+      re-deriving from zero — and treats the inherited findings as claims to check, since it
+      cannot see the evidence behind them.
 
-      - The verdict answers the question the ticket actually asked, without narrowing the scope
-        it was asked at (merchant, product, line, jurisdiction, component, period, execution
-        path). Widening is legitimate and often the better answer — "one merchant reported it,
-        it is wrong for the whole county / product class" — so long as the reported case is
-        still answered. Answering something narrower than the ticket asked is the failure.
-      - Every load-bearing claim is measured or traced, with its citation.
-      - The mechanism is named — what is wrong and where, which may be several sites in one
-        proc rather than a single line.
-      - The disposition is one of: data/configuration change, procedure/function change, both,
-        or unsupported at available granularity (the general remedy deferred to the new engine).
-        Both is common and is not a hedge: "the rates
-        are wrong AND they are applied wrong" is two changes, and shipping one leaves the
-        ticket half-fixed.
-      - Unknowns are explicit.
+      Return investigation_session_id — the new session's, or the terminated one's when its
+      verdict stood — the verdict, and its report.
+    EOT
+    agents  = [agents.rate_investigator]
+    send_to = [tasks.assess_investigation]
 
-      # Outcomes
+    output {
+      field "investigation_session_id" {
+        type        = "string"
+        description = "The session whose verdict is being returned: the new one, or the terminated one when its conclusion already settled the question."
+        required    = true
+      }
+      field "result" {
+        type        = "string"
+        description = "The verdict, mechanism, evidence and unknowns, and which of them are inherited from the terminated session versus established by the new one."
+        required    = true
+      }
+    }
+  }
 
-      - DEFECT_PROVEN — mechanism traced. Its affected_roots are a briefing hint for the fix,
-        not the coverage checklist; the `ratevariant plan` comment derives that empirically
-        from the callgraph later.
-      - WORKING_AS_INTENDED — positive data shows current behavior is correct and the ticket is
-        a misunderstanding. Requires the decomposed correct value or the precluding condition,
-        never merely the absence of a reproduction.
-      - EVIDENCE_INCOMPLETE — neither of the above is reachable. Do NOT soften it into one of
-        them: set evidence_complete = false, name the exact artifacts that would close it (the
-        query, the capture, the transaction id, the answer needed from the SMEs), and stop.
+  # ---------------------------------------------------------------------------
+  # Task — assess_investigation. Conditional fan-in from whichever entry ran, so
+  # the gates, the verdict schema and the downstream routes exist exactly once —
+  # a verdict means the same thing regardless of how the case came in. Judges an
+  # investigation it did not run; no session is created here either.
+  # ---------------------------------------------------------------------------
 
-      Return investigation_session_id and a one-line summary regardless of verdict.
+  task "assess_investigation" {
+    objective = <<-EOT
+      An investigation of ${inputs.issue} has returned. Judge whether it holds, and emit the
+      verdict the rest of the mission routes on. You create no session and author no fix.
+
+      # You do
+
+      Read the investigation session's structured output yourself (check_session on
+      investigation_session_id) rather than trusting the summary that reached you, then check it
+      against the gates in the rate_investigation skill. If a gate fails, send_message that
+      session naming the exact gap — a conclusion with no basis is a stage failure, not a verdict
+      to derive from prose. Only that session can query; you judge what comes back.
+
+      Emit the verdict, disposition, mechanism, evidence and unknowns as its own words support
+      them — not upgraded, and not softened. Carry existing_fix_pr_url through if discover_sessions
+      or the investigation found a fix PR already open for this ticket.
     EOT
     agents = [agents.rate_investigator]
 
@@ -300,12 +522,12 @@ mission "ratevariant_ab" {
       }
       field "existing_fix_pr_url" {
         type        = "string"
-        description = "On a resume path only: a fix PR a prior session already opened for this ticket. Set it and the mission continues at case authoring instead of develop — the fix exists, the A/B coverage does not. Blank when there is no such PR."
+        description = "A fix PR a prior session already opened for this ticket. Set it and the mission continues at case authoring instead of develop — the fix exists, the A/B coverage does not. Blank when there is no such PR."
         required    = false
       }
       field "investigation_session_id" {
         type        = "string"
-        description = "Devin session id that ran the investigation, resumed later via send_message rather than recreated."
+        description = "Devin session id that holds the investigation, resumed later via send_message rather than recreated."
         required    = true
       }
       field "investigation_summary" {
@@ -418,7 +640,7 @@ mission "ratevariant_ab" {
     objective = <<-EOT
       Author the ratevariant cases on the EXISTING branch of the fix PR — step 2 of the
       ratevariant process (ratevariant-testing skill, references/process.md). The PR is
-      develop's, or the one investigate reported in existing_fix_pr_url when a prior run had
+      develop's, or the one assess_investigation reported in existing_fix_pr_url when a prior run had
       already opened it; in that case read the PR diff for the change under test, since no
       develop stage in this run described it.
 
@@ -674,7 +896,7 @@ mission "ratevariant_ab" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — verify_wai. Reached only when investigate concluded working-as-intended.
+  # Task — verify_wai. Reached only when the investigation concluded working-as-intended.
   # No PR, nothing to A/B — skeptically re-examine the claim. On a refute, re-fire
   # the mission once (capped by wai_refire_count). Dynamic target (no depends_on).
   # ---------------------------------------------------------------------------
@@ -759,7 +981,7 @@ mission "ratevariant_ab" {
   # ---------------------------------------------------------------------------
   # Task — record_learnings. Terminal. Reached from bruno_tests (send_to), from
   # audit's WORKING_AS_DESIGNED, from verify_wai's WAI_CONFIRMED, and from
-  # investigate's unsupported disposition. Most runs record nothing, and that is
+  # assess_investigation's unsupported disposition. Most runs record nothing, and that is
   # a valid outcome.
   # ---------------------------------------------------------------------------
 
@@ -775,7 +997,7 @@ mission "ratevariant_ab" {
       discover, or a documented-vs-actual behavior mismatch. The outcome of this ticket is not
       a learning: it already lives on the ticket and the PR.
 
-      One entry point is not discretionary: arriving here from investigate's unsupported
+      One entry point is not discretionary: arriving here from the investigation's unsupported
       disposition means a proven instance of a deferred limitation, so it is recorded in the
       ratevariant-audit skill's limitations reference — under the labelled ticket it instances,
       with the data that proved the mechanism is that one. Only tickets carrying `new-rate-engine`

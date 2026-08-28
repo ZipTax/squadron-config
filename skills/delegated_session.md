@@ -33,6 +33,23 @@ instruction to do the thing you are telling it not to do, and prohibitions in yo
 are then arguing with its prompt. In `raw` mode your task is the entire prompt, so it carries
 everything, including the prohibitions.
 
+## Finding the sessions a case already has
+
+Because every session is tagged with the ticket key, `find_sessions(tags: ["<TICKET>"])` is how
+you learn what a case already has instead of being told: it returns each session's id, status,
+title and PR links. Add the stage tag (`["<TICKET>", "rate-investigation"]`) to ask about one
+lane. It reads only — it never creates a session, and it does not return structured output, so
+`check_session` is still what tells you what a session concluded.
+
+Search before you create. A tagged session that already answered the question makes a new one
+pure cost: it re-reads the ticket, re-derives the context, and can reach a different answer for
+no reason other than being asked twice. Zero matches is a real answer — nothing was started, so
+starting is right.
+
+Two things a search result does not settle, and `check_session` does: whether a session that
+looks finished actually reached a verdict, and whether one that opened a PR opened the PR *for
+this ticket's fix*.
+
 ## Reading a session's result
 
 `check_session(session_id)` returns status, messages, PR links, and structured output. Use

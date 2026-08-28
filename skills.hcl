@@ -69,6 +69,11 @@ skill "txc_rate_audit" {
   instructions = load("./skills/txc_rate_audit.md")
 }
 
+skill "rate_investigation" {
+  description  = "Load when starting, continuing, or judging a tax-rate investigation. The brief every investigating session gets — read-only lane, limitations check, routing verdict, Jira writeback — and the gates its result must pass before anything routes on it."
+  instructions = load("./skills/rate_investigation.md")
+}
+
 skill "txc_staging_access" {
   description  = "Load when a stage needs TaxCloud staging data. The dated snapshot is authoritative and must not be discounted as stale, credentials stay in the Devin environment, and queries go through the repo's query skills and ratebench sqlprobe."
   instructions = load("./skills/txc_staging_access.md")
