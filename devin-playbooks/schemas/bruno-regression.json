@@ -1,0 +1,81 @@
+{
+  "type": "object",
+  "properties": {
+    "pr_url": {
+      "type": "string",
+      "description": "Bruno PR URL."
+    },
+    "branch": {
+      "type": "string",
+      "description": "Branch the scenarios are on."
+    },
+    "linked_sql_pr": {
+      "type": "string",
+      "description": "The txc-sqlserver-database PR this locks in."
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Scenario name."
+          },
+          "expectation": {
+            "type": "string",
+            "description": "The asserted value."
+          },
+          "authority": {
+            "type": "string",
+            "enum": [
+              "sme_stated_in_ticket",
+              "state_published",
+              "none"
+            ],
+            "description": "Where the expected value comes from. Only these two authorities can be asserted; a value derived from the code under test asserts the bug."
+          },
+          "citation": {
+            "type": "string",
+            "description": "The comment/author or the published bulletin/rate table."
+          }
+        },
+        "required": [
+          "name",
+          "expectation",
+          "authority",
+          "citation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "unwritten": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Scenarios deliberately not written, each with its reason: 'needs authority' (no authority established the expected value — pair it with an entry in open_questions) or 'covered by the A/B' (a V1 path, config-only behavior, or anything the endpoint cannot observe). The second is a decision, not a gap."
+    },
+    "authority_conflicts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Where SME statement and state-published material disagree — escalate, never pick."
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Questions a human must answer, each actionable on its own: the scenario, the exact figure needed, and the authority that would supply it. 'Needs confirmation' cannot be resumed by the next run."
+    }
+  },
+  "required": [
+    "pr_url",
+    "branch",
+    "scenarios",
+    "unwritten"
+  ],
+  "additionalProperties": false
+}

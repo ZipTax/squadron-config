@@ -1,4 +1,4 @@
-mission "Dev'y" {
+mission "devy" {
   commander {
     model = models.anthropic.claude_opus_4_7
 
@@ -12,7 +12,7 @@ mission "Dev'y" {
     }
   }
 
-  agents = [agents.CodeGen, agents["Quality Assurance"], agents["Peer Review"]]
+  agents = [agents.codegen, agents.quality_assurance, agents.peer_review]
 
   # ---------------------------------------------------------------------------
   # Inputs — mapped to Devin code_develop parameters
@@ -41,7 +41,7 @@ mission "Dev'y" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task 1 — CodeGen: use Devin code_develop to implement changes and open PR
+  # Task 1 — codegen: use Devin code_develop to implement changes and open PR
   # ---------------------------------------------------------------------------
 
   task "develop" {
@@ -83,7 +83,7 @@ mission "Dev'y" {
 
       Move to the next step in this mission when complete. 
     EOT
-    agents = [agents.CodeGen]
+    agents = [agents.codegen]
 
     output {
       field "pr_url" {
@@ -110,7 +110,7 @@ mission "Dev'y" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task 2 — QA cycle: commander loops QA ↔ CodeGen until QA passes
+  # Task 2 — QA cycle: commander loops QA ↔ codegen until QA passes
   # ---------------------------------------------------------------------------
 
   task "qa_cycle" {
@@ -120,7 +120,7 @@ mission "Dev'y" {
 
       Repeat the following loop until QA passes:
 
-      1. Call the "Quality Assurance" agent and instruct it to run a full QA
+      1. Call the quality_assurance agent and instruct it to run a full QA
          review on the PR using its Devin code_qa tool. Tell it to focus on:
          correctness, logic errors, test coverage gaps, edge cases, error
          handling, regressions, security vulnerabilities, and performance.
@@ -129,7 +129,7 @@ mission "Dev'y" {
       2. Evaluate the QA agent's report. If the code PASSES QA, exit the loop
          and complete this task.
 
-      3. If fixes are required, call the "CodeGen" agent to apply ONLY the
+      3. If fixes are required, call the codegen agent to apply ONLY the
          specific fixes identified by QA — do NOT re-implement the original
          development task. Instruct it to use its code_develop tool with:
          - repo_url: ${inputs.repo_url}
@@ -142,10 +142,10 @@ mission "Dev'y" {
            re-implement prior work, and must ONLY address the specific QA
            findings listed in the task. Reference the PR URL for context.
 
-      4. After CodeGen confirms the fixes are pushed, go back to step 1 and
+      4. After codegen confirms the fixes are pushed, go back to step 1 and
          request another QA review.
 
-      IMPORTANT: When calling CodeGen for fixes, you must be precise. Only
+      IMPORTANT: When calling codegen for fixes, you must be precise. Only
       describe the specific issues that need fixing. Never include the original
       development task description — that work is already complete on the branch.
 
@@ -156,7 +156,7 @@ mission "Dev'y" {
 
       Move to the next step in this mission when complete. 
     EOT
-    agents = [agents.CodeGen, agents["Quality Assurance"]]
+    agents = [agents.codegen, agents.quality_assurance]
 
     output {
       field "qa_passed" {
@@ -180,7 +180,7 @@ mission "Dev'y" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task 3 — Peer review cycle: commander loops Review ↔ CodeGen until clean
+  # Task 3 — Peer review cycle: commander loops Review ↔ codegen until clean
   # ---------------------------------------------------------------------------
 
   task "review_cycle" {
@@ -190,17 +190,17 @@ mission "Dev'y" {
 
       Repeat the following loop until the peer review passes:
 
-      1. Call the "Peer Review" agent and instruct it to run a full code review
+      1. Call the peer_review agent and instruct it to run a full code review
          on the PR using its Devin code_review tool. Tell it to focus on:
          correctness, maintainability, security, alignment with codebase
          conventions, architecture, documentation, API design, and error
          handling. Devin will post structured review comments on the PR in
          GitHub (summary verdict, inline findings, recommended next steps).
 
-      2. Evaluate the Peer Review agent's report. If the PR is CLEAN, exit the
+      2. Evaluate the peer_review agent's report. If the PR is CLEAN, exit the
          loop and complete this task.
 
-      3. If changes are required, call the "CodeGen" agent to apply ONLY the
+      3. If changes are required, call the codegen agent to apply ONLY the
          specific changes identified by the review — do NOT re-implement the
          original development task. Instruct it to use its code_develop tool with:
          - repo_url: ${inputs.repo_url}
@@ -213,21 +213,21 @@ mission "Dev'y" {
            re-implement prior work, and must ONLY address the specific review
            findings listed in the task. Reference the PR URL for context.
 
-      4. After CodeGen confirms the fixes are pushed, go back to step 1 and
+      4. After codegen confirms the fixes are pushed, go back to step 1 and
          request another peer review.
 
-      IMPORTANT: When calling CodeGen for fixes, you must be precise. Only
+      IMPORTANT: When calling codegen for fixes, you must be precise. Only
       describe the specific issues that need fixing. Never include the original
       development task description — that work is already complete on the branch.
 
-      Continue this cycle until the Peer Review agent confirms the PR is clean.
+      Continue this cycle until the peer_review agent confirms the PR is clean.
       Track how many review cycles were needed and summarize all findings.
 
       Use check_session from the Devin plugin to check the session messages and insights after each run. 
 
       Move to the next step in this mission when complete. 
     EOT
-    agents = [agents.CodeGen, agents["Peer Review"]]
+    agents = [agents.codegen, agents.peer_review]
 
     output {
       field "review_passed" {

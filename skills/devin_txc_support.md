@@ -2,6 +2,22 @@
 
 You resolve TaxCloud customer support issues by delegating development work to Devin via `code_develop`.
 
+## Not in scope: tax-calculation changes
+
+A ticket whose fix would change how tax is calculated — a wrong rate, wrong reporting/filing
+figures, TIC behavior, imported-order rates, a tax rule change, or the rate/exemption data behind
+them — does **not** go through this skill. Those fixes need an evidence-gated diagnosis and
+ratevariant A/B coverage, which the `ratevariant_ab` mission produces
+(`!rate_investigation` → `!rate-fix` → `!ratevariant-cases` → audit → `!bruno-regression`).
+
+If you are handed one anyway, delegate the read-only classification and observation only, report
+that the ticket belongs to the rate-fix flow, and do not let a fix PR be opened. A rate fix that
+ships from here carries no `ratevariant` label, no cases, and no A/B — which is exactly the
+failure this split exists to prevent.
+
+What remains yours: `txcapp` API/app bugs, account and connection configuration, and tickets
+whose answer is an explanation rather than a code change.
+
 ## Input
 
 You will receive a Jira issue ID (e.g., `DEV-1234`) via the `jira_issue` parameter.
@@ -10,12 +26,13 @@ You will receive a Jira issue ID (e.g., `DEV-1234`) via the `jira_issue` paramet
 
 ### 1. Determine the target repo
 
-Most TaxCloud support issues involve tax rate, reporting, TIC, or data problems — these live in **txc-sqlserver-database**. Only use **txcapp** if the issue is clearly an API/app bug (HTTP errors, timeouts, wrong response format, UI issues, nexus/exemption logic).
+Use **txcapp** for API/app bugs (HTTP errors, timeouts, wrong response format, UI issues, nexus/exemption logic). Use **txc-sqlserver-database** for account/connection configuration questions and for read-only diagnosis of database behavior — not for a tax-calculation fix, which is out of scope above.
 
 | Issue Type | Repo URL |
 |---|---|
-| Wrong tax rate, reporting data, TIC behavior, import/offline orders, tax rule changes | `https://github.com/FedTax/txc-sqlserver-database` |
 | API errors, app bugs, nexus/exemption logic, auth issues | `https://github.com/FedTax/txcapp` |
+| Account/connection configuration, or read-only diagnosis of database behavior | `https://github.com/FedTax/txc-sqlserver-database` |
+| Wrong tax rate, reporting data, TIC behavior, import/offline orders, tax rule changes | **not yours** — the `ratevariant_ab` mission owns these (see above) |
 
 If you are unsure which repo applies, default to `https://github.com/FedTax/txc-sqlserver-database`.
 
@@ -61,7 +78,7 @@ Summarize the outcome:
 
 ## Notes
 
-- The `!txc-support` playbook instructs Devin to read the Jira ticket, classify the issue, investigate root cause, implement a fix, create a PR, and post a structured summary back to Jira.
-- If Devin identifies the issue as a **tax rule change** (new TIC, rate change, exemption update), it will automatically delegate to the `tax-rule-change` skill internally.
-- If the issue requires no code changes (data-only fix), Devin will post the SQL statements to Jira instead of creating a PR.
+- The `!txc-support` playbook instructs Devin to read the Jira ticket, classify the issue, investigate root cause, implement a fix, create a PR, and post a product-level summary back to Jira. Its Step 1 carries the same routing gate as above and stops before implementing on a tax-calculation ticket.
+- A **tax rule change** (new TIC, rate change, exemption update, PCTA change) is a rate-flow ticket. The `!rate-fix` stage invokes the `tax-rule-change` skill there; nothing here hand-rolls one.
+- SQL never goes into a Jira comment. Data-only fixes ship as a migration on a PR; the ticket gets the product-level note only.
 - For incremental updates on a ticket where this skill was already run, Devin reuses the existing branch and PR.
