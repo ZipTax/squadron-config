@@ -50,7 +50,7 @@ skill "verdict_loop" {
 }
 
 skill "blocked_run" {
-  description  = "Load when a stage cannot finish without something only a human can supply. Covers ending rather than waiting, the open-items record for the next run versus the ticket comment for the human, the sentinel label that restarts the run and the once-only removal that stops it firing on every reply, judging whether an answer is usable, and recording which stage blocked."
+  description  = "Load at both ends of a blocked case: when you are the first stage of a run (clear the sentinel label once, read the ticket's answers and judge whether each is enough to act on) and when you cannot finish without something only a human can supply (end rather than wait, the open-items index for the next run versus the ticket comment for the human, what that index must contain, and the label that restarts the run)."
   instructions = load("./skills/blocked_run.md")
 }
 

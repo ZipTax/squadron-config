@@ -11,13 +11,12 @@ In these words or close to them:
 
 - Your lane is evidence, not change: do NOT create a branch, commit, open a PR, or edit any
   file. The deliverable is the investigation report plus one Jira comment.
-- On a resumption, do the two `blocked_run` entry steps first: clear the `TaxRates:Needs-Info`
-  label (once, before anything else), then read the ticket comments added since the last automated
-  review as the answers to the open questions, and say per question whether what came back is
-  enough to act on. Domain answers are often short and complete — "the county rate applies here"
-  settles a sourcing question outright, and a stated rate with its period settles a rate question.
-  What is not enough is a reply that leaves you inventing the missing part; ask then for exactly
-  that part, not for the whole question again.
+- On a resumption you are the run's entry, so do the `blocked_run` entry steps before the
+  investigation itself, and report per open question whether the reply is enough to act on. What
+  that means here: "the county rate applies here" settles a sourcing question outright, and a
+  stated rate with its period settles a rate question — a domain answer is usually short and
+  complete. Not enough is a reply that leaves you inventing the missing part, and then it is that
+  part you ask for, not the question again.
 - Check `ratevariant-audit/references/limitations.md`: the tickets carrying the
   `new-rate-engine` label, whose general remedy was deferred to the new engine. A match is only
   a match once the mechanism is established from data at this ticket's scope: the symptom does

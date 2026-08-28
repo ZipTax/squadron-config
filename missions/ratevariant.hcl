@@ -58,9 +58,10 @@ mission "ratevariant_ab" {
   # (references/process.md), which the playbooks load. Cite the step; don't copy it.
   #
   # Blocking on a human, and resuming:
-  #   The mechanics are the blocked_run skill — end rather than wait, write the
-  #   open-items file for the next run, put the questions on the ticket for the
-  #   human, set the `TaxRates:Needs-Info` label, and clear it once on entry.
+  #   The mechanics are the blocked_run skill, both ends of them — the entry
+  #   steps for whichever stage a run starts at, and the close-out (end rather
+  #   than wait, write the open-items index, put the questions on the ticket)
+  #   for whichever stage hits the wall.
   #   What is specific to this mission: the open-items slot is rate_open_items,
   #   path <TICKET>.md; a Jira automation fires /ratevariant when a comment lands
   #   on a labelled ticket, so the answer arriving is the trigger; and the
@@ -187,9 +188,13 @@ mission "ratevariant_ab" {
       risks a second verdict that disagrees with the one the fix was built on. So if the file names
       a blocked stage downstream of assessment, and the verdict and fix PR it records are intact,
       set resume_stage to that stage and carry its state (fix PR, session ids, what was
-      outstanding). Anything unclear — no verdict recorded, the PR gone, the file contradicting the
-      sessions you found — is not a resume: leave resume_stage blank and pick an entry mode, since
-      re-deriving is recoverable and resuming on a wrong premise is not.
+      outstanding). Say in outstanding_work that the stage you route to is this run's entry, so its
+      session does the blocked_run entry steps — clearing the label is the entry's job wherever the
+      run re-enters, and you hold no credentials to do it yourself.
+
+      Anything unclear — no verdict recorded, the PR gone, the file contradicting the sessions you
+      found — is not a resume: leave resume_stage blank and pick an entry mode, since re-deriving is
+      recoverable and resuming on a wrong premise is not.
 
       Otherwise, one entry mode, and the state the chosen entry needs. Distinguish carefully,
       because each wrong answer costs a different way: routing a live session to start_investigation
@@ -263,7 +268,7 @@ mission "ratevariant_ab" {
       }
       field "outstanding_work" {
         type        = "string"
-        description = "What rate_open_items/<TICKET>.md said a prior run was waiting on and which stages it had already finished, plus which of those questions this run's inputs answer. Blank when there is no such file — a first run, or a closed case."
+        description = "What rate_open_items/<TICKET>.md said a prior run was waiting on and which stages it had already finished, plus which of those questions this run's inputs answer, and — when there was a file — that the routed stage is this run's entry and owes the blocked_run entry steps. Blank when there is no such file: a first run, or a closed case."
         required    = false
       }
       field "sessions_found" {
