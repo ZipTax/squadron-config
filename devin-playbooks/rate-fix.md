@@ -55,7 +55,9 @@ A/B has run, not a rewrite before anyone has seen a result.
    implement both halves: a rate row that is wrong *and* applied wrongly needs the migration and
    the proc change, and shipping one is shipping half a fix.
 
-   - *Procedure/function change*: edit the object under `output/schema/`. Every object exists in
+   - *Procedure/function change*: edit the object under `output/schema/` — or add it there, if the
+     fix needs an object that doesn't exist yet (a helper function, rarely a type): new file beside
+     its peers, same coverage rules. Every object exists in
      **both** a prod and a staging copy, and in both databases when the logic is duplicated there
      — change every copy of the object you touch: `output/schema/fedtax-prod/…`,
      `output/schema/fedtax-staging/…`, `output/schema/reports-prod/…`,
@@ -117,11 +119,14 @@ A/B has run, not a rewrite before anyone has seen a result.
 
 ## Advice & Pointers
 
-- The repo's `CLAUDE.md` forbids *adding* generated artifacts under `output/`; editing the
-  procedure/function sources already tracked there is exactly how every recent rate fix shipped,
-  and for a proc fix those files are the source of truth. That distinction is also why a data fix
-  goes in `scripts/`: a migration is new material, so it belongs where new material is allowed.
-  Never create a new file under `output/`.
+- `output/schema/**` is the source of truth for a proc fix: editing the procedure/function already
+  tracked there is exactly how every recent rate fix shipped, and a *new* object the fix genuinely
+  needs — most often a function, occasionally a type — gets a new file in the same folder as its
+  peers, in every copy that object should exist in. What `CLAUDE.md` rules out is a file that isn't
+  a schema object: dacpacs, diff reports, `Security/`, notes, scratch SQL. The test is whether the
+  weekly `extract-schema` job would produce that file from the live database — if it wouldn't, it
+  doesn't belong there, and that is also why a data fix goes in `scripts/`: a migration is not a
+  schema object.
 - The weekly extract job reconciles `output/schema` with the live databases, so the change has to
   reach the database too or the next extraction reverts your file.
 - Keep the blast radius minimal and mechanical. A fix that also cleans up adjacent logic makes the
