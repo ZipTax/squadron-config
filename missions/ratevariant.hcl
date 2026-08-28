@@ -7,7 +7,7 @@ mission "ratevariant_ab" {
       turn_retention = 3
     }
 
-    # Plugin v0.0.4 returns structured output + Devin's last message + PR links
+    # Plugin v0.0.5 returns structured output + Devin's last message + PR links
     # instead of the raw transcript, so a stage result is now small. Raise this
     # again only if the plugin is configured with raw_messages = "true".
     tool_response {
