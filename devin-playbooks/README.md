@@ -93,8 +93,9 @@ confirmation" cannot be resumed; "need the June rate for Cook County and its pub
 
 Two halves, and both are required. The **ticket** is where the questions go — all of them, in one
 comment, since nobody who can answer reads a session's structured output — and the blocking stage
-labels it `ratevariant:awaiting-info`, which is the sentinel a Jira automation fires `/ratevariant`
-on when a new comment lands. The **memory file** is for the next run, not the human. The entry
-session removes the label before doing anything else, so an ordinary ticket discussion doesn't spawn
-a mission per message, and it reads the comments since the last run to say which questions came back
-usable — a general "yes that looks wrong" leaves the question open rather than licensing a guess.
+labels it `TaxRates:Needs-Info`, which is the sentinel a Jira automation fires `/ratevariant` on when
+a new comment lands. The **memory file** is for the next run, not the human, and it records *where*
+the run blocked so the resumption re-enters at that stage instead of re-running finished work. The
+entry session removes the label before doing anything else, so an ordinary ticket discussion doesn't
+spawn a mission per message, and it reads the comments since the last run to say whether each answer
+is enough to act on. The mechanics live in the `blocked_run` skill, not in the playbooks.

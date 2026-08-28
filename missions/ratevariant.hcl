@@ -20,6 +20,9 @@ mission "ratevariant_ab" {
   #                            \--> confirm_wai            (a WAI conclusion is challenged)
   #                            \--> continue_investigation (a messageable session exists)
   #                            \--> forward_investigation (a terminated session exists)
+  #                            \--> author_tests | audit | bruno_tests | record_learnings
+  #                                 (a prior run blocked at that stage with its verdict and fix
+  #                                  PR intact — resume there, don't investigate again)
   #   all four    --send_to--> assess_investigation (conditional fan-in)
   #   assess      --router--> develop      (a defect is proven — write the fix, or adopt an
   #                                         existing PR whose session is gone)
@@ -55,32 +58,16 @@ mission "ratevariant_ab" {
   # (references/process.md), which the playbooks load. Cite the step; don't copy it.
   #
   # Blocking on a human, and resuming:
-  #   No stage waits. A stage that needs an answer only a human has returns the
-  #   question and the run ends where it is — Squadron runs are not suspendable, and
-  #   a session parked on a question burns its context waiting.
-  #   The resumption is the NEXT run on the same ticket, and it is not a re-do:
-  #   discover_sessions finds the ticket's sessions by tag (so a live investigation
-  #   or fix session is continued in place, with its context intact) and reads
-  #   rate_open_items/<TICKET>.md for what the last run was waiting on and which
-  #   stages already finished. record_learnings writes that file when it closes a
-  #   run with anything outstanding, and deletes it when the case actually closes.
-  #   So the answer arriving is the trigger: re-fire /ratevariant with the same
-  #   issue (plus wai_challenge or a session-id override when a human wants to
-  #   force a lane) and the mission picks up rather than restarts.
-  #
-  #   The trigger contract, so nobody has to notice the answer by hand:
-  #   the stage that ends a run blocked has its session comment the questions on
-  #   the ticket and label it `ratevariant:awaiting-info` (sme_writeback owns the
-  #   wording). A Jira automation fires /ratevariant on a new comment on any
-  #   ticket carrying that label — and the FIRST Devin session this run briefs
-  #   removes the label before it does anything else, exactly once. That is the
-  #   sentinel: without the removal, every subsequent comment on the ticket
-  #   (including this run's own writeback) fires another run, and the discussion a
-  #   ticket normally accumulates would burn a mission per message. The label is
-  #   re-added only by a run that again ends blocked, which is what makes it mean
-  #   "a human owes us something" rather than "this ticket is in the flow".
-  #   Squadron holds no Atlassian credentials, so both the comment and the label
-  #   are the session's to do — the stage briefs them and checks they happened.
+  #   The mechanics are the blocked_run skill — end rather than wait, write the
+  #   open-items file for the next run, put the questions on the ticket for the
+  #   human, set the `TaxRates:Needs-Info` label, and clear it once on entry.
+  #   What is specific to this mission: the open-items slot is rate_open_items,
+  #   path <TICKET>.md; a Jira automation fires /ratevariant when a comment lands
+  #   on a labelled ticket, so the answer arriving is the trigger; and the
+  #   resumption is not a re-do — discover_sessions reads that file and finds the
+  #   ticket's sessions by tag, so a live investigation or fix session is
+  #   continued in place and the run re-enters at the stage that blocked.
+  #   A human can still force a lane with wai_challenge or a session-id override.
   memories = [memories.rate_case_log, memories.rate_open_items]
 
   agents = [
@@ -194,9 +181,19 @@ mission "ratevariant_ab" {
 
       # What you are deciding
 
-      One entry mode, and the state the chosen entry needs. Distinguish carefully, because each
-      wrong answer costs a different way: routing a live session to start_investigation abandons
-      work and can produce a second contradictory verdict; routing a terminated one to
+      First, whether this run re-enters the flow past the investigation at all. The open-items file
+      records which stage the last run blocked at, and a ticket that stopped in case authoring or
+      bruno does not need another investigation — re-running one wastes the expensive stage and
+      risks a second verdict that disagrees with the one the fix was built on. So if the file names
+      a blocked stage downstream of assessment, and the verdict and fix PR it records are intact,
+      set resume_stage to that stage and carry its state (fix PR, session ids, what was
+      outstanding). Anything unclear — no verdict recorded, the PR gone, the file contradicting the
+      sessions you found — is not a resume: leave resume_stage blank and pick an entry mode, since
+      re-deriving is recoverable and resuming on a wrong premise is not.
+
+      Otherwise, one entry mode, and the state the chosen entry needs. Distinguish carefully,
+      because each wrong answer costs a different way: routing a live session to start_investigation
+      abandons work and can produce a second contradictory verdict; routing a terminated one to
       continue_investigation strands the mission on a session that cannot be messaged.
 
       - No investigation session exists → `start`.
@@ -221,20 +218,23 @@ mission "ratevariant_ab" {
       is not asked again.
 
       You cannot read the ticket — no Atlassian credentials here — so you do not judge whether the
-      open questions were answered. Hand them to the entry stage as questions to check, and the
-      session it briefs (which can read the comments) says which are answered usably and which are
-      still open because the reply was general. That judgment is deliberately the session's: it is
-      the one that knows what "usable" means for the evidence it needs. Treat a resumption whose
-      questions all come back unanswered as an escalation, not a failure — the run ends where it
-      began and the ticket says so.
+      open questions were answered. Hand them to whichever stage you route to as questions to check,
+      and the session it briefs (which can read the comments) makes that call per blocked_run. A
+      resumption where nothing came back usable is an escalation, not a failure: that stage ends the
+      run again, with the questions sharpened.
     EOT
     agents = [agents.session_scout]
 
     output {
       field "entry_mode" {
         type        = "string"
-        description = "start | confirm_wai | continue | forward. Exactly one; it is what the router acts on."
+        description = "start | confirm_wai | continue | forward. Exactly one; it is what the router acts on when resume_stage is blank."
         required    = true
+      }
+      field "resume_stage" {
+        type        = "string"
+        description = "author_tests | audit | bruno_tests | record_learnings, when the open-items file says the last run blocked at that stage AND the verdict and fix PR it records are intact — the flow re-enters there instead of investigating again. Blank otherwise, which is the default: a doubt about the recorded state is a reason to leave it blank."
+        required    = false
       }
       field "investigation_session_id" {
         type        = "string"
@@ -274,6 +274,22 @@ mission "ratevariant_ab" {
     }
 
     router {
+      route {
+        target    = tasks.author_tests
+        condition = "resume_stage == author_tests — a prior run proved the defect and shipped the fix PR, and blocked while authoring cases. The investigation is done; re-running it risks contradicting the verdict this fix was built on."
+      }
+      route {
+        target    = tasks.audit
+        condition = "resume_stage == audit — fix and cases both exist and the run blocked on the A/B judgment, so it re-enters at the audit rather than rebuilding what it is auditing."
+      }
+      route {
+        target    = tasks.bruno_tests
+        condition = "resume_stage == bruno_tests — the A/B is settled and only the API regression coverage was outstanding, usually on an expected value a human had to supply."
+      }
+      route {
+        target    = tasks.record_learnings
+        condition = "resume_stage == record_learnings — every stage finished and only the close-out was outstanding."
+      }
       route {
         target    = tasks.confirm_wai
         condition = "entry_mode == confirm_wai — a prior working-as-intended conclusion is under challenge, so it gets an independent re-investigation rather than a resumption of the session that reached it."
@@ -549,23 +565,14 @@ mission "ratevariant_ab" {
 
       # When the run stops here
 
-      EVIDENCE_INCOMPLETE has no route: the gap needs a human, and this run ends. Two things before
-      it does.
+      EVIDENCE_INCOMPLETE has no route: the gap needs a human, and this run ends. Close it out per
+      blocked_run — open-items slot `rate_open_items`, path `${inputs.issue}.md`, blocked at this
+      stage — and the session that gets told to post is the investigation session, or the fresh
+      read-only one you opened to close gaps if that one cannot be messaged.
 
-      Write `rate_open_items` path `${inputs.issue}.md` — the exact artifacts that would close each
-      gap (whose transaction ids, which published rate and period), the sessions this ticket has
-      and whether each is still messageable, any fix PR already open, and one line on where the
-      next run should pick up. The next /ratevariant fire on this ticket reads it in
-      discover_sessions, so what you leave out is what somebody re-derives. Overwrite the file if
-      it is already there; it describes the current state, not a history.
-
-      And get the questions onto the ticket, because that is the only place a human answers and
-      this file is invisible to them: send_message the investigation session (or, if it cannot be
-      messaged, the fresh read-only session you opened to close gaps) to post them per
-      sme_writeback — every question, in one comment — and to label the ticket
-      `ratevariant:awaiting-info`, which is what makes the answer fire the next run. Squadron holds
-      no Atlassian credentials; check on return that both happened. A run that ends blocked without
-      that comment has asked nobody anything, and the ticket sits until a human notices.
+      What this stage specifically owes the file: the exact artifacts that would close each gap
+      (whose transaction ids, which published rate and period), not a restatement that evidence was
+      incomplete.
     EOT
     agents = [agents.rate_investigator]
 
@@ -968,13 +975,12 @@ mission "ratevariant_ab" {
       supports; never upgrade to SATISFACTORY to close out the run. Summarize what changed and why,
       and on a stall what the loop could not move.
 
-      When that exit is a terminal CASES_INADEQUATE, a stall, or the cap, the mission ends here
-      with no record_learnings after it, so write `rate_open_items` path `${inputs.issue}.md`
-      yourself: the uncoverable paths and why, the fix PR, the sessions and whether each is still
-      messageable, and what a human has to decide. Overwrite an existing file. If the decision
-      needs a person rather than another run, have the fix session post it on the ticket per
-      sme_writeback and label it `ratevariant:awaiting-info` — the memory file is for the next run,
-      the ticket is what reaches a human and what makes their reply fire one.
+      A terminal CASES_INADEQUATE, a stall, or the cap ends the mission here — no record_learnings
+      runs after it — so close it out yourself per blocked_run (slot `rate_open_items`, path
+      `${inputs.issue}.md`, blocked at audit, the fix session posting). What this stage owes the
+      file: the uncoverable paths and why, the fix PR, and what a human has to decide. Skip the
+      ticket comment only when the open item is a coverage limit for a reviewer rather than a
+      question for a person.
     EOT
     agents = [agents.ratevariant_auditor]
 
@@ -1286,10 +1292,9 @@ mission "ratevariant_ab" {
       - Nothing outstanding: `file_delete` it if it exists. A stale open-items file makes the next
         run resume a case that already closed, and it will believe the file over the ticket.
 
-      When something is outstanding *and* a human has to supply it, the questions also go on the
-      ticket: have your session post them per sme_writeback — all of them, one comment — and label
-      it `ratevariant:awaiting-info`. Same reason as everywhere else: the memory file is for the
-      next run, the ticket is for the human, and only the ticket triggers anything.
+      When something outstanding needs a person, the ticket side of blocked_run applies here too:
+      your session posts the questions and sets the label. This is the normal closure path, not the
+      only one — a stage that ends the run before reaching you does its own close-out.
     EOT
     agents = [agents.learnings_curator]
 

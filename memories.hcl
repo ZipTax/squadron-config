@@ -3,5 +3,5 @@ memory "rate_case_log" {
 }
 
 memory "rate_open_items" {
-  description = "One file per ticket, `<TICKET>.md`, written by the mission that ran out of things it could do without a human: the questions it is waiting on, which stages already completed and where their PRs are, and what remains. A run ends when it blocks; the next run on the same ticket is the resumption, and this is how it learns what the last one was waiting for instead of re-deriving it. The stage that closes the case deletes the file — a stale open-items file is worse than none, because a later run will believe it."
+  description = "One file per ticket, `<TICKET>.md`, written by the mission that ran out of things it could do without a human: the questions it is waiting on, which stage it blocked at (so the next run re-enters there rather than re-investigating), which stages already completed and where their PRs are, and what remains. A run ends when it blocks; the next run on the same ticket is the resumption, and this is how it learns what the last one was waiting for instead of re-deriving it. The stage that closes the case deletes the file — a stale open-items file is worse than none, because a later run will believe it."
 }

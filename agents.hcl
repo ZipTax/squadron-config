@@ -84,7 +84,7 @@ agent "session_scout" {
     plugins.devin.find_sessions,
     plugins.devin.check_session
   ]
-  skills      = [skills.delegated_session]
+  skills      = [skills.delegated_session, skills.blocked_run]
 }
 
 agent "rate_investigator" {
@@ -101,7 +101,8 @@ agent "rate_investigator" {
     skills.evidence_gate,
     skills.rate_investigation,
     skills.txc_staging_access,
-    skills.sme_writeback
+    skills.sme_writeback,
+    skills.blocked_run
   ]
 }
 
@@ -118,7 +119,8 @@ agent "rate_fix_engineer" {
     skills.delegated_session,
     skills.session_lane,
     skills.evidence_gate,
-    skills.txc_staging_access
+    skills.txc_staging_access,
+    skills.blocked_run
   ]
 }
 
@@ -134,7 +136,8 @@ agent "ratevariant_case_author" {
   skills      = [
     skills.delegated_session,
     skills.session_lane,
-    skills.evidence_gate
+    skills.evidence_gate,
+    skills.blocked_run
   ]
 }
 
@@ -155,7 +158,8 @@ agent "ratevariant_auditor" {
     skills.txc_rate_audit,
     skills.txc_staging_access,
     skills.verdict_loop,
-    skills.sme_writeback
+    skills.sme_writeback,
+    skills.blocked_run
   ]
 }
 
@@ -174,7 +178,8 @@ agent "wai_verifier" {
     skills.txc_rate_audit,
     skills.txc_staging_access,
     skills.verdict_loop,
-    skills.sme_writeback
+    skills.sme_writeback,
+    skills.blocked_run
   ]
 }
 
@@ -190,7 +195,8 @@ agent "bruno_author" {
   skills      = [
     skills.delegated_session,
     skills.session_lane,
-    skills.evidence_gate
+    skills.evidence_gate,
+    skills.blocked_run
   ]
 }
 
@@ -207,6 +213,7 @@ agent "learnings_curator" {
     skills.delegated_session,
     skills.session_lane,
     skills.evidence_gate,
-    skills.learnings_capture
+    skills.learnings_capture,
+    skills.blocked_run
   ]
 }

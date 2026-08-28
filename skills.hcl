@@ -49,6 +49,11 @@ skill "verdict_loop" {
   instructions = load("./skills/verdict_loop.md")
 }
 
+skill "blocked_run" {
+  description  = "Load when a stage cannot finish without something only a human can supply. Covers ending rather than waiting, the open-items record for the next run versus the ticket comment for the human, the sentinel label that restarts the run and the once-only removal that stops it firing on every reply, judging whether an answer is usable, and recording which stage blocked."
+  instructions = load("./skills/blocked_run.md")
+}
+
 skill "sme_writeback" {
   description  = "Load when writing back to a ticket read by support, product, or subject-matter experts. One product-level comment, domain points framed as questions, engineering detail left on the PR and in the session."
   instructions = load("./skills/sme_writeback.md")

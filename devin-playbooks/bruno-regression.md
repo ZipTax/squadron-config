@@ -64,7 +64,7 @@ These exist because past sessions have gone wrong here. Follow them exactly.
    An unwritten scenario has to be *actionable*: name the scenario, the exact figure, and the
    authority that would supply it, because the orchestrator puts it on the ticket and the next run
    resumes from it (messaging this session, if it is still alive). A vague "needs confirmation"
-   cannot be resumed and asks nobody anything.
+   cannot be resumed: the next run has to re-derive what you already knew was missing.
 
    And distinguish it from a scenario that needs nothing. "No API-level assertion is worth writing
    here — the A/B already covers it" is a legitimate outcome, not a gap: V1 paths, config-only

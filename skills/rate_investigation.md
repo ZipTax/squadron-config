@@ -11,16 +11,13 @@ In these words or close to them:
 
 - Your lane is evidence, not change: do NOT create a branch, commit, open a PR, or edit any
   file. The deliverable is the investigation report plus one Jira comment.
-- First action, before reading anything: if the ticket carries `ratevariant:awaiting-info`, remove
-  that label. It fired this run and it must not fire another — every later comment on the ticket,
-  including the one you are about to post, would start a fresh mission otherwise. Remove it once;
-  do not put it back (the stage that ends a run blocked does that).
-- Then read the ticket's comments added since the last automated review, and treat them as the
-  answers to the open questions. Say for each open question whether it is answered *usably* — a
-  specific value with its authority and period, an order id, a decision — or still open because
-  the reply was general ("yes that looks wrong", "the county should apply"). Do not proceed on a
-  hopeful reading of a vague answer: a question half-answered is still in `blocking_questions`,
-  and asking it again more precisely costs one comment, while guessing costs a wrong fix.
+- On a resumption, do the two `blocked_run` entry steps first: clear the `TaxRates:Needs-Info`
+  label (once, before anything else), then read the ticket comments added since the last automated
+  review as the answers to the open questions, and say per question whether what came back is
+  enough to act on. Domain answers are often short and complete — "the county rate applies here"
+  settles a sourcing question outright, and a stated rate with its period settles a rate question.
+  What is not enough is a reply that leaves you inventing the missing part; ask then for exactly
+  that part, not for the whole question again.
 - Check `ratevariant-audit/references/limitations.md`: the tickets carrying the
   `new-rate-engine` label, whose general remedy was deferred to the new engine. A match is only
   a match once the mechanism is established from data at this ticket's scope: the symptom does
