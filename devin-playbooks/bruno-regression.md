@@ -23,10 +23,17 @@ where it does not. For the SST file, you could include tests such as:
 
 These exist because past sessions have gone wrong here. Follow them exactly.
 
-- **The ticket is the source of truth.** Every asserted rate, amount, date, jurisdiction, and
-  TIC comes from the ticket (with the PR's test cases telling you which scenarios to cover).
-  Never substitute your own guess, a "reasonable-looking" rate, or a value from any other
-  source for what the ticket specifies. Do not deviate from the ticket's spec.
+- **Authority is the ticket's stated correct figure, or state-published material — nothing
+  else.** Every asserted rate, amount, date, jurisdiction, and TIC traces to one of those
+  two, and you name which one per scenario (the PR's test cases only tell you which
+  scenarios to cover). Where the ticket carries an SME's explicit correct value, it wins.
+  Where it doesn't, a state DOR rate table/bulletin is acceptable authority — cite it.
+  Never substitute your own guess, a "reasonable-looking" rate, current staging output, or
+  ratevariant's variant-arm value for either.
+- **No authority, no assertion.** A scenario whose correct value you cannot source from the
+  ticket or a state publication does not get a softened test, an approximate value, or a
+  quiet omission: leave it unwritten and report it as an open question naming exactly what
+  figure you need and from whom.
 - **Assert the CORRECTED (post-fix) values — the tests are SUPPOSED to fail today.** The fix
   is not deployed to staging, so these tests would fail if run right now. That is the intended
   design: they turn green only once the fix ships. Never weaken an assertion, assert the
@@ -48,6 +55,11 @@ These exist because past sessions have gone wrong here. Follow them exactly.
   case is hard to reason about — reason it out or ask.
 
 ## Procedure
+
+0. **Delegated (orchestrated) mode**: when an orchestrator invokes you rather than a human,
+   never block — author every scenario you have authority for, and return the questions you
+   would have asked (with the exact figure needed, per scenario) in your report instead of
+   waiting. Everything else below is unchanged.
 
 1. **Gathering context**: read the ticket (`https://taxcloud.atlassian.net/browse/<TICKET>`)
    and the txc-sqlserver-database PR. Take the scenarios from the PR's test cases — the ones
@@ -89,8 +101,11 @@ These exist because past sessions have gone wrong here. Follow them exactly.
 
 ## Specifications
 
-- Every asserted rate/amount/date/jurisdiction traces to the ticket; the scenario set traces
-  to the PR's test cases.
+- Every asserted rate/amount/date/jurisdiction traces to a cited authority — the ticket's
+  stated correct figure or state-published material — named per scenario; the scenario set
+  traces to the PR's test cases.
+- Scenarios with no available authority are listed as unwritten open questions rather than
+  asserted approximately.
 - Assertions encode the post-fix expected values, so the suite is expected to fail against
   current (un-deployed) staging — never softened to pass today.
 - Both should-change scenarios and should-not-change guardrails are present.
@@ -111,10 +126,10 @@ These exist because past sessions have gone wrong here. Follow them exactly.
   - The `ziptax-lookup` skill — resolve or sanity-check a jurisdiction or rate (e.g. which
     districts apply to an address, or a base state/local rate).
   - ratebench `cmd/sqlprobe` — read the staging snapshot data directly (see step 5).
-  Use either only as a supporting reference — **the ticket always wins.** If either disagrees
-  with the ticket, assert the ticket's value; if the discrepancy makes you unsure the ticket
-  is right, ask the user before proceeding. Never let a ZipTax or sqlprobe result override or
-  replace a value the ticket specifies.
+  Use either only as a supporting reference — **cited authority always wins** (the ticket's
+  stated figure, else state-published material). If either disagrees with your authority,
+  assert the authority's value; if the discrepancy makes you doubt the authority, raise it
+  rather than proceeding. Never let a ZipTax or sqlprobe result become the asserted value.
 
 ## Forbidden actions
 
@@ -127,5 +142,7 @@ These exist because past sessions have gone wrong here. Follow them exactly.
 - Never ship a regression test that would pass against today's staging without first checking
   the ticket comments and flagging the inconsistency to the user (it means a test bug or an
   already-deployed fix).
-- Never assert a value from ZipTax or sqlprobe (or any source) that contradicts the ticket;
-  prefer the ticket and ask the user when unsure.
+- Never assert a value from ZipTax, sqlprobe, current staging, or the ratevariant variant arm
+  that contradicts your cited authority; prefer the authority and raise the conflict.
+- Never derive an expected value from what the system currently returns — that is the thing
+  under test.

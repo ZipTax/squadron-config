@@ -1,0 +1,159 @@
+{
+  "type": "object",
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "DEFECT_PROVEN",
+        "WORKING_AS_INTENDED",
+        "EVIDENCE_INCOMPLETE"
+      ],
+      "description": "Routing verdict. Exactly one of the three enum values; the orchestrator routes on this field, not on the summary prose."
+    },
+    "question_matched_verdict": {
+      "type": "string",
+      "description": "The verdict in the terms the ticket asked (e.g. 'Discrepancy explained', 'No discrepancy'), plus how it maps to the routing verdict above."
+    },
+    "evidence_complete": {
+      "type": "boolean",
+      "description": "True only if every load-bearing claim is measured or traced. False forces EVIDENCE_INCOMPLETE."
+    },
+    "working_as_intended": {
+      "type": "boolean",
+      "description": "True only with positive evidence: the correct value decomposed, or a condition that precludes the reported behavior. An absent reproduction is not evidence."
+    },
+    "disposition": {
+      "type": "string",
+      "enum": [
+        "data/configuration change",
+        "procedure/function change",
+        "both",
+        "unsupported at available granularity",
+        ""
+      ],
+      "description": "The remedy the evidence supports, empty when the verdict is not DEFECT_PROVEN. 'both' is common and not a hedge: rate rows that are wrong AND applied wrongly need the migration and the proc change. 'unsupported at available granularity' means the legacy model cannot express the fix, which is a limitation to record, not a fix to attempt."
+    },
+    "disposition_detail": {
+      "type": "string",
+      "description": "The remedy in specifics: the object to change, or the table and rows, or the mechanism class that cannot be expressed. On 'unsupported', whether a narrower partial fix is feasible AND accurate for every address it would cover -- not merely for the ticket's address."
+    },
+    "gates": {
+      "type": "object",
+      "properties": {
+        "question_match": {
+          "type": "string",
+          "description": "pass | fail | n/a -- the verdict answers the question the ticket asked."
+        },
+        "basis": {
+          "type": "string",
+          "description": "pass | fail | n/a -- every load-bearing claim is measured or traced."
+        },
+        "divergence_located": {
+          "type": "string",
+          "description": "pass | fail | n/a -- the first divergence is at an object/line, not a symptom."
+        },
+        "alternative_killed": {
+          "type": "string",
+          "description": "pass | fail | n/a -- the competing explanations were ruled out by evidence, not by preference."
+        },
+        "scope_stated": {
+          "type": "string",
+          "description": "pass | fail | n/a -- who else is affected: merchants, states, periods, surfaces."
+        }
+      },
+      "required": [
+        "question_match",
+        "basis",
+        "divergence_located",
+        "alternative_killed",
+        "scope_stated"
+      ],
+      "additionalProperties": false
+    },
+    "first_divergence": {
+      "type": "string",
+      "description": "The first point where expected and actual diverge — the proc/function or table, and the value on each side."
+    },
+    "affected_roots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Execution roots the defect reaches (e.g. spTransactionLookup, spImportOfflineTransactions, fnGetTaxRatesforTx_nonssuta). Drives case coverage downstream."
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Surfaces affected: cart, import, reports/filing."
+    },
+    "evidence": {
+      "type": "array",
+      "description": "Every load-bearing claim with its basis and citation.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim": {
+            "type": "string",
+            "description": "The claim."
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "traced",
+              "inferred",
+              "hedge"
+            ],
+            "description": "measured = a query result (snapshot facts are measured for that dated copy only); traced = read out of code or state-published material; inferred/hedge cannot support a terminal verdict."
+          },
+          "citation": {
+            "type": "string",
+            "description": "The query, file path, capture, or published source."
+          }
+        },
+        "required": [
+          "claim",
+          "basis",
+          "citation"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "limitation_match": {
+      "type": "string",
+      "description": "The limitations.md mechanism class this matches and the data proving the match, or 'none'. A match is a hypothesis proven from data, never a shortcut past cause analysis."
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What remains unknown, and what would resolve it."
+    },
+    "blocking_question": {
+      "type": "string",
+      "description": "The one question a human must answer, or empty. State it here rather than waiting on a reply — no interactive user may be present."
+    },
+    "investigation_summary": {
+      "type": "string",
+      "description": "At most 150 words, product-level."
+    }
+  },
+  "required": [
+    "verdict",
+    "question_matched_verdict",
+    "evidence_complete",
+    "working_as_intended",
+    "disposition",
+    "first_divergence",
+    "gates",
+    "affected_roots",
+    "paths",
+    "evidence",
+    "unknowns",
+    "investigation_summary"
+  ],
+  "additionalProperties": false
+}

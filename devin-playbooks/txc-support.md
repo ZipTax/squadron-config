@@ -2,6 +2,8 @@
 
 Playbook for investigating TaxCloud customer support issues. You will pull details from a Jira ticket, investigate the likely cause using the `txc-sqlserver-database` and/or `txcapp` repos, propose a fix, QA your changes, open a PR carrying the full detail, and post a brief product-level update back to Jira. You diagnose and propose; a human decides what is a bug and what ships.
 
+> **Tax-calculation changes are not in this playbook's scope.** Anything whose fix would change how tax is calculated — a wrong rate, wrong reporting/filing figures, TIC behavior, imported-order rates, or the rate/exemption data behind them — goes through the staged rate-fix flow instead (`!rate_investigation` → `!rate-fix` → `!ratevariant-cases` → audit → `!bruno-regression`), because those changes require an evidence-gated diagnosis and ratevariant A/B coverage that a single diagnose-and-fix session cannot produce. See Step 1. This playbook keeps the API/app, account, configuration, and "explain the behavior" work.
+
 ## MANDATORY: SQL Identifiers — One Convention
 
 Mixing database-relative and three-part identifiers has repeatedly caused statements to execute against the wrong database and **corrupt data**. There is exactly one convention, it is not a judgment call, and it applies to every statement you write:
@@ -103,7 +105,23 @@ Determine which category the support issue falls into. This determines your repo
 | **Import/offline order issue** | Imported orders have wrong rates | `txc-sqlserver-database` | Reports DB functions only (imports skip cart calc) |
 | **Nexus/exemption issue** | Tax collected in wrong states, exemption not applied | `txcapp` | `biz/` business logic layer |
 
-> **Tax rule changes**: If the ticket is actually a tax rule change (new TIC, rate change, exemption update, PCTA modification), invoke the `tax-rule-change` skill instead of continuing this playbook. That skill has a specialized multi-phase workflow for generating SQL scripts.
+### Routing gate — apply before Step 2
+
+The first four rows above (wrong tax rate, wrong reporting/filing data, TIC behavior, tax rule
+change) and imported-order rates are **out of scope for this playbook's fix path**. Their
+fixes edit tax-calculation procs/functions or rate/exemption data, which must ship with a
+proven cause and ratevariant A/B coverage.
+
+For those tickets: investigate read-only as far as the evidence takes you, then **stop before
+implementing**. Report the classification, what you observed, and hand off to the staged flow
+(`!rate_investigation` for the evidence-only diagnosis; the squadron `ratevariant_ab`
+mission drives the rest). Post the product-level Jira update per Step 6 if nobody else has,
+and say the ticket has been routed to the rate-fix flow. Do not open a proc/data PR, and do
+not invoke `tax-rule-change` to generate scripts — the `!rate-fix` stage owns that.
+
+Continue through Steps 2-6 as written for API/app bugs, nexus/exemption behavior in `txcapp`,
+account/connection configuration, and any ticket whose answer is an explanation rather than a
+tax-calculation change.
 
 > **v1 SOAP API issues**: The v1 API is handled by `svTaxAPI` (or similar), NOT `txcapp`. If the issue involves the legacy SOAP/v1 API, look at the database-level stored procedures (FedTax `dbo.spTransactionLookup`, etc.) rather than `txcapp`.
 
@@ -181,6 +199,8 @@ Use the repo wiki (`read_wiki_contents` for `FedTax/txcapp`) for architectural g
 Run `go build .` from the repo root to validate your changes compile. Any SQL embedded in Go source you touch follows the same convention: the connection declares the scope, so references are two-part, with three-part only for a genuine cross-database call.
 
 ## Step 3: Implement the fix
+
+Only for tickets the routing gate left in scope — tax-calculation changes stop at diagnosis.
 
 1. Create a new branch with syntax: `fix/<TICKET_KEY>-<short-summary>` (e.g., `fix/DEV-1234-pa-county-rate`)
 2. Make the necessary code changes:
@@ -272,9 +292,9 @@ On an incremental re-run of this playbook against the same ticket, post one shor
 ## Advice & Pointers
 
 - **One identifier convention** — see the mandatory section at the top: declare the scope once (`USE` header or `PROBE_DB`), then two-part `[dbo].[Object]` throughout, three-part only for a genuine cross-database call. Inconsistency here is the single most common source of data corruption in this workflow.
-- **Start in `txc-sqlserver-database`** for most support issues. Only move to `txcapp` if the issue is clearly an API/app bug unrelated to underlying tax data, rates, or TICs.
+- **Start in `txc-sqlserver-database`** for most support issues — for read-only diagnosis, even on tickets the routing gate sends to the rate-fix flow, since the classification and observed behavior are what that flow needs from you. Only move to `txcapp` if the issue is clearly an API/app bug unrelated to underlying tax data, rates, or TICs.
 - **Use the repo wikis** (`read_wiki_contents`) for both repos — they contain detailed architectural documentation that will help you understand code paths quickly.
-- **Tax rule changes go to the `tax-rule-change` skill** — don't try to handle new TICs, rate changes, or PCTA modifications manually. That skill has a specialized multi-phase workflow.
+- **Tax rule changes go to the rate-fix flow, not to you** — new TICs, rate changes, exemption updates, and PCTA modifications are routed out per the Step 1 gate; the `!rate-fix` stage invokes `tax-rule-change` there. Never hand-roll them here.
 - **Ask questions** via a non-blocking message if additional context is needed, but keep investigating in parallel.
 - **Logic drift is the #1 non-SSUTA bug source** — always check both the cart SP and Reports function for consistency when touching non-SSUTA states.
 - **Read code and structure from prod schema files** — proc/function bodies, table definitions, and column names come from `output/schema/fedtax-prod/` and `output/schema/reports-prod/`, never by querying.

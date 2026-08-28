@@ -14,11 +14,26 @@ on the existing branch of a labeled `FedTax/txc-sqlserver-database` PR.
   literal values. Fixtures and alterations are lists of raw `sql:` strings. There is no
   test framework, no assertion DSL, no Go/Python to write, no helper to build. If you
   find yourself scaffolding code, stop — you are off the rails.
+- **You author and validate; you do not run.** Adding `ratevariant:run`, reading the
+  result comment, and judging whether the fix is right belong to a separate auditor, so
+  that the session which wrote the cases is not the one grading them. Push and report.
+
+The mechanics live in repo skills and docs — load them instead of re-deriving:
+
+| Need | Load |
+|---|---|
+| case YAML schema, field traps, `url_id` vs `MerchantID`, `order_id` prefix, report `txid` | `tests/ratevariant-cases/README.md` |
+| how the workflows fire, offline validation, what not to run | `ratevariant-testing` skill |
+| finding an eligible merchant/transaction on the snapshot, read-only `sqlprobe` | `query-staging-snapshot` skill |
+| composing a safe, indexed, bounded query | `write-taxcloud-sql-query` skill |
+| what a good/bad run looks like, precedents | `ratevariant-audit` skill (+ its `references/`) |
 
 ## What's Needed From User
 
 - The PR number/branch in `txc-sqlserver-database` and the ticket key.
 - Which surface(s) to cover — usually from the `<!-- ratevariant-plan -->` PR comment.
+- The investigation's first divergence and the shape of the change, when available: cases
+  aimed at the proven mechanism beat cases aimed at the ticket's prose.
 
 ## Tools & Building Blocks
 
@@ -30,7 +45,7 @@ writing.
 | **Case** — YAML `input:` block of literal values | `tests/ratevariant-cases/{carts,imports,reports}/` | Always. One per affected root. It is the situation you feed both arms. |
 | **Fixture** — `fixtures:` block of raw T-SQL `apply`/`teardown` inside a case, applied to **BOTH** arms | same file as the case | The situation needs data staging doesn't already have, or the historical row doesn't carry. **Check this on every case you write** — see below. |
 | **Alteration** — standalone YAML of raw T-SQL `apply`/`teardown` | `tests/ratevariant-cases/alterations/<ticket>.yaml` | The PR ships data rows (a `scripts/` migration). The data change *is* the variant. |
-| **sqlprobe** — read-only T-SQL against the staging copy | `FedTax/ratebench` (separate clone) | You need a real `url_id`/`txid`, or to confirm a merchant's nexus/eligibility. |
+| **sqlprobe** — read-only T-SQL against the staging copy | `FedTax/ratebench` (separate clone) | You need a real `url_id`/`txid`, or to confirm a merchant's nexus/eligibility. Driven by `query-staging-snapshot`. |
 
 **Fixtures are the most-missed piece.** Before you finish any case, ask: *does the row
 this case needs actually exist in staging today?* If the answer is no or "not with the
@@ -43,7 +58,9 @@ or meaningless diff. The two cases that almost always need one:
   or needing a merchant location / exempt cert / program enrollment staging lacks.
 
 A fixture is infrastructure for the situation, never the thing under test: a row the PR
-itself ships belongs in an alteration.
+itself ships belongs in an alteration. Fixtures apply to both arms, so a fixture can
+never create a diff on its own — if it appears to, it is doing the work the fix was
+supposed to do, and that is a finding.
 
 ## Procedure
 
@@ -52,17 +69,24 @@ itself ships belongs in an alteration.
    ratevariant harness, the case loader, and `cmd/sqlprobe`. Cases themselves live in
    `txc-sqlserver-database/tests/ratevariant-cases/`.
 
-2. **Build the root checklist.** Read the `<!-- ratevariant-plan -->` comment: "### Proc
-   changes" lists affected roots, "### Alterations" lists data changes. Your checklist is
-   every root under Proc changes **plus every root that reads a table touched by an
-   alteration** (grep the proc bodies under `output/schema/` if unsure). Mapping:
+2. **Build the root checklist.** Read the `<!-- ratevariant-plan -->` comment for the
+   **current head SHA**: "### Proc changes" lists affected roots, "### Alterations" lists
+   data changes. Your checklist is every root under Proc changes **plus every root that
+   reads a table touched by an alteration** (grep the proc bodies under `output/schema/`
+   if unsure). Mapping:
    - `spTransactionLookup[_nonssuta]` → `carts/`
    - `spImportOfflineTransactions` → `imports/`
    - `spGenerateTransactionsWideForTx[_nonSsuta]` → `reports/` (set `non_ssuta: true`)
 
    Non-SST states (e.g. Illinois) use the `_nonssuta` roots — ratevariant covers both.
 
-3. **Author the alteration first, when the PR ships data** (`scripts/` migration):
+   If the roots list is empty while the PR changed dbo procs/functions, callgraph
+   generation failed — stop and report rather than authoring blind. Empty roots on a
+   data-only PR is expected.
+
+3. **Author the alteration first, when the PR ships data** (`scripts/` migration). The fix
+   session does not write this file, so a migration with no matching alteration is the normal
+   state of the branch when you arrive, not a sign someone else has it:
    `tests/ratevariant-cases/alterations/<ticket>.yaml` with `apply` reproducing the
    migration and `teardown` reversing it exactly. Additive `apply` must be idempotent
    (`INSERT ... SELECT ... WHERE NOT EXISTS` or `MERGE`) and carry a sentinel (e.g. a
@@ -71,42 +95,52 @@ itself ships belongs in an alteration.
    `alterations/dev-7443-phase2-tic-41025-stm-exemption.yaml`.
 
 4. **Author one case per root on the checklist**, grounded in the ticket's real
-   merchant/state/situation. Add the neighbors the change implies: an adjacent
-   jurisdiction that must stay untouched, a gate that should switch the branch off, a
-   boundary date. Filename `<state>-<merchant>-<scenario>.yaml`; description names the
-   eligibility profile + destination + path exercised; tag the axes (`state:XX`,
-   `ssuta:yes|no`, `nexus:…`, `tic:NNNNN`). Re-read the checklist before moving on —
-   every root must have at least one file.
+   merchant/state/situation and aimed at the proven divergence. Add the neighbors the
+   change implies: an adjacent jurisdiction that must stay untouched, a gate that should
+   switch the branch off, a boundary date. Filename `<state>-<merchant>-<scenario>.yaml`;
+   description names the eligibility profile + destination + path exercised; tag the axes
+   (`state:XX`, `ssuta:yes|no`, `nexus:…`, `tic:NNNNN`). Re-read the checklist before
+   moving on — every root must have at least one file.
 
 5. **Walk every case you wrote and decide its fixture**, per the fixture test above —
    don't leave it implicit. Same idempotency rule as step 3, and teardown removes only
    the rows the fixture added. If a case only diffs once you patch a gating table, say
    so — the branch may be dead on current data, and that is a finding, not a fixture.
 
-6. **Query staging from ratebench** when you need a real `url_id`, `txid`, or to confirm
-   a merchant collects in a state. `RATEBENCH_DB_*` is already in your environment
-   (read-only), so no setup is needed:
-   ```
-   cd ~/repos/ratebench && go run ./cmd/sqlprobe "SELECT TOP 5 ID FROM dbo.URLs WHERE ..."
-   ```
-   It also reads stdin, and `PROBE_DB=Reports-<copy>` switches database.
+6. **Query staging** only through `query-staging-snapshot` (which owns candidate-merchant
+   selection, the eligibility/validity rules a case must satisfy, and the read-only
+   `sqlprobe` invocation) with `write-taxcloud-sql-query` for the query itself. Do not
+   improvise SQL or scaffold a querier.
 
-7. **Validate structurally** with ratebench's case loader (command in the Validate step
-   of `.claude/commands/ratevariant-cases.md`); no DB needed.
+7. **Validate structurally, offline.** Run the case loader via `run-alter --dry-run` as
+   documented in the `ratevariant-testing` skill ("Validate offline before you push"); it
+   parses every case and prints apply/teardown SQL and the probe count without touching
+   the database. `tests/ratevariant-cases/README.md` lists exactly what the loader checks
+   and what only surfaces at run time.
 
-8. **Push and run.** `git add` only the case/alteration files, push to the PR branch,
-   then add the `ratevariant:run` label. Wait for the run, read the diffs, and fix cases
-   that produce nothing or diff somewhere unexpected.
+8. **Push only.** `git add` the case/alteration files and push to the PR branch. Do **not**
+   add the `ratevariant:run` label and do not run the harness: the audit stage fires the
+   run and interprets it.
 
-9. **Report** files authored, coverage per root, run results, and any root/path the
-   ticket's merchant can't reach. Append your session link to the PR description after
-   the develop session link.
+   Then append your session link to the PR description — and note that the description is
+   shared state (`CLAUDE.md` § "Sharing a PR with other sessions"): read the current
+   description, add your line, and write the whole thing back. Composing it from what you
+   remember deletes whatever the fix session or the auditor added while you were working.
+
+9. **Report** files authored, coverage per root, every root/path the ticket's merchant
+   cannot reach and why, and any case you believe is probing a dead branch.
 
 ## Iteration Protocol
 
-If the develop session pivots: list what changed, rebuild the root checklist, triage
-existing cases (valid / needs update / obsolete / missing), author the gaps, and
-re-trigger `ratevariant:run`.
+The auditor sends specific, evidenced case work back to you: a missing branch/path, an
+ineffective probe, a guardrail gap, or an alteration that went stale because the fix's
+migration changed. Do exactly that work on the same branch and hand back — do not re-run
+the A/B, and do not answer a coverage request with a change to `output/schema/**` or
+`scripts/**`, which belong to the fix session.
+
+If the develop session pivots: list what changed, rebuild the root checklist from the new
+plan comment, triage existing cases (valid / needs update / obsolete / missing), author
+the gaps, and report.
 
 ## Specifications
 
@@ -114,25 +148,24 @@ re-trigger `ratevariant:run`.
 - Every case that needs data staging lacks carries a fixture — no case is silently
   diffing against data that isn't there.
 - No file, name, description, or tag contains a rate, amount, or expected outcome.
-- Case loader passes and the `ratevariant:run` diffs are explained in your report.
+- The loader passes offline (`run-alter --dry-run`), and the report states per-root
+  coverage plus any gap with its reason.
 
 ## Advice & Pointers
 
 - Missing a root is a session failure — especially for alterations, where the reach is
   every root reading the altered table, not just the changed procs.
 - Ground taxability in data (`StatesTaxMatrix.PercentTaxable`, `Locations`, program
-  tables), never tax intuition; flag unconfirmed taxability to the ticket's SMEs.
-- A merchant collects in a state when it has an active physical `Locations` row
-  (`Zip IS NOT NULL`, today `BETWEEN CreatedOn AND DeletedOn` — int `YYYYMMDD`) in that
-  `StateFIPSCode`, the merchant/URL aren't disabled, the URL has gone live, and
-  `transaction_date` ≥ both go-live and merchant-created (smalldatetime). Otherwise the
-  proc errors out before reaching the changed logic.
-- Always filter `transactions`/`transactiondetails` on an indexed predicate (`URLID`
-  plus a `TransactionDate` range) — an unindexed scan hangs. Read column names from
-  `output/schema/.../Tables/` instead of querying for them.
-- `imports`: `order_id` must embed `{{ uuid }}` with a prefix ≤13 chars (TVP columns are
-  `VARCHAR(50)`); `merchant_tax_rate` is the *claimed* rate and drives import taxability.
-- `reports`: needs a real `txid` from the copy.
+  tables), never tax intuition; flag unconfirmed taxability as an open question for the
+  ticket's SMEs.
+- A guardrail per axis the fix keys on (geography, date, merchant, TIC) is what makes the
+  run auditable; a case set with no guardrails can only be observed, not audited.
+- Merchant eligibility, snapshot date traps, indexed predicates, and the column-level
+  DENY list are all in `query-staging-snapshot`; field-level traps are in the cases
+  README. Read them there rather than trusting a summary.
+- If you are running as a delegated session with no human available, never block on a
+  question: author what the evidence supports and return the open question in your final
+  report.
 
 ## Forbidden Actions
 
@@ -141,11 +174,9 @@ re-trigger `ratevariant:run`.
 - Never build a harness, assertion helper, or test scaffolding — cases are YAML, and
   fixtures/alterations are raw T-SQL.
 - Never put a real `api_key` in a case; it resolves at run time from the URL row.
-- Never `SELECT *` on `Merchants`, `URLs`, `ExemptionCertificateDetails`, or
-  `Reports.dbo.TexasSingleRateLicenses`, and never reference `Merchants.EIN`,
-  `URLs.APIKey`/`DisabledAPIKey`/`MarketplaceAuthToken`,
-  `ExemptionCertificateDetails.TaxID`, or `TexasSingleRateLicenses.TaxpayerID` — the
-  read-only login has column-level DENY and the whole statement fails.
-- Never write files outside `tests/ratevariant-cases/`, or off the PR's branch.
+- Never write files outside `tests/ratevariant-cases/`, or off the PR's branch. Procs and
+  migrations belong to the fix session.
+- Never add `ratevariant:run`, and never run `ratevariant deploy/run/run-alter` (without
+  `--dry-run`) or `cleanup` — they mutate shared staging and the audit stage owns the run.
 - Staging access is read-only — never mutate staging outside a fixture/alteration
   teardown pair.
