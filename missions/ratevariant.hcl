@@ -813,10 +813,10 @@ mission "ratevariant_ab" {
 
       # Outcomes
 
-      Every fix you route below lands in a session that has been working for hours and will update
-      the PR on its way out from what it remembers, so each message carries the session_lane rule
-      with it: fetch the current description, add, put the whole thing back. This is where
-      descriptions actually get clobbered — and the earlier stages' findings are what disappears.
+      The repo's CLAUDE.md tells a session the PR description is shared state and must be
+      read-then-appended; restate it in any message where the session will touch the description
+      anyway, per session_lane. This is where descriptions get clobbered, and the earlier stages'
+      findings are what disappears.
 
       Exit on exactly one verdict:
       - SATISFACTORY — intended diffs present, each to the correct value, guardrails flat, all
