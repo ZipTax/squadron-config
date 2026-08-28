@@ -61,8 +61,9 @@ get a diff" is the classic opening line of a false working-as-designed conclusio
 ## Noise
 
 Per-execution columns — timestamps, generated identities, run ids — are noise and belong in
-the capture's ignore list. A case that differs only on those is a no-diff; fix the ignore
-list as a separate concern, and remember the underlying no-diff may be hiding a no-op change.
+the capture's output exclusions, which is the one place that list should live. A case that
+differs only on those is a no-diff. Add the column to the exclusions rather than re-deciding
+it is noise each run, and remember the underlying no-diff may be hiding a no-op change.
 
 ## Scope and consistency
 

@@ -23,8 +23,14 @@ unreviewable.
 
 ## Cross-linking
 
-Each session should leave its session link on the PR (after the previous stage's link), so
-a reviewer can walk the chain without asking who did what.
+Each session should leave its session link on the PR, so a reviewer can walk the chain
+without asking who did what. **Append only, and read before writing.** A session's PR
+description or comment edit must start from the current text and add its link after the
+links already there — never regenerate the description from a template, and never write a
+description that omits a link it did not put there. Devin's own PR tooling rewrites the
+description wholesale, so a later stage that "updates the PR" the easy way deletes the
+earlier stages' links; the earlier ones are the ones with the investigation and the
+diagnosis in them, so that loss is the expensive direction.
 
 ## Lane discipline for yourself
 

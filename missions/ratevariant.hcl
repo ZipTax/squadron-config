@@ -17,6 +17,7 @@ mission "ratevariant_ab" {
 
   # Routed graph (Squadron is acyclic — no backward edges):
   #   investigate --router--> develop      (a defect is proven, read-only stage ends)
+  #                      \--> author_tests (a prior run's fix PR already exists)
   #                      \--> verify_wai   (working-as-intended)
   #                      \--> (no route: evidence incomplete -> escalate and stop)
   #   develop     --send_to--> author_tests --send_to--> audit
@@ -113,47 +114,63 @@ mission "ratevariant_ab" {
       Establish, read-only, whether ticket ${inputs.issue} in ${inputs.repo_url} is a real
       defect, and if so where it originates. No fix is authored in this stage.
 
-      # Preconditions
+      # Entry mode — exactly one of these renders. Do that one, and only what it leaves undone.
 
       %{ if inputs.wai_challenge != "" ~}
-      Re-validation context from a prior run:
-      ${inputs.wai_challenge}
-      Treat this as authoritative input, not as the answer: a previous attempt concluded
-      working-as-intended and verify_wai challenged it. Re-derive from the data — the prior
-      conclusion may be right and the challenge may be wrong. Brief the session to annotate the
-      prior Jira comment(s) as under investigation.
-      %{ endif ~}
+      ## Re-validate a refuted working-as-intended conclusion
 
+      ${inputs.wai_challenge}
+
+      This is authoritative input, not the answer: the prior conclusion may be right and the
+      challenge wrong. Start a fresh read-only session — a session already anchored on
+      working-as-intended is the wrong one to ask — brief it with the challenge plus the brief
+      below, and have it annotate the prior Jira comment(s) as under investigation.
+      %{ else ~}
       %{ if inputs.wip_investigation_session_id != "" ~}
-      A session is already in flight. You call check_session(${inputs.wip_investigation_session_id})
-      first — Devin usually leaves a summary, so the verdict is often already there. Only
-      send_message when there is something to do: nudge a stalled session, or prompt the
-      re-validation above. You MAY NOT request a new session. If the session is terminated or
-      the id is invalid, report failure so a human can correct it or start blank deliberately.
+      ## Continue an in-flight investigation
+
+      Read before doing anything: check_session(${inputs.wip_investigation_session_id}). Then do
+      only what that read leaves undone.
+
+      - It already reached a verdict → you are done. Extract the verdict, disposition and
+        evidence and return them. Do NOT re-brief it and do not send the brief below.
+      - It already opened a fix PR → return it in existing_fix_pr_url along with the verdict.
+        The fix exists; what this ticket still needs is A/B coverage, not another fix.
+      - It is mid-investigation or stalled → send_message with only what is missing, citing what
+        it has already established so it does not start over.
+      - The id is invalid or the session is terminated → report failure. You MAY NOT create a new
+        session on this path; a human corrects the id or fires the mission blank deliberately.
       %{ else ~}
       %{ if inputs.stale_investigation_session_id != "" ~}
-      You read ${inputs.stale_investigation_session_id} for context ONLY — it is terminated, so
-      it cannot be messaged. Then start a new read-only code_develop session and brief it with
-      what the prior session established, so it re-verifies rather than re-derives from zero.
+      ## Carry a terminated investigation forward
+
+      Read ${inputs.stale_investigation_session_id} for context ONLY — terminated sessions cannot
+      be messaged. If it already established a verdict, return that; if it already opened a fix
+      PR, return it in existing_fix_pr_url. Re-proving a settled conclusion costs a session and
+      changes nothing. Otherwise start a new read-only session, brief it with what the prior one
+      established so it re-verifies rather than re-derives from zero, plus the brief below.
       %{ else ~}
-      You start a code_develop session on ${inputs.repo_url} running the !rate_investigation
-      playbook for ${inputs.issue}.
+      ## Start fresh
+
+      Start a read-only code_develop session on ${inputs.repo_url} running the !rate_investigation
+      playbook for ${inputs.issue}, with the brief below.
       %{ endif ~}
       %{ endif ~}
+      %{ endif ~}
 
-      # You do
+      # When you create a session
 
-      When you create the session, give it title "${inputs.issue} — investigate <short
-      description of the reported behavior>" and tags `${inputs.issue}`, `rate-investigation`.
-      The tags carry the general terms; the title is what a human scans, so it names this
-      ticket's actual subject. Pass prompt_mode `raw` — the default prompt tells the session to
-      branch, test, commit and open a PR, which is the opposite of this stage. On the resume
-      path there is nothing to title: the brief below goes in a send_message to the session that
-      already exists.
+      Title it "${inputs.issue} — investigate <short description of the reported behavior>" and
+      tag it `${inputs.issue}`, `rate-investigation`. The tags carry the general terms; the title
+      is what a human scans, so it names this ticket's actual subject. Pass prompt_mode `raw` —
+      the default prompt tells the session to branch, test, commit and open a PR, which is the
+      opposite of this stage.
 
-      # Brief the session
+      # Brief the session — only when you are briefing one
 
-      Put in the task text, in these words or close to them:
+      Skip this section entirely when the read above already produced the verdict. Otherwise put
+      it in the task text (or in the send_message that continues the session), in these words or
+      close to them:
 
       - Your lane is evidence, not change: do NOT create a branch, commit, open a PR, or edit
         any file. The deliverable is the investigation report plus one Jira comment.
@@ -216,8 +233,12 @@ mission "ratevariant_ab" {
 
     router {
       route {
+        target    = tasks.author_tests
+        condition = "verdict == DEFECT_PROVEN and existing_fix_pr_url is not blank — a prior run already implemented and opened the fix. Re-running develop would author a second fix for a defect that already has one; what the ticket is missing is A/B coverage of the PR that exists."
+      }
+      route {
         target    = tasks.develop
-        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and disposition != 'unsupported at available granularity' — a located, traced defect this system can actually express, so implement the fix."
+        condition = "verdict == DEFECT_PROVEN and evidence_complete == true and existing_fix_pr_url is blank and disposition != 'unsupported at available granularity' — a located, traced defect this system can actually express, so implement the fix."
       }
       route {
         target    = tasks.verify_wai
@@ -275,6 +296,11 @@ mission "ratevariant_ab" {
       field "limitation_class" {
         type        = "string"
         description = "On the unsupported disposition only: which limitations.md entry (a ticket carrying the new-rate-engine label) the proven mechanism matched, so record_learnings files this ticket as an instance under it. Blank otherwise."
+        required    = false
+      }
+      field "existing_fix_pr_url" {
+        type        = "string"
+        description = "On a resume path only: a fix PR a prior session already opened for this ticket. Set it and the mission continues at case authoring instead of develop — the fix exists, the A/B coverage does not. Blank when there is no such PR."
         required    = false
       }
       field "investigation_session_id" {
@@ -390,9 +416,11 @@ mission "ratevariant_ab" {
 
   task "author_tests" {
     objective = <<-EOT
-      Author the ratevariant cases for the PR (number/branch from develop) on the EXISTING
-      branch — step 2 of the ratevariant process (ratevariant-testing skill,
-      references/process.md).
+      Author the ratevariant cases on the EXISTING branch of the fix PR — step 2 of the
+      ratevariant process (ratevariant-testing skill, references/process.md). The PR is
+      develop's, or the one investigate reported in existing_fix_pr_url when a prior run had
+      already opened it; in that case read the PR diff for the change under test, since no
+      develop stage in this run described it.
 
       # You do
 

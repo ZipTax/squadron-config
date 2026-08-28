@@ -53,7 +53,7 @@ output (if its playbook defines a schema), and Devin's final message. The full t
 returned — follow the session URL for it, or set `raw_messages = "true"` in the plugin settings
 if an agent genuinely needs the whole conversation.
 
-By default the session is archived automatically after completion. If the plugin is configured with `archive_on_complete = "false"`, the session is left open and resumable instead — continue it with `send_message` and finalize it with `complete_session` (see below).
+By default the session is archived automatically after completion. If the plugin is configured with `archive_on_complete = "false"` — which is how it is configured here — the session is left open and resumable instead, and continued with `send_message`.
 
 ### 2. Check a Session with `check_session`
 
@@ -94,21 +94,29 @@ The session must still be open (not archived). This requires `archive_on_complet
 
 The plugin sends the message and polls until Devin finishes the follow-up work, then returns Devin's updated response. You can call `send_message` multiple times to keep iterating.
 
-### 4. Finalize a Session with `complete_session`
+### 4. `complete_session` — rarely, and not as a stage's last step
 
-Use `complete_session` upon mission finalization, once no further follow-up messages are needed. It archives the session and releases its resources. After completion the session can no longer be resumed with `send_message`.
+`complete_session` archives a session permanently: it can never be resumed with `send_message`
+again. **Do not call it as part of finishing a mission stage.** An idle session costs nothing;
+an archived one costs a whole new session that has to re-read the ticket, re-derive the context,
+and re-establish what its predecessor already knew — and the review comments on its PR then have
+nobody to answer them.
+
+Opening a PR is not being done. A stage's work is settled only once its PRs are merged, and
+that happens long after the mission returns, so a mission is never in a position to know a
+session is finished. Leave it open and let it age out.
+
+Call it only when a human explicitly asks you to close a session out, or when every PR the
+session opened is merged (or closed) and the ticket is resolved.
 
 **Required parameter:**
-- `session_id` — the Devin session ID to finalize
+- `session_id` — the Devin session ID to archive
 
-**Example:**
 ```json
 {
   "session_id": "32fee96e7997499ca010301aa50eefce"
 }
 ```
-
-This is the explicit counterpart to `archive_on_complete = "false"`: when sessions are left resumable, call `complete_session` to archive them when the work is truly done.
 
 ### 5. Interpreting Responses
 

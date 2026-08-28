@@ -49,6 +49,9 @@ answer these:
 7. **Was anything upgraded?** `failed` is a hard blocker and an incomplete run stays
    incomplete. Never accept a pass that closes the loop over a run that didn't prove it.
 
-Diffs consisting only of `Created_Date` / `TransactionWideID` / execution ids are not diffs.
 A merchant- or ZIP-scoped change can only diff for that member, so "1 of N differ" is the
 expected shape rather than thin coverage.
+
+Which columns are per-execution noise is the harness's business, not a judgement to re-make
+per audit: the repo skill names them and the capture's output exclusions are where a newly
+spotted one gets added, so the next run reports it as the no-diff it is.
