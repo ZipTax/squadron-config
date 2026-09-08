@@ -49,9 +49,20 @@ code_develop(
 
 ### 3. Monitor the session
 
-After `code_develop` returns, review the result. If the session is still running or you need more detail, use `check_session` with the returned session ID to get the current status, PR links, and Devin's messages.
+After `code_develop` returns, review the result. If the session is still running or you need more detail, use `check_session` with the returned session ID to get the current status, PR links, and Devin's messages. **Capture the session ID** — the session stays open (it is not archived; it sleeps when idle and auto-expires after a few hours), so a later phase can continue it.
 
-### 4. Report results
+### 4. Continue the session with `send_message`
+
+If a later phase needs the same fix iterated — for example the ratevariant audit asks for a specific correction — resume the **same** session with `send_message` (session ID + only the specific change) rather than a new `code_develop`. This preserves Devin's full context of the original fix and branch.
+
+```
+send_message(
+  session_id: "<the develop session ID>",
+  message:    "The audit found the cart path is unaffected by the StatesTaxMatrix change — investigate the shadowed branch and apply only that fix on the existing branch."
+)
+```
+
+### 5. Report results
 
 Summarize the outcome:
 - Link to the PR Devin created (if any)

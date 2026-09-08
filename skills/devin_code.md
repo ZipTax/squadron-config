@@ -23,6 +23,7 @@ Use `code_develop` to assign a development task to Devin. Devin clones the repo,
 - Include acceptance criteria so Devin knows when the task is complete
 
 **Example:**
+
 ```json
 {
   "repo_url": "https://github.com/org/repo",
@@ -32,9 +33,26 @@ Use `code_develop` to assign a development task to Devin. Devin clones the repo,
 }
 ```
 
-The response includes the session ID, status, any pull request links, and Devin's messages describing what was done. The session is archived automatically after completion.
+The response includes the session ID, status, any pull request links, and Devin's messages describing what was done. The session is **not** archived on completion — it sleeps when idle (consuming no usage) and remains resumable, auto-expiring after a few hours. Capture the session ID if a later phase will continue the work.
 
-### 2. Check a Session with `check_session`
+### 2. Continue a Session with `send_message`
+
+To keep working in the **same** Devin session instead of starting a fresh one, call `send_message` with the session ID and a follow-up instruction. Devin resumes the sleeping session — preserving its full context and branch — and works the new instruction, then returns its response. Use this to feed review/audit findings back to the session that produced the work, rather than paying to re-establish context in a new session.
+
+**Required parameters:**
+- `session_id` — the Devin session ID to resume (returned by `code_develop`, `code_qa`, or `code_review`)
+- `message` — the follow-up instruction (apply only this; do not re-implement prior work)
+
+**Example:**
+
+```json
+{
+  "session_id": "32fee96e7997499ca010301aa50eefce",
+  "message": "The audit found the StatesTaxMatrix probe shows no diff on the GA boundary — investigate reachability and apply only that fix on the existing branch."
+}
+```
+
+### 3. Check a Session with `check_session`
 
 Use `check_session` to inspect a Devin session after it completes. This returns the full status, Devin's messages, pull request links, and session insights (action items, issues, timeline).
 
@@ -42,6 +60,7 @@ Use `check_session` to inspect a Devin session after it completes. This returns 
 - `session_id` — the Devin session ID returned by `code_develop`, `code_qa`, or `code_review`
 
 **Example:**
+
 ```json
 {
   "session_id": "32fee96e7997499ca010301aa50eefce"
@@ -53,7 +72,7 @@ Use `check_session` when:
 - You want to review session insights (issues found, action items, timeline)
 - You need to check on a session that was created earlier
 
-### 3. Interpreting Responses
+### 4. Interpreting Responses
 
 **Devin's Response section** — contains Devin's own summary of what it did. Use this to understand the changes and decide next steps.
 
@@ -89,4 +108,4 @@ Performs a code review of a pull request. Devin reviews the diff and posts inlin
 }
 ```
 
-Both tools return a session ID that can be passed to `check_session` if you need to retrieve Devin's full response later.
+Both tools return a session ID that can be passed to `check_session` or `send_message` if you need to retrieve Devin's full response or continue the session later.

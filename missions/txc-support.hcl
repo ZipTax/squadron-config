@@ -19,7 +19,7 @@ mission "TaxCloud Support" {
     description = "Jira issue ID"
   }
 
-  task "Get Linear Ticket Details" {
+  task "Triage Issue" {
     objective = <<-EOT
       You have been given Jira issue ${inputs.issue}.
 
