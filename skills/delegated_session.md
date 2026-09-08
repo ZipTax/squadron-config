@@ -50,6 +50,22 @@ Two things a search result does not settle, and `check_session` does: whether a 
 looks finished actually reached a verdict, and whether one that opened a PR opened the PR *for
 this ticket's fix*.
 
+**Several matches for one lane is the normal case, not an anomaly** — a re-fired ticket, a run
+that blocked, a session someone started by hand. Pick with this order, and only among sessions
+that are actually that lane (check the stage tag, not just the ticket):
+
+1. **Messageable beats finished.** A session you can still send to is worth more than one that
+   concluded and closed, because you can question it. Where two are messageable, take the one
+   that got furthest — the later state, the PR, the verdict — not the newest.
+2. **Among unmessageable ones, take the one that reached a conclusion**, and inherit it as a
+   report (see below). A terminated session that concluded nothing is context, not an answer.
+3. **Never merge two sessions' findings into one story.** They may disagree, and the disagreement
+   is information. Choose one as the lane's session and cite the other as a second opinion,
+   naming which session each claim came from.
+
+Say which you chose and why you passed over the others. A later stage inherits your choice
+without re-searching, so an unexplained pick is one nobody downstream can correct.
+
 ## When a session cannot be messaged
 
 A terminated or archived session is readable but not messageable, and a stage can inherit one:

@@ -198,6 +198,14 @@ mission "rate_triage" {
       - An investigation session exists but is terminated, expired or archived, so it can be read
         and not messaged → `forward`.
 
+      Expect more than one match — a re-fired ticket accumulates them — and pick per
+      delegated_session's order: a messageable session beats a closed one even when the closed one
+      got further, because `continue` keeps a lane you can still question while `forward` inherits
+      a report you cannot. So two investigation sessions where one is live and one is terminated is
+      `continue` on the live one, with the terminated one's conclusion carried in prior_context as
+      a second opinion — attributed, not blended into one account. Name the sessions you passed
+      over in sessions_found: the stage you route to inherits this choice without re-searching.
+
       A fix PR is not itself an entry mode: it is state. If any session for this ticket already
       opened a fix PR in ${inputs.repo_url}, put it in existing_fix_pr_url and say which session
       opened it — the fix may exist while its A/B coverage does not, and the assessing stage

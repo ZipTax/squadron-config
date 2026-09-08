@@ -195,11 +195,22 @@ mission "rate_fix" {
       to what was claimed. rate_triage read them at assessment time; a session can terminate
       between missions, and a stage that finds out later finds out at the point it needs to send.
 
-      Route on `${inputs.entry_stage}`, with one correction you are allowed and expected to make:
-      if the entry is author_tests, audit or bruno_tests but the fix session it depends on can no
-      longer be messaged, route to develop instead so the PR gets a living owner. Audit routes its
-      corrections to the fix session and never opens one, so an unowned PR strands every finding it
-      reaches. Say in lane_state that you made that correction and why.
+      Route on `${inputs.entry_stage}`, with two corrections you are allowed and expected to make.
+      Both exist for the same reason: audit routes its findings to the session that owns the lane
+      they belong to and never opens one itself, so a lane whose session died strands every finding
+      that lands in it — and it strands them at the moment audit has a judgment, which is the worst
+      time to discover it.
+
+      - The fix lane. If the entry is author_tests, audit or bruno_tests but fix_session_id can no
+        longer be messaged, route to develop instead, which adopts the PR and becomes its owner.
+      - The cases lane. If the entry is audit or bruno_tests but cases_session_id can no longer be
+        messaged, route to author_tests instead, which adopts the cases already on the branch. Do
+        not route a dead cases lane to audit on the argument that the cases exist: CASES_INADEQUATE
+        is the most common finding there is, and it has nowhere to go.
+
+      Where both lanes are dead, develop wins — it is the earlier stage, and author_tests reads the
+      fix PR's diff, so a lane the fix session must first re-own cannot be covered before it is.
+      Say in lane_state which correction you made and why.
 
       %{ if inputs.resume_state != "" ~}
       This run is a resumption. Prior state:
@@ -220,7 +231,7 @@ mission "rate_fix" {
     output {
       field "entry_stage" {
         type        = "string"
-        description = "develop | author_tests | audit | bruno_tests — the stage this run actually enters at, which is the input unless a dead fix session forced the correction to develop."
+        description = "develop | author_tests | audit | bruno_tests — the stage this run actually enters at, which is the input unless a dead session forced a correction: a dead fix session moves the entry to develop, a dead cases session to author_tests."
         required    = true
       }
       field "lane_state" {
@@ -242,11 +253,11 @@ mission "rate_fix" {
       }
       route {
         target    = tasks.author_tests
-        condition = "entry_stage == author_tests — the fix PR exists with a live owner and what is missing is A/B coverage of it."
+        condition = "entry_stage == author_tests — the fix PR exists with a live owner and what is missing is A/B coverage of it, either because no cases were ever written or because the session that wrote them is gone and this stage adopts them."
       }
       route {
         target    = tasks.audit
-        condition = "entry_stage == audit — fix and cases both exist, so the run re-enters at the judgment rather than rebuilding what it is judging."
+        condition = "entry_stage == audit — fix and cases both exist AND both sessions can still be messaged, so the run re-enters at the judgment rather than rebuilding what it is judging."
       }
       route {
         target    = tasks.bruno_tests
@@ -392,6 +403,17 @@ mission "rate_fix" {
       ran, otherwise the fix_session_id input ("${inputs.fix_session_id}"). Audit routes corrections
       to whichever it is and cannot open a session of its own, so a lane id that stops here strands
       them.
+
+      %{ if inputs.cases_session_id != "" ~}
+      This run may be adopting cases rather than writing them: cases_session_id
+      ("${inputs.cases_session_id}") already authored cases on this branch, and enter_fix routed
+      here because that session can no longer be messaged. Then the session you start owns the
+      cases lane from now on — have it read what is already committed under
+      tests/ratevariant-cases/** and the `<!-- ratevariant-plan -->` comment before adding
+      anything, and complete the coverage rather than re-authoring it. Existing cases the prior
+      session justified are not yours to delete on taste; a case you believe is wrong is a finding
+      to return, the same as any other.
+      %{ endif ~}
 
       # You do
 
