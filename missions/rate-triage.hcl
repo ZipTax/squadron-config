@@ -169,6 +169,28 @@ mission "rate_triage" {
          · No overrides were passed on this run, so the search is all you have to go on.
          %{ endif ~}
 
+      # If the session API refuses you
+
+      An authorization failure on find_sessions or check_session — a 403, a permissions error — is
+      not an answer about this ticket's history; it means you cannot see the history, which is a
+      different thing from there being none. Do not read it as zero matches, and do not end the run
+      on it either. Instead:
+
+      - Fall back to the ids the resume-state file records. It names the sessions a prior run opened
+        and whether each was messageable, which is what the search would have told you, so a
+        resumption survives the search being unavailable. Try check_session on those ids; where that
+        is refused too, take the file's account of each session's state and say that is where it
+        came from. The stage you route to finds out for certain when it sends: a refused send is the
+        correction, so state a belief downstream rather than a fact.
+      - With no resume-state file and no readable history, route `start`, and record what was
+        refused in history_unreadable. That reading is safe for this case and only this case: no run
+        of this flow got far enough to write a state file, so there is no lane of ours to abandon.
+        What it does not rule out is a session someone opened by hand, or one predating the state
+        file — so the session this run briefs says on the ticket that it could not check for prior
+        work, which is how a human catches the collision the search would have caught.
+      - Never infer any mode other than `start` from a failed read, and never report a ticket as
+        having no history when what happened is that you were refused.
+
       # What you are deciding
 
       First, whether this run re-enters the flow past the investigation at all. The resume-state file
@@ -270,8 +292,13 @@ mission "rate_triage" {
       }
       field "sessions_found" {
         type        = "string"
-        description = "The tagged sessions found for this ticket — id, stage tag, state — and one line on why the chosen one was chosen over the others."
+        description = "The tagged sessions found for this ticket — id, stage tag, state — and one line on why the chosen one was chosen over the others. Where the search was refused rather than empty, say so instead of reporting no history."
         required    = true
+      }
+      field "history_unreadable" {
+        type        = "string"
+        description = "Blank when session history was readable. Otherwise which call was refused (find_sessions, check_session, both) and what you fell back to: the resume-state file's recorded ids and states, or nothing — in which case the mode is start and was chosen blind. Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and the ticket writeback has to say it."
+        required    = false
       }
     }
 
@@ -334,6 +361,12 @@ mission "rate_triage" {
       # Brief the session
 
       Per the rate_investigation skill, in full: this session knows nothing about the case.
+
+      If discover_sessions returned a non-blank history_unreadable, this `start` was chosen without
+      being able to see whether anyone is already on the ticket. Say so in the brief, and have the
+      session state it in its ticket writeback: that it could not check for prior sessions, and that
+      a second opinion on the ticket may exist. It costs a sentence, and it is the only thing
+      standing between a blind start and two verdicts nobody knows are competing.
 
       Return investigation_session_id, the verdict it reached, and its report.
     EOT
