@@ -2,6 +2,12 @@
 
 Use the Devin plugin to delegate code development tasks to Devin AI and retrieve results.
 
+`title`, `tags`, `prompt_mode`, and the trimmed (structured-output-first) tool response all
+require the plugin version pinned in `plugins.hcl` to carry them. If a call rejects one of those
+parameters, the pin is behind this document — report that rather than dropping the parameter,
+because the stages that pass `prompt_mode: raw` are read-only and the default prompt tells the
+session to branch and open a PR.
+
 ## Workflow
 
 ### 1. Develop Code with `code_develop`
@@ -15,6 +21,16 @@ Use `code_develop` to assign a development task to Devin. Devin clones the repo,
 **Optional parameters:**
 - `branch` — branch name for Devin to create (Devin picks one if omitted)
 - `instructions` — additional context, constraints, or coding guidelines
+- `title` — session title, e.g. `"DEV-8126 investigate"` (Devin generates one if omitted)
+- `tags` — session tags, e.g. `["ratevariant", "investigate"]`, so the sessions a mission spawned can be found later
+- `prompt_mode` — `"default"` or `"raw"`
+
+**`prompt_mode`:** the default wraps your task in a fixed workflow — create a branch, implement,
+add tests, commit, open a PR. That is wrong for two common jobs: a **read-only investigation**
+(which must not branch or open a PR) and a **follow-on stage** that has to push to a branch and
+PR that already exist. For those, pass `"prompt_mode": "raw"`; your `task` and `instructions`
+then reach Devin verbatim, so they must carry every instruction the job needs, including what
+not to do.
 
 **Tips for effective prompts:**
 - Be specific about what to change and where in the codebase
@@ -23,7 +39,6 @@ Use `code_develop` to assign a development task to Devin. Devin clones the repo,
 - Include acceptance criteria so Devin knows when the task is complete
 
 **Example:**
-
 ```json
 {
   "repo_url": "https://github.com/org/repo",
@@ -33,26 +48,14 @@ Use `code_develop` to assign a development task to Devin. Devin clones the repo,
 }
 ```
 
-The response includes the session ID, status, any pull request links, and Devin's messages describing what was done. The session is **not** archived on completion — it sleeps when idle (consuming no usage) and remains resumable, auto-expiring after a few hours. Capture the session ID if a later phase will continue the work.
+The response includes the session ID, status, any pull request links, the session's structured
+output (if its playbook defines a schema), and Devin's final message. The full transcript is not
+returned — follow the session URL for it, or set `raw_messages = "true"` in the plugin settings
+if an agent genuinely needs the whole conversation.
 
-### 2. Continue a Session with `send_message`
+By default the session is archived automatically after completion. If the plugin is configured with `archive_on_complete = "false"` — which is how it is configured here — the session is left open and resumable instead, and continued with `send_message`.
 
-To keep working in the **same** Devin session instead of starting a fresh one, call `send_message` with the session ID and a follow-up instruction. Devin resumes the sleeping session — preserving its full context and branch — and works the new instruction, then returns its response. Use this to feed review/audit findings back to the session that produced the work, rather than paying to re-establish context in a new session.
-
-**Required parameters:**
-- `session_id` — the Devin session ID to resume (returned by `code_develop`, `code_qa`, or `code_review`)
-- `message` — the follow-up instruction (apply only this; do not re-implement prior work)
-
-**Example:**
-
-```json
-{
-  "session_id": "32fee96e7997499ca010301aa50eefce",
-  "message": "The audit found the StatesTaxMatrix probe shows no diff on the GA boundary — investigate reachability and apply only that fix on the existing branch."
-}
-```
-
-### 3. Check a Session with `check_session`
+### 2. Check a Session with `check_session`
 
 Use `check_session` to inspect a Devin session after it completes. This returns the full status, Devin's messages, pull request links, and session insights (action items, issues, timeline).
 
@@ -60,7 +63,6 @@ Use `check_session` to inspect a Devin session after it completes. This returns 
 - `session_id` — the Devin session ID returned by `code_develop`, `code_qa`, or `code_review`
 
 **Example:**
-
 ```json
 {
   "session_id": "32fee96e7997499ca010301aa50eefce"
@@ -72,7 +74,51 @@ Use `check_session` when:
 - You want to review session insights (issues found, action items, timeline)
 - You need to check on a session that was created earlier
 
-### 4. Interpreting Responses
+### 3. Continue a Session with `send_message`
+
+Use `send_message` to send a follow-up message to an open session and wait for Devin to finish responding. Use this to answer a question Devin asked, give additional instructions, or request changes after reviewing its work.
+
+The session must still be open (not archived). This requires `archive_on_complete = "false"` in the plugin settings; otherwise `code_develop` archives the session as soon as it finishes.
+
+**Required parameters:**
+- `session_id` — the Devin session ID to continue
+- `message` — the follow-up message (instruction, answer, or change request)
+
+**Example:**
+```json
+{
+  "session_id": "32fee96e7997499ca010301aa50eefce",
+  "message": "The PR looks good, but please also add a test for the empty-cursor case."
+}
+```
+
+The plugin sends the message and polls until Devin finishes the follow-up work, then returns Devin's updated response. You can call `send_message` multiple times to keep iterating.
+
+### 4. `complete_session` — rarely, and not as a stage's last step
+
+`complete_session` archives a session permanently: it can never be resumed with `send_message`
+again. **Do not call it as part of finishing a mission stage.** An idle session costs nothing;
+an archived one costs a whole new session that has to re-read the ticket, re-derive the context,
+and re-establish what its predecessor already knew — and the review comments on its PR then have
+nobody to answer them.
+
+Opening a PR is not being done. A stage's work is settled only once its PRs are merged, and
+that happens long after the mission returns, so a mission is never in a position to know a
+session is finished. Leave it open and let it age out.
+
+Call it only when a human explicitly asks you to close a session out, or when every PR the
+session opened is merged (or closed) and the ticket is resolved.
+
+**Required parameter:**
+- `session_id` — the Devin session ID to archive
+
+```json
+{
+  "session_id": "32fee96e7997499ca010301aa50eefce"
+}
+```
+
+### 5. Interpreting Responses
 
 **Devin's Response section** — contains Devin's own summary of what it did. Use this to understand the changes and decide next steps.
 
@@ -108,4 +154,4 @@ Performs a code review of a pull request. Devin reviews the diff and posts inlin
 }
 ```
 
-Both tools return a session ID that can be passed to `check_session` or `send_message` if you need to retrieve Devin's full response or continue the session later.
+Both tools return a session ID that can be passed to `check_session` if you need to retrieve Devin's full response later.

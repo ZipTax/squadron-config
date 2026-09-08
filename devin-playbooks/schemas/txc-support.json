@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "classification": {
+      "type": "string",
+      "description": "What kind of issue this is."
+    },
+    "routed_to_rate_flow": {
+      "type": "boolean",
+      "description": "True when the fix would change how tax is calculated. Those tickets stop at diagnosis here and go to the staged rate-fix flow."
+    },
+    "observed_behavior": {
+      "type": "string",
+      "description": "What the system actually does, and how that was observed."
+    },
+    "likely_cause": {
+      "type": "string",
+      "description": "The most likely cause, hedged to the evidence available."
+    },
+    "pr_url": {
+      "type": "string",
+      "description": "PR URL if a fix shipped, else empty. Must be empty when routed_to_rate_flow is true."
+    },
+    "jira_comment_posted": {
+      "type": "boolean",
+      "description": "Whether the product-level Jira comment was posted."
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Questions a human must answer."
+    }
+  },
+  "required": [
+    "classification",
+    "routed_to_rate_flow",
+    "observed_behavior",
+    "jira_comment_posted"
+  ],
+  "additionalProperties": false
+}

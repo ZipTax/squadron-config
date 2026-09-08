@@ -1,0 +1,121 @@
+{
+  "type": "object",
+  "properties": {
+    "files_authored": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Case YAML and alteration T-SQL paths written."
+    },
+    "root_coverage": {
+      "type": "array",
+      "description": "One entry per root in the plan comment.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "description": "The proc/function root."
+          },
+          "case_count": {
+            "type": "integer",
+            "description": "Cases covering it."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "primary_positive",
+              "guardrail",
+              "uncovered"
+            ],
+            "description": "primary_positive is expected to differ toward the authoritative value; guardrail is expected to stay flat."
+          }
+        },
+        "required": [
+          "root",
+          "case_count",
+          "kind"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "description": "Roots left uncovered, one entry each. A gap reported is a finding; a gap hidden is a defect.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "description": "The uncovered root."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why: no eligible fixture, unreachable for this merchant, needs data the snapshot lacks, plan comment listed no roots."
+          }
+        },
+        "required": [
+          "root",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Merchants/URL IDs/locations/certificates used, and the eligibility checks each satisfies."
+    },
+    "alteration_used": {
+      "type": "boolean",
+      "description": "Whether an alteration applies fixture data to BOTH arms."
+    },
+    "offline_validation_passed": {
+      "type": "boolean",
+      "description": "Whether the loader/plan dry run parsed every case."
+    },
+    "pushed": {
+      "type": "boolean",
+      "description": "Whether the cases are pushed to the PR branch."
+    },
+    "branch": {
+      "type": "string",
+      "description": "Branch pushed to."
+    },
+    "head_sha": {
+      "type": "string",
+      "description": "Head SHA after the push — the plan must correspond to this SHA."
+    },
+    "run_label_added": {
+      "type": "boolean",
+      "description": "False unless the audit stage explicitly asked this session to label. The audit stage owns firing ratevariant:run and interpreting the result; labeling on its request is mechanics, but the session that wrote the cases never grades them."
+    },
+    "suspected_dead_branches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Code paths no case can reach, with why — the audit stage needs these to read a no-diff correctly."
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Questions a human must answer."
+    }
+  },
+  "required": [
+    "files_authored",
+    "root_coverage",
+    "coverage_gaps",
+    "offline_validation_passed",
+    "pushed",
+    "branch",
+    "run_label_added"
+  ],
+  "additionalProperties": false
+}

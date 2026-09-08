@@ -27,5 +27,5 @@ variable "devin_org_id" {
 }
 
 variable "ratevariant_webhook_secret" {
-  secret = true
+  secret = true  # Shared secret for the /ratevariant mission webhook
 }

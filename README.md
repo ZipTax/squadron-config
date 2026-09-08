@@ -84,10 +84,10 @@ Four specialized agents are defined in `agents.hcl`, all powered by Claude Opus 
 
 | Agent               | Role | Tools |
 |---------------------|------|-------|
-| **CodeGen**         | Delegates development tasks to Devin. Provides clear task descriptions and coding guidelines so Devin can create branches, implement changes, and open PRs. | `code_develop`, `check_session` |
-| **Quality Assurance** | Manages QA review. Analyzes diffs for regressions, logic errors, missing test coverage, and edge cases. Produces structured QA reports with pass/fail verdicts. | `code_develop`, `code_qa`, `check_session` |
-| **Peer Review**     | Performs peer code review. Evaluates correctness, maintainability, and security. Posts inline comments directly on GitHub PRs. | `code_develop`, `code_review`, `check_session` |
-| **Linear**          | Gathers and prepares technical issue details from Linear for engineers implementing the work. | All Linear MCP tools |
+| **`codegen`**         | Delegates development tasks to Devin. Provides clear task descriptions and coding guidelines so Devin can create branches, implement changes, and open PRs. | `code_develop`, `check_session` |
+| **`quality_assurance`** | Manages QA review. Analyzes diffs for regressions, logic errors, missing test coverage, and edge cases. Produces structured QA reports with pass/fail verdicts. | `code_develop`, `code_qa`, `check_session` |
+| **`peer_review`**     | Performs peer code review. Evaluates correctness, maintainability, and security. Posts inline comments directly on GitHub PRs. | `code_develop`, `code_review`, `check_session` |
+| **`linear`**          | Gathers and prepares technical issue details from Linear for engineers implementing the work. | All Linear MCP tools |
 
 ## Skills
 
@@ -99,7 +99,7 @@ Skills provide detailed instructions that are loaded into agents when they use s
 
 ## Missions
 
-### Dev'y (`missions/devy.hcl`)
+### devy (`missions/devy.hcl`)
 
 The primary autonomous development mission. Implements a full development lifecycle from a Linear issue through to a merge-ready PR.
 
@@ -116,11 +116,11 @@ develop --> qa_cycle --> review_cycle --> complete
 ```
 
 1. **develop** -- Fetches the Linear issue (including any linked Technical Spec document), then uses Devin to create a branch, implement changes, and open a PR.
-2. **qa_cycle** -- Iterative loop: QA agent reviews the PR, and if issues are found, CodeGen applies targeted fixes. Repeats until QA passes.
-3. **review_cycle** -- Iterative loop: Peer Review agent reviews the PR, and if changes are needed, CodeGen applies them. Repeats until the review is clean.
+2. **qa_cycle** -- Iterative loop: QA agent reviews the PR, and if issues are found, `codegen` applies targeted fixes. Repeats until QA passes.
+3. **review_cycle** -- Iterative loop: `peer_review` agent reviews the PR, and if changes are needed, `codegen` applies them. Repeats until the review is clean.
 4. **complete** -- Compiles a final mission summary with the PR URL ready for merge.
 
-### Linear Ticket Info (`missions/linear.hcl`)
+### linear_ticket_info (`missions/linear.hcl`)
 
 A lightweight mission that retrieves and structures Linear issue details for engineering consumption.
 

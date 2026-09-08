@@ -1,4 +1,4 @@
-mission "Linear Ticket Info" {
+mission "linear_ticket_info" {
   commander {
     model = models.anthropic.claude_opus_4_7
 
@@ -12,7 +12,7 @@ mission "Linear Ticket Info" {
     }
   }
 
-  agents = [agents.CodeGen, agents["Quality Assurance"], agents["Peer Review"]]
+  agents = [agents.codegen, agents.quality_assurance, agents.peer_review]
 
   # ---------------------------------------------------------------------------
   # Inputs — mapped to Devin code_develop parameters
@@ -25,10 +25,10 @@ mission "Linear Ticket Info" {
 
 
   # ---------------------------------------------------------------------------
-  # Task 1 — CodeGen: use Devin code_develop to implement changes and open PR
+  # Task 1 — codegen: use Devin code_develop to implement changes and open PR
   # ---------------------------------------------------------------------------
 
-  task "Get Linear Ticket Details" {
+  task "get_ticket_details" {
     objective = <<-EOT
       Linear Issue Number: ${inputs.issue}
 
@@ -42,7 +42,7 @@ mission "Linear Ticket Info" {
       Use this to build a full development design spec. 
 
     EOT
-    agents = [agents["Linear"]]
+    agents = [agents.linear]
 
     output {
       field "Issue Title" {

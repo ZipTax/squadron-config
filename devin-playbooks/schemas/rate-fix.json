@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "properties": {
+    "implemented": {
+      "type": "boolean",
+      "description": "Whether a change was implemented. False when the disposition is unsupported, when a blocking question stopped the work, or when adopting an existing PR rather than writing one."
+    },
+    "adopted_existing_pr": {
+      "type": "boolean",
+      "description": "True when this session took ownership of a fix PR a terminated session had opened, rather than writing a fix. Adoption means reading the diff, confirming it matches the briefed mechanism, and holding the lane so the audit stage has a session to route corrections to -- never re-implementing, reverting, widening, or opening a second PR."
+    },
+    "pr_url": {
+      "type": "string",
+      "description": "The PR URL, or empty if none was opened."
+    },
+    "branch": {
+      "type": "string",
+      "description": "Branch the change is on — later stages push to this same branch."
+    },
+    "head_sha": {
+      "type": "string",
+      "description": "Head SHA of the pushed branch, for the ratevariant plan/run coupling."
+    },
+    "change_type": {
+      "type": "string",
+      "enum": [
+        "proc_or_function",
+        "data_migration",
+        "both",
+        "none"
+      ],
+      "description": "What shipped."
+    },
+    "files_changed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Paths changed. Never tests/ratevariant-cases/** — those belong to the case-authoring stage."
+    },
+    "roots_touched": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Execution roots the change alters, including mirrored non-SSUTA cart/ETL paths."
+    },
+    "mirrored_paths_checked": {
+      "type": "boolean",
+      "description": "Whether the non-SSUTA cart (inline in spTransactionLookup_nonssuta) and ETL (fnGetTaxRatesforTx_nonssuta) counterparts were checked for drift."
+    },
+    "diagnosis_disagreement": {
+      "type": "string",
+      "description": "If implementing contradicted the investigation's diagnosis, what the code showed. Empty otherwise. Do not silently re-diagnose."
+    },
+    "blocking_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Every question a human must answer, one per entry; empty array when none."
+    },
+    "fix_summary": {
+      "type": "string",
+      "description": "At most 150 words: what changed and the behavior it produces."
+    }
+  },
+  "required": [
+    "implemented",
+    "pr_url",
+    "branch",
+    "change_type",
+    "files_changed",
+    "roots_touched",
+    "fix_summary"
+  ],
+  "additionalProperties": false
+}
