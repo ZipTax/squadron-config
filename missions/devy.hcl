@@ -55,14 +55,18 @@ mission "devy" {
 
       Linear Issue Number: ${inputs.issue}
 
+      For the Pull Request name use this pattern: ${inputs.issue}/<summary>
+
       Use the linear MCP  tool `getIssue` to pull in the Linear issue details 
       for the issue number input. 
+
+      Switch the status on the linear issue to: `In Progress`
 
       Check for documents on the Linear Issue and pull in the full document contents
       as Markdown. 
 
-      If you see a document named "Technical Spec" this is a full development design spec. 
-      Use this to inform the agent development. 
+      If you see a document named (or with this text in any part of the name) "Technical Spec" 
+      this is a full development design spec. Use this to inform the agent development. 
 
       Send the full details of the Linear Issue and documents to Devin for development. 
 
@@ -117,6 +121,8 @@ mission "devy" {
     objective = <<-EOT
       Manage the QA review cycle for the pull request. The PR URL, PR
       number, and branch name are available from the `develop` task output.
+
+      Switch the status on the linear issue to: `In Progress`
 
       Repeat the following loop until QA passes:
 
@@ -188,6 +194,8 @@ mission "devy" {
       Manage the peer review cycle for the pull request. The PR URL and
       branch name are available from prior task outputs.
 
+      Switch the status on the linear issue to: `In Review`
+
       Repeat the following loop until the peer review passes:
 
       1. Call the peer_review agent and instruct it to run a full code review
@@ -251,7 +259,105 @@ mission "devy" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task 4 — Mission complete: compile final report
+  # Task 4 — PR cleanup cycle: commander loops Assess ↔ CodeGen until the PR's
+  #          open review threads are fully resolved and merge-ready
+  # ---------------------------------------------------------------------------
+
+  task "cleanup_cycle" {
+    objective = <<-EOT
+      Clean up the pull request by closing out every open review comment from
+      past reviews (automated and human) and preparing it for a clean merge.
+      The PR URL and branch name are available from prior task outputs.
+
+      This task does NOT merge the PR. It gets the branch into a merge-ready
+      state and leaves the final merge to a human.
+
+      Repeat the following loop until no addressable open threads remain:
+
+      1. Call the "Peer Review" agent and instruct it to enumerate EVERY open /
+         unresolved review thread on the PR — including human comments added
+         outside the automated review cycle. Tell it to triage each thread into
+         one of: (a) actionable code fix, (b) reply-only / no code change, or
+         (c) needs a human decision. For category (b), have it post a clear
+         reply explaining the rationale and resolve that thread. For category
+         (c), have it leave the thread OPEN and record it. Have it also report
+         whether CI/tests are green and whether the branch has merge conflicts
+         with the base branch.
+
+      2. Evaluate the assessment. If there are zero category (a) threads
+         remaining, CI is green, and there are no merge conflicts, exit the loop
+         and complete this task.
+
+      3. If category (a) threads remain, call the "CodeGen" agent to apply ONLY
+         those specific fixes — do NOT re-implement the original development
+         task. Instruct it to use its code_develop tool with:
+         - repo_url: ${inputs.repo_url}
+         - task: ONLY the specific changes called for by the listed review
+           threads. Do NOT repeat the original development task description.
+         - branch: the exact branch name from prior task outputs so Devin pushes
+           fixes to the EXISTING branch.
+         - instructions: Tell Devin this is an incremental cleanup on an existing
+           branch and PR — it must NOT create a new branch, must NOT re-implement
+           prior work, and must ONLY address the specific threads listed. For
+           each thread it fixes, it must reply to that thread referencing the
+           commit and resolve the thread. Reference the PR URL for context.
+
+      4. After CodeGen confirms the fixes are pushed and the corresponding
+         threads are replied to and resolved, go back to step 1 and request
+         another assessment (the new commits may have shifted CI state or
+         touched other threads).
+
+      IMPORTANT: When calling CodeGen for fixes, be precise. Only describe the
+      specific threads that need fixing. Never include the original development
+      task description — that work is already complete on the branch. Only
+      resolve a thread once it is fully addressed; never force-resolve a thread
+      that needs a human decision.
+
+      Continue this cycle until every actionable thread is fixed-and-resolved,
+      every no-change thread is replied-to-and-resolved, CI is green, and there
+      are no merge conflicts. Track how many cleanup cycles were needed and
+      summarize all threads addressed and fixes applied across every cycle.
+
+      Use check_session from the Devin plugin to check the session messages and
+      insights after each run.
+    
+      Move to the next step in this mission when complete. 
+    EOT
+    agents = [agents.codegen, agents.peer_review_code_cleanup]
+
+    output {
+      field "cleanup_passed" {
+        type        = "boolean"
+        description = "Whether the PR is merge-ready: all actionable threads fixed-and-resolved, no-change threads replied-and-resolved, CI green, no merge conflicts"
+        required    = true
+      }
+      field "cleanup_cycles" {
+        type        = "number"
+        description = "Number of cleanup cycles completed"
+        required    = true
+      }
+      field "threads_resolved" {
+        type        = "number"
+        description = "Total number of review threads closed out (fixed or replied) across all cycles"
+        required    = true
+      }
+      field "open_items_for_human" {
+        type        = "string"
+        description = "Threads intentionally left open because they need a human decision; empty string if none"
+        required    = true
+      }
+      field "cleanup_summary" {
+        type        = "string"
+        description = "Cumulative summary of all threads addressed, fixes applied, and replies posted across every cycle"
+        required    = true
+      }
+    }
+
+    depends_on = [tasks.review_cycle]
+  }
+
+  # ---------------------------------------------------------------------------
+  # Task 5 — Mission complete: compile final report
   # ---------------------------------------------------------------------------
 
   task "complete" {
@@ -265,6 +371,10 @@ mission "devy" {
       - Number of peer review cycles and key findings
       - All fixes applied across every review cycle
       - Final PR URL ready for human review and merge
+
+    Post the summary back to the Linear ticket as a comment. 
+    Don't use "human" in the Linear response e.g. "Open items for the human". 
+    Instead just say "Open Items for Review" 
     EOT
 
     output {
@@ -280,6 +390,6 @@ mission "devy" {
       }
     }
 
-    depends_on = [tasks.review_cycle]
+    depends_on = [tasks.cleanup_cycle]
   }
 }
