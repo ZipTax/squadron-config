@@ -12,18 +12,18 @@ Devin UI; these files exist so a playbook change is reviewable as a diff next to
 calls it, and so a later reader can see what the mission was written against. Change one, change
 both — and if you find a mirror that disagrees with the UI, the UI won.
 
-| File | Macro | Playbook id | Stage that runs it |
+| File | Macro | Playbook id | Mission / stage that runs it |
 |---|---|---|---|
-| `rate-investigation.md` | `!rate_investigation` | `playbook-d0e526165f3b4178856af2650da5464f` | `start_investigation`, `confirm_wai`, `continue_investigation`, `forward_investigation` |
-| `rate-fix.md` | `!rate-fix` | `playbook-5683e1f25ceb400bb864eefc88d718b1` | `develop` |
-| `ratevariant-cases.md` | `!ratevariant-cases` | `playbook-0db2e3c790dd493e83d6a747de250fd4` | `author_tests` |
-| `bruno-regression.md` | `!bruno-regression` | `playbook-1c31b008e5f846d8a0987956e25af2b0` | `bruno_tests` |
+| `rate-investigation.md` | `!rate_investigation` | `playbook-d0e526165f3b4178856af2650da5464f` | `rate_triage`: `start_investigation`, `confirm_wai`, `continue_investigation`, `forward_investigation` |
+| `rate-fix.md` | `!rate-fix` | `playbook-5683e1f25ceb400bb864eefc88d718b1` | `rate_fix`: `develop` |
+| `ratevariant-cases.md` | `!ratevariant-cases` | `playbook-0db2e3c790dd493e83d6a747de250fd4` | `rate_fix`: `author_tests` |
+| `bruno-regression.md` | `!bruno-regression` | `playbook-1c31b008e5f846d8a0987956e25af2b0` | `rate_fix`: `bruno_tests` |
 | `txc-support.md` | `!txc-support` | `playbook-3ec650231e6b4764a4b2254960218566` | none — generic support, and it routes rate tickets *out* to this flow |
 
 ## What each playbook owns
 
 These are the invariants the mission is written against. Breaking one is a design change, not an
-edit: if a change here contradicts a row, change `missions/ratevariant.hcl` in the same PR and say
+edit: if a change here contradicts a row, change the mission file that owns that stage (`missions/rate-triage.hcl`, `missions/rate-fix.hcl`, `missions/rate-finalize.hcl`) in the same PR and say
 so in the description.
 
 | Playbook | Owns | Must never |
@@ -44,7 +44,7 @@ in one session degrades both.
 1. **Edit the mirror here first**, in a PR, so the change is reviewable next to the mission that
    depends on it. State which mission stage reads the changed text.
 2. **Check the other side.** A playbook change that adds, renames, or re-scopes a returned value
-   needs the matching `output` field in `missions/ratevariant.hcl` and the matching entry in
+   needs the matching `output` field in the mission file that owns that stage (`missions/rate-triage.hcl`, `missions/rate-fix.hcl`, `missions/rate-finalize.hcl`) and the matching entry in
    `schemas/`. Grep the field name across all three before pushing; a router that reads a field
    nobody sets fails silently, which is the worst failure mode this config has.
 3. **Run `squadron verify`** if you touched the mission or a schema field name.
@@ -72,7 +72,7 @@ mission's routers read. A router condition is a scalar test (`verdict == DEFECT_
 `evidence_complete == true`); with no schema attached, the commander is inferring those scalars
 from prose in a transcript. Attaching the schema binds the session itself, not just the prompt.
 
-Field names line up with the mission's task `output` blocks in `missions/ratevariant.hcl` —
+Field names line up with the mission's task `output` blocks in the mission file that owns that stage (`missions/rate-triage.hcl`, `missions/rate-fix.hcl`, `missions/rate-finalize.hcl`) —
 `verdict`, `evidence_complete`, `working_as_intended`, `disposition`, `mechanism`, `affected_roots`,
 `limitation_class`, `coverage_gaps`, and so on. When you rename or add one, change it in the
 schema, in the mission's `output` block, and in the playbook prose that tells the session to return

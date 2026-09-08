@@ -83,8 +83,8 @@ agent "taxcloud_support_engineer" {
 }
 
 # ---------------------------------------------------------------------------
-# Rate-fix stage agents. One agent per stage of the `ratevariant_ab` mission,
-# each composing the skills its stage needs, so no agent is time-shared across
+# Rate-fix stage agents. One agent per stage of the rate missions (`rate_triage`
+# -> `rate_fix` -> `rate_finalize`), each composing the skills its stage needs, so no agent is time-shared across
 # jobs with contradictory charters. All of them work exclusively through Devin
 # sessions and hold no credentials.
 # ---------------------------------------------------------------------------

@@ -99,7 +99,7 @@ identifier is required to distinguish the reported subject from a broader popula
 
 ## Delegated (orchestrated) mode
 
-When an orchestrator invokes you rather than a human — the squadron `ratevariant_ab` mission does
+When an orchestrator invokes you rather than a human — the squadron `rate_triage` mission does
 — these overrides apply, and nothing else changes:
 
 - **Never block.** There is no interactive user, so a question you would have asked goes in
