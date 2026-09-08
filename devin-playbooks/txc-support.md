@@ -115,9 +115,10 @@ proven cause and ratevariant A/B coverage.
 For those tickets: investigate read-only as far as the evidence takes you, then **stop before
 implementing**. Report the classification, what you observed, and hand off to the staged flow
 (`!rate_investigation` for the evidence-only diagnosis; the squadron rate missions
-(`rate_triage` -> `rate_fix` -> `rate_finalize`) drive the rest). Post the product-level Jira update per Step 6 if nobody else has,
-and say the ticket has been routed to the rate-fix flow. Do not open a proc/data PR, and do
-not invoke `tax-rule-change` to generate scripts — the `!rate-fix` stage owns that.
+(`rate_triage` -> `rate_fix` -> `rate_finalize`) drive the rest). Post the product-level
+Jira update per Step 6 if nobody else has, and say the ticket has been routed to the
+rate-fix flow. Do not open a proc/data PR, and do not invoke `tax-rule-change` to generate
+scripts — the `!rate-fix` stage owns that.
 
 Continue through Steps 2-6 as written for API/app bugs, nexus/exemption behavior in `txcapp`,
 account/connection configuration, and any ticket whose answer is an explanation rather than a
