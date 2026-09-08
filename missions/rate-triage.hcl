@@ -181,15 +181,19 @@ mission "rate_triage" {
         resumption survives the search being unavailable. Try check_session on those ids; where that
         is refused too, take the file's account of each session's state and say that is where it
         came from. The stage you route to finds out for certain when it sends: a refused send is the
-        correction, so state a belief downstream rather than a fact.
-      - With no resume-state file and no readable history, route `start`, and record what was
-        refused in history_unreadable. That reading is safe for this case and only this case: no run
+        correction, so state a belief downstream rather than a fact. Set history_provenance to
+        `recorded` and name the call that was refused, so downstream reads those states as the
+        file's account rather than as something you confirmed.
+      - With no resume-state file and no readable history, route `start` and set history_provenance
+        to `none`, naming what was refused. That reading is safe for this case and only this case: no run
         of this flow got far enough to write a state file, so there is no lane of ours to abandon.
         What it does not rule out is a session someone opened by hand, or one predating the state
         file — so the session this run briefs says on the ticket that it could not check for prior
         work, which is how a human catches the collision the search would have caught.
       - Never infer any mode other than `start` from a failed read, and never report a ticket as
-        having no history when what happened is that you were refused.
+        having no history when what happened is that you were refused. On the ordinary path, where
+        both calls answered, history_provenance is `read` — it is stated on every run, so a reader
+        never has to infer from its absence that the history was seen.
 
       # What you are deciding
 
@@ -295,10 +299,10 @@ mission "rate_triage" {
         description = "The tagged sessions found for this ticket — id, stage tag, state — and one line on why the chosen one was chosen over the others. Where the search was refused rather than empty, say so instead of reporting no history."
         required    = true
       }
-      field "history_unreadable" {
+      field "history_provenance" {
         type        = "string"
-        description = "Blank when session history was readable. Otherwise which call was refused (find_sessions, check_session, both) and what you fell back to: the resume-state file's recorded ids and states, or nothing — in which case the mode is start and was chosen blind. Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and the ticket writeback has to say it."
-        required    = false
+        description = "How you came to know this ticket's session history, always stated: read (the search and the session reads answered), recorded (a call was refused — name which — and you fell back to the resume-state file's ids and states), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and the ticket writeback has to say it."
+        required    = true
       }
     }
 
@@ -362,8 +366,8 @@ mission "rate_triage" {
 
       Per the rate_investigation skill, in full: this session knows nothing about the case.
 
-      If discover_sessions returned a non-blank history_unreadable, this `start` was chosen without
-      being able to see whether anyone is already on the ticket. Say so in the brief, and have the
+      If discover_sessions reported history_provenance as anything but `read`, this `start` was
+      chosen without being able to see whether anyone is already on the ticket. Say so in the brief, and have the
       session state it in its ticket writeback: that it could not check for prior sessions, and that
       a second opinion on the ticket may exist. It costs a sentence, and it is the only thing
       standing between a blind start and two verdicts nobody knows are competing.
