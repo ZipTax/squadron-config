@@ -648,7 +648,9 @@ mission "rate_triage" {
         `registering-on-the-ticket` before it writes anything. Its skills live in that repo, so a
         session told to stay out of it has none and improvises both the comment and the format of
         the line it registers. Forbid the changes — branch, commit, push, PR, edits, queries — and
-        never the clone.
+        never the clone. Have it name the skill it authored the comment from when it reports: a
+        session answering "no such skill here" wrote from nothing, and that is yours to fix before
+        the comment lands.
       - It reads the ticket's comments to the end first, and returns which of your questions the
         ticket already answers rather than asking them. Your questions come from sessions that may
         predate the ticket's latest state by months; where the two disagree the ticket is the

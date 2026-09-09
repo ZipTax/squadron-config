@@ -48,6 +48,30 @@ and you name the skills its job depends on. The prohibition you want is on *chan
 no branch, no commit, no push, no PR, no edits — never on cloning: "do not clone the repo" reads
 as one line of safety and removes every rule the session was going to follow.
 
+## Never hand it prose to publish
+
+Anything the session writes for a reader outside this run — a ticket comment, a PR description, a
+comment on a PR — you brief as facts and hand to the skill that owns the wording. You do not write
+the body. A body in the brief is followed ahead of the skill every time, silently and without
+either of you noticing, which makes the skill decorative: what ships is what you wrote.
+
+And what you would write is what you hold, which is the wrong thing by construction. Your material
+is a verdict name, a mechanism, the queries you wanted run and the columns they run against — a
+status report addressed to us, on a ticket read by support and product. The session's material is
+the skill's shape plus a reading of the ticket you have not done.
+
+So the brief names the skill (`writing-ticket-updates` for a ticket comment) and carries:
+
+- what the run established, with its basis, and
+- each question, in terms of who holds the answer and what it is worth — never phrased as a
+  sentence to post.
+
+Then require it back: the session reports which skill it authored from, and posts nothing it
+cannot name a skill for. "No such skill in this environment" is the answer that tells you it wrote
+from nothing, and it is a stage failure to fix before the comment lands, not a note to pass on.
+Same for the phrasing: asking for a comment "verbatim", "exactly as below", or "as written" is
+asking it to skip the skill, whatever the rest of the brief says.
+
 `prompt_mode` decides what the session is told to do beyond your task. The default appends the
 create-a-branch / add-tests / commit / open-a-PR workflow, which is right for exactly one kind
 of stage: the one that authors the fix. For a read-only stage, or a stage that must push to a
