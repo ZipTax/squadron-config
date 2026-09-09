@@ -107,6 +107,12 @@ A/B has run, not a rewrite before anyone has seen a result.
    the change reaches, and anything about the brief that did not survive contact with the code.
    When adopting, report what the existing change does and that the lane now has an owner.
 
+   Say what establishes the value your change now produces — the state notice or bulletin, or an
+   SME's stated figure on the ticket. If nothing does, say that plainly: the ticket's expectation and
+   a sibling code's configuration are the targets, not authority for them, and a change built on one
+   is a proposal. It is not yours to resolve or to block on, but a caller who is not told reports a
+   clean A/B as a settled case.
+
 ## Specifications
 
 - The change implements the briefed disposition at the briefed scope — both halves when the
@@ -115,7 +121,8 @@ A/B has run, not a rewrite before anyone has seen a result.
   asked for it.
 - No file outside `output/schema/**` and `scripts/**` is modified.
 - Product-level ticket comments belong to the investigating session, which holds the Jira
-  credentials, unless the caller asks you for one.
+  credentials, unless the caller asks you for one — then read the `writing-ticket-updates` skill
+  first. It is not a status report: what you built, ran, and proved stays on the PR.
 
 ## Advice & Pointers
 

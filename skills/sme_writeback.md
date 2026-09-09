@@ -23,16 +23,23 @@ snapshot predating the order: that travels in mission output and structured outp
 engineer weighing the change reads it. A limit in what the *product* can express is the opposite —
 it changes the answer available, so it belongs in the finding.
 
-Two things pose as blocking questions and are not: sequencing that follows from the answer
+Three things pose as blocking questions and are not: sequencing that follows from the answer
 (effective date, backdating, amendments — engineering directs those once the treatment is settled),
-and scope beyond the ticket (sibling codes, other states — file as work, don't ask). One answerable
-question comes back answered; a project comes back untouched.
+scope beyond the ticket (sibling codes, other states — file as work, don't ask), and our own choices
+(a mirrored list, a naming convention, where a value lives — the PR reviewer decides those). One
+answerable question comes back answered; a project comes back untouched.
 
 ## When
 
 One comment per stage outcome, and only from the stage that owns the lane. When a run ends on
 questions, the restart label goes on in the same breath — `blocked_run` owns that mechanic; the
 comment without the label waits on someone noticing, the label without the comment asks nothing.
+
+Handing over a finished lane, hand over what it leaves undecided — not what it accomplished. A stage
+that reports the change was built, A/B'd and audited gets a comment that reads as a completion
+report, and a treatment nobody authorized reads as approved. Whether the run *can* claim a settled
+treatment is the `evidence_gate` basis again: an unauthorized target value is an open question, and
+an audit verdict is not a substitute for one.
 
 Never claim "fixed"/"resolved" (a human merges and deploys) or attach a risk rating. And never let a
 new comment silently contradict one someone may be acting on — annotate the earlier conclusion as

@@ -426,6 +426,12 @@ mission "rate_finalize" {
       When something outstanding needs a person, the ticket side of blocked_run applies here too:
       your session posts the questions and sets the label. This is the normal closure path, not the
       only one — a stage that ends the run before reaching you does its own close-out.
+
+      Hand it over as what is undecided, not what the chain got done. A lane that finished tempts a
+      completion report — the change built, the A/B clean, the paths agreeing — and that reads on the
+      ticket as approved, which is the opposite of asking. What reaches this audience is per
+      sme_writeback and the session's own writing skill; the run's work is already on the PR, which
+      is where the person who cares about it looks.
     EOT
     agents = [agents.learnings_curator]
 

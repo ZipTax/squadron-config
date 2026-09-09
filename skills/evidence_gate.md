@@ -55,6 +55,16 @@ Any `fail` means the verdict is not terminal. Downgrade to *incomplete* and emit
 what evidence would close the gate — the specific query, capture, or file to read — rather
 than a softened conclusion.
 
+## The corrected value carries its own basis
+
+Gate 3 settles what the system does. What it *should* do is a separate claim with its own basis, and
+the two come apart constantly: a mechanism traced out of a proc is `traced`, while the target value
+it should have produced is a `hedge` until state-published material or an SME says so. Implementing
+against a hedged target is allowed — a proposed change is how you get a reviewable artifact and a
+question worth answering — but the run cannot then close as settled, and no amount of A/B evidence
+converts it, because a passing case only proves the change does what it was built to do. Carry the
+missing authority as an open question, in those words, to whoever writes the ticket back.
+
 ## Unknown is a valid, cheap answer
 
 `Unknown from available evidence` plus the named missing artifact ends a stage cleanly.
