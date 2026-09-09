@@ -69,14 +69,9 @@ supposed to do, and that is a finding.
 
 ## Procedure
 
-0. **Register yourself on the ticket.** Read its **Devin Sessions** field and write it back
-   carrying `ratevariant-cases: <your session URL>`. Upsert your own line: if the field already
-   names a `ratevariant-cases` session and you are continuing that work, your line replaces it —
-   two URLs for one stage leaves a later run messaging the dead one. Never touch another stage's
-   line. The Devin API refuses us an organization-wide session list, so that field is how a later
-   run finds this session rather than re-authoring its cases. It is `customfield_11724`, rich text,
-   so write it as ADF — one paragraph per line — since a plain string is rejected, and it reads back
-   as ADF too. If the ticket has no such field, note it in your report and carry on.
+0. **Register yourself on the ticket** under the tag `ratevariant-cases`, per the
+   `registering-on-the-ticket` skill. That is how a later run finds this session rather than
+   re-authoring its cases.
 
 1. **Set up.** Check out the PR's branch in `txc-sqlserver-database` and merge `main`
    into it. Clone `FedTax/ratebench` separately (`~/repos/ratebench`) — it holds the

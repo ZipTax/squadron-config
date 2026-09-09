@@ -25,16 +25,14 @@ one lane for the life of the case (see `session_lane`).
 Pass `title` (ticket key and PR number first, so the case is identifiable) and `tags` (the
 ticket key plus the stage, so every session a case spawned can be listed later).
 
-And tell it to register itself on the ticket: read the ticket's **Devin Sessions** field and write
-it back carrying `<stage tag>: <its session url>`, as its first action. It is an upsert keyed on
-the stage tag — a session continuing a stale one replaces that stage's line rather than adding a
-second, because two urls under one tag leave the next run messaging the dead session; every other
-line survives untouched. The field is `customfield_11724`, rich text: it is written as ADF, one
-paragraph per line, and rejects a plain string. You cannot do this yourself and neither can the
-stage that routed to you — only the session holds Jira credentials, and only it knows its URL. It is
-what makes the ticket an index of its own sessions, which is the one place a later run can look
-that does not depend on the Devin API letting us list sessions at all (see below). A session that
-skips it is invisible to the next run and gets its work re-derived.
+And tell it to register itself on the ticket as its first action, naming its stage tag: the
+`registering-on-the-ticket` skill in `txc-sqlserver-database` owns how — the ticket's **Devin
+Sessions** field, upserted on that tag. Do not restate the procedure in your task text; a stale
+copy of it is how a session ends up wiping another stage's line. You cannot do this yourself and
+neither can the stage that routed to you — only the session holds Jira credentials, and only it
+knows its URL. It is what makes the ticket an index of its own sessions, the one place a later run
+can look that does not depend on the Devin API letting us list sessions at all (see below). A
+session that skips it is invisible to the next run and gets its work re-derived.
 
 `prompt_mode` decides what the session is told to do beyond your task. The default appends the
 create-a-branch / add-tests / commit / open-a-PR workflow, which is right for exactly one kind
