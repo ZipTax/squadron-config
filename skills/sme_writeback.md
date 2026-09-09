@@ -36,6 +36,21 @@ If it only makes sense to someone reading the diff — a proc name, a query, a t
 ruled out — it belongs on the PR. No risk ratings. On a re-run against the same ticket, one
 short comment saying what changed, linking the same PR.
 
+## No caveat paragraph
+
+How the evidence was obtained is never in the comment: the snapshot's date, that the row was
+traced from procedure code rather than re-run on the order, that a tool or a permission refused,
+that prior-session checks could not run. Those are real and they belong in the structured output
+and on the PR, where the engineer weighing the change reads them — on the ticket they read as
+hedging to an audience that cannot act on any of it, and they dilute the one thing the comment is
+for. The certainty rules below are how method limits reach the ticket: evidence that reads as a
+theory is *written* as a theory, in the finding itself.
+
+The test is whether a reader can do something with it. "Were these three orders expected at
+7.975%, and from which notice?" is actionable and stays. "Session discovery was denied" is not,
+and goes upstream instead — the stage that owns the run reports it, and the mission output is
+where a human sees it.
+
 ## Certainty is an input, not a house style
 
 This skill tailors *language*; the calling stage says how strong the finding is (the

@@ -301,7 +301,7 @@ mission "rate_triage" {
       }
       field "history_provenance" {
         type        = "string"
-        description = "How you came to know this ticket's session history, always stated: read (the search and the session reads answered), recorded (a call was refused — name which — and you fell back to the resume-state file's ids and states), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and the ticket writeback has to say it."
+        description = "How you came to know this ticket's session history, always stated: read (the search and the session reads answered), recorded (a call was refused — name which — and you fell back to the resume-state file's ids and states), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat — which travels in mission output and session structured output, not in the ticket comment, where nobody can act on our search being refused."
         required    = true
       }
     }
@@ -367,10 +367,11 @@ mission "rate_triage" {
       Per the rate_investigation skill, in full: this session knows nothing about the case.
 
       If discover_sessions reported history_provenance as anything but `read`, this `start` was
-      chosen without being able to see whether anyone is already on the ticket. Say so in the brief, and have the
-      session state it in its ticket writeback: that it could not check for prior sessions, and that
-      a second opinion on the ticket may exist. It costs a sentence, and it is the only thing
-      standing between a blind start and two verdicts nobody knows are competing.
+      chosen without being able to see whether anyone is already on the ticket. Say so in the brief,
+      so the session knows its verdict may be a second opinion rather than the only one. Keep it out
+      of the ticket comment: nobody reading the ticket can act on our session search being refused,
+      and a caveat there costs the comment its point. It belongs in this stage's result and the
+      session's structured output, which is where a human sees that a blind start happened.
 
       Return investigation_session_id, the verdict it reached, and its report.
     EOT

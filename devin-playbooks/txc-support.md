@@ -288,6 +288,8 @@ You investigate and propose; a human decides. This is not optional phrasing pref
 
 SQL, query output, proc/function names, file paths, schema details, verification steps, checklists, risk assessments, and anything a reader would need engineering context to parse. All of it belongs in the PR description. If it would only make sense to someone reading the diff, it does not go on the ticket.
 
+That includes a caveats paragraph — the staging snapshot's date, that you traced the calculation from procedure code rather than re-running the order, that a query or a check was refused. Those limits are real and belong in the PR description, where the engineer weighing the change reads them; on the ticket they read as hedging to an audience that cannot act on any of it. How sure you are reaches the ticket through the wording of the finding itself ("appears", "one likely explanation"), never as a disclaimer appended to it. The test: a reader can act on "were these three orders expected at 7.975%, and from which notice?" and cannot act on "the snapshot predates the order".
+
 On an incremental re-run of this playbook against the same ticket, post one short comment saying what changed and linking the same PR — do not repost the original summary. It carries the same attribution line.
 
 ## Advice & Pointers
@@ -317,5 +319,6 @@ On an incremental re-run of this playbook against the same ticket, post one shor
 - Never let one script span two databases, and never mix styles within a statement, PR, or Jira comment.
 - Never post a Jira comment without the `_This is an automated review from Devin._` line first — readers must never take it for a human's comment.
 - Never post a Jira comment containing SQL, query output, checklists, headings, or a risk rating, and never exceed ~100 words.
+- Never append a caveats or limitations paragraph to a Jira comment — evidence provenance goes in the PR description, and certainty shows in how the finding is worded.
 - Never state in Jira that something is confirmed, verified, a bug, root-caused, fixed, or resolved — that call belongs to a human.
 - Never write to or mutate staging or prod from this workflow — staging is read-only and prod changes ship as reviewed scripts.
