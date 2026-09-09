@@ -68,6 +68,11 @@ question worth answering — but the run cannot then close as settled, and no am
 converts it, because a passing case only proves the change does what it was built to do. Carry the
 missing authority as an open question, in those words, to whoever writes the ticket back.
 
+Once an SME has said so, the target is settled and the citation is bookkeeping: record who said it
+and where, and treat a statute or bulletin you cannot read — auth-gated, or an attachment no tool
+downloads — as a reference by name, never as an open question. Asking anyone to paste back the
+authority behind an answer they already gave reopens a settled target.
+
 ## Unknown is a valid, cheap answer
 
 `Unknown from available evidence` plus the named missing artifact ends a stage cleanly.
