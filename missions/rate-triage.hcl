@@ -165,7 +165,9 @@ mission "rate_triage" {
          ran is a real answer; a refusal is not, and neither is a search you skipped.
       4. check_session on each candidate from either source that could be an investigation (tagged
          `rate-investigation` or `verify-wai`, or titled as one). A search result gives status and
-         PR links; only the session itself says whether it reached a verdict, and what of.
+         PR links; only the session itself says whether it reached a verdict, and what of. A line
+         tagged `writeback` is a session that posted a comment and nothing else — record it, and
+         never nominate it as a lane's session, however live it looks beside the dead ones.
       5. Honor the overrides if they are set — they are a human or an automation telling you
          something no index can know:
          %{ if inputs.wip_investigation_session_id != "" ~}
@@ -601,7 +603,14 @@ mission "rate_triage" {
 
       Read the investigation session's structured output yourself (check_session on
       investigation_session_id) rather than trusting the summary that reached you, then check it
-      against the gates in the rate_investigation skill. If a gate fails, send_message that
+      against the gates in the rate_investigation skill.
+
+      First establish that it is an investigation at all. A session that ran no query, read no
+      code and reached no verdict did not investigate — a writeback opened to post a comment reads
+      as live and recent and fails every gate, but it fails them for having never been asked. That
+      is a discovery error to report as one, naming the session and what it actually did; do not
+      convert a poster's prose into EVIDENCE_INCOMPLETE, which reads downstream as "we looked and
+      the evidence was thin" and buries the fact that nobody looked. If a gate fails, send_message that
       session naming the exact gap — a conclusion with no basis is a stage failure, not a verdict
       to derive from prose. Only that session can query; you judge what comes back.
 

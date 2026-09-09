@@ -109,6 +109,14 @@ Two things a search result does not settle, and `check_session` does: whether a 
 looks finished actually reached a verdict, and whether one that opened a PR opened the PR *for
 this ticket's fix*.
 
+**A session that posted for a lane is not that lane's session.** The writeback a blocked run opens
+does one thing on a ticket, holds no evidence, and is the newest and most messageable session the
+case has — so every pick rule below points straight at it, and the stage that inherits it inherits
+a poster's prose in place of an investigation. Its own report says so if read: no queries, no repo
+work, no verdict. Judge candidacy on the work a session did, not the ticket it did it on; a lane
+whose real sessions are all dead is a lane with no owner, and saying that is the finding — a live
+session that never did the work is not a substitute for it.
+
 **Several matches for one lane is the normal case, not an anomaly** — a re-fired ticket, a run
 that blocked, a session someone started by hand. Pick with this order, and only among sessions
 that are actually that lane (check the stage tag, not just the ticket):
