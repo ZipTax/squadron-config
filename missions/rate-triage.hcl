@@ -154,11 +154,13 @@ mission "rate_triage" {
          the primary source: it is the one that works. An empty or absent field means no session
          registered — a real answer for any run of this flow since the field existed, and it says
          nothing about older ones.
-      3. find_sessions(tags: ["${inputs.issue}"]) as a supplement, for what the field cannot name:
-         sessions predating it, and any a human opened by hand. Treat it as best-effort — it is an
-         organization-wide read our key is often refused — so a refusal here is not a gap in the
-         history when the field answered, and never a reason to end the run. Zero matches from a
-         search that actually ran is a real answer; a refusal is not.
+      3. Only if step 2 left the history unknown — the field was empty, absent, or the read was
+         refused — fall back to find_sessions(tags: ["${inputs.issue}"]), which can still name
+         sessions predating the field or opened by hand. Do not run it when the field answered:
+         what it would add is sessions that never registered, and the ones this flow opens always
+         do. It is best-effort in any case — an organization-wide read our key is often refused —
+         so a refusal is never a reason to end the run. Zero matches from a search that actually
+         ran is a real answer; a refusal is not, and neither is a search you skipped.
       4. check_session on each candidate from either source that could be an investigation (tagged
          `rate-investigation` or `verify-wai`, or titled as one). A search result gives status and
          PR links; only the session itself says whether it reached a verdict, and what of.
