@@ -258,14 +258,14 @@ addCommentToJiraIssue(
 
 ### Format
 
-Under 100 words, plain prose, three short paragraphs at most, no headings, no checklists, no tables. Always open with the attribution line verbatim so no one mistakes the comment for a person's:
+Plain prose, three short paragraphs, no headings, no checklists, no tables. There is no word count: a simple finding lands in five sentences, and one that genuinely turns on nuance runs longer — but the length has to come from what the reader needs in order to decide, never from explaining the engine, and never at a question's expense. Always open with the attribution line verbatim so no one mistakes the comment for a person's:
 
 ```markdown
 _This is an automated review from Devin._
 
 <1-2 sentences: what appears to be happening, in customer/product terms.>
 
-<1 sentence: what the proposed change would do for merchants.> Details and the code are in <PR link> for engineering review.
+<1 sentence: which orders would be taxed differently, who that affects, and from when.> Details and the code are in <PR link> for engineering review.
 
 <1 sentence: the specific decision or confirmation needed from a human, if any.>
 ```
@@ -274,7 +274,27 @@ Example:
 
 > _This is an automated review from Devin._
 >
-> For merchant 12345, PA orders with TIC 40030 look like they are picking up the state rate without the county portion, which would explain the lower tax on the orders in the attachment. The proposed change would apply the county rate to these orders going forward; details and the SQL are in FedTax/txc-sqlserver-database#456 for engineering review. Someone on the tax side should confirm the county rate is expected to apply here before this ships.
+> For merchant 12345, PA orders with TIC 40030 look like they are picking up the state rate without the county portion, which would explain the lower tax on the orders in the attachment. PA orders in that category would be taxed about 2% higher from whenever this ships, and orders already placed are not recalculated; details and the SQL are in FedTax/txc-sqlserver-database#456 for engineering review. Someone on the tax side should confirm the county rate is expected to apply here, and from what date, before this ships.
+
+A harder one, where the nuance was real — this is what we posted on DEV-8909, and it is the failure mode to avoid:
+
+> _Automated review (Devin rate investigation, read-only) — please verify before acting._
+>
+> **Finding:** TIC 90409 (Tea) is taxed at the full combined Arizona rate because TaxCloud has no Arizona-specific taxability entry for it — neither in the tax matrix nor in the Arizona food handling in the cart and reporting calculations. Without an entry, the engine treats an item as fully taxable at the general rate for every jurisdiction, so the result on order 406A6020-1E03-41F7-8465-5E72F0E2BCF5 is the engine's default, not a rate error at the address. [...]
+>
+> **Remedy:** giving 90409 the same Arizona treatment as 40030 is a configuration change (an Arizona tax-matrix entry for 90409) plus adding 90409 to the Arizona food lists in the cart and reporting calculations so both surfaces stay in step. [...]
+
+Same investigation, same questions, written for the people who read the ticket:
+
+> _This is an automated review from Devin._
+>
+> Loose-leaf tea (TIC 90409) is being taxed at Arizona's full rate because TaxCloud has no Arizona treatment on file for that code, and anything without one is treated as fully taxable. TIC 40030, which Dave suggested, is already set up as exempt in Arizona, which is why it comes out exempt today.
+>
+> Giving 90409 the same treatment would make loose-leaf tea exempt in Arizona for every merchant selling it, not only this one, on both live cart quotes and imported orders. Orders already calculated and filed are unaffected unless we choose to backdate it. The change and the code are in <PR link> for engineering review.
+>
+> Before it ships, the tax side needs to settle: should unsweetened loose-leaf and bagged tea follow 40030's food treatment in Arizona — exempt at both state and city level, as 40030 is now — or state-exempt only, and which ADOR authority should we cite for it? And should it apply from the change date or be backdated to 2025-08-01, matching 40030? Related beverage-ingredient codes 90400–90413 have no Arizona treatment either, so the same decision reaches them; we have left those alone for now.
+
+The second is barely shorter, and that is the point — what changed is what the length buys. The tax matrix, the two calculation surfaces and the traced order id are gone (they are in the PR description, where the engineer weighing the change reads them), and the room went to who is affected, what happens to orders already filed, and what is being asked and from which authority. The `**Finding:**`/`**Remedy:**` labels went too: those are our stages, not the reader's.
 
 ### Language and ownership
 

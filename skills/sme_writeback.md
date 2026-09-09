@@ -5,15 +5,18 @@ made the change. Engineering detail belongs on the PR and in the session history
 linked and permanent; it does not belong in the ticket comment.
 
 One comment per stage outcome: a couple of sentences of plain product language, the PR link for
-engineering review, and whatever a human still has to decide. Under ~100 words, opening with
-the attribution line verbatim so nobody mistakes it for a person's:
+engineering review, and whatever a human still has to decide, opening with the attribution line
+verbatim so nobody mistakes it for a person's. There is no word count — a simple finding lands in
+five sentences and a genuinely nuanced one runs longer, and the examples below are how to tell
+which you have. What length must come from is nuance the reader needs to decide; never from
+explaining the engine, and never at a question's expense.
 
 ```markdown
 _This is an automated review from Devin._
 
 <1-2 sentences: what appears to be happening, in customer/product terms.>
 
-<1 sentence: what the proposed change would do for merchants.> Details and the code are in
+<1 sentence: which orders would be taxed differently, and from when.> Details and the code are in
 <PR link> for engineering review.
 
 <1 sentence: the specific decision or confirmation needed from a human, if any.>
@@ -23,9 +26,59 @@ _This is an automated review from Devin._
 >
 > For merchant 12345, PA orders with TIC 40030 look like they are picking up the state rate
 > without the county portion, which would explain the lower tax on the orders in the
-> attachment. The proposed change would apply the county rate to these orders going forward;
-> details and the SQL are in FedTax/txc-sqlserver-database#456 for engineering review. Someone
-> on the tax side should confirm the county rate is expected to apply here before this ships.
+> attachment. PA orders in that category would be taxed about 2% higher from whenever this ships;
+> orders already placed are not recalculated. Details and the SQL are in
+> FedTax/txc-sqlserver-database#456 for engineering review. Someone on the tax side should confirm
+> the county rate is expected to apply here, and from what date, before this ships.
+
+## Two versions of one real finding
+
+This one needed nuance: whether Arizona tea should be exempt, at which levels, from what date, and
+whether related product codes move with it. Here is what we actually posted on DEV-8909 —
+
+> _Automated review (Devin rate investigation, read-only) — please verify before acting._
+>
+> **Finding:** TIC 90409 (Tea) is taxed at the full combined Arizona rate because TaxCloud has no
+> Arizona-specific taxability entry for it — neither in the tax matrix nor in the Arizona food
+> handling in the cart and reporting calculations. Without an entry, the engine treats an item as
+> fully taxable at the general rate for every jurisdiction, so the result on order
+> 406A6020-1E03-41F7-8465-5E72F0E2BCF5 is the engine's default, not a rate error at the address.
+> [...]
+>
+> **Remedy:** giving 90409 the same Arizona treatment as 40030 is a configuration change (an
+> Arizona tax-matrix entry for 90409) plus adding 90409 to the Arizona food lists in the cart and
+> reporting calculations so both surfaces stay in step. [...]
+
+— and here is the same investigation, same three questions, written for the people who read the
+ticket:
+
+> _This is an automated review from Devin._
+>
+> Loose-leaf tea (TIC 90409) is being taxed at Arizona's full rate because TaxCloud has no Arizona
+> treatment on file for that code, and anything without one is treated as fully taxable. TIC 40030,
+> which Dave suggested, is already set up as exempt in Arizona, which is why it comes out exempt
+> today.
+>
+> Giving 90409 the same treatment would make loose-leaf tea exempt in Arizona for every merchant
+> selling it, not only this one, on both live cart quotes and imported orders. Orders already
+> calculated and filed are unaffected unless we choose to backdate it. The change and the code are
+> in <PR link> for engineering review.
+>
+> Before it ships, the tax side needs to settle: should unsweetened loose-leaf and bagged tea
+> follow 40030's food treatment in Arizona — exempt at both state and city level, as 40030 is now —
+> or state-exempt only, and which ADOR authority should we cite for it? And should it apply from
+> the change date or be backdated to 2025-08-01, matching 40030? Related beverage-ingredient codes
+> 90400–90413 have no Arizona treatment either, so the same decision reaches them; we have left
+> those alone for now.
+
+The second is barely shorter. What changed is what the length is spent on: the tax matrix, the two
+calculation surfaces and the traced order id are gone (they are on the PR, where the engineer
+weighing the change reads them), and the room went to the things a tax or support reader actually
+weighs — who is affected, what happens to orders already filed, what we are asking and from which
+authority. "Finding"/"Remedy" went too: those are our stages, not their reading order.
+
+Note the questions survived intact, and got *more* precise, not less. When a comment runs long,
+the mechanism is what gets cut.
 
 That wording and example are lifted from the `!txc-support` playbook's Step 6 deliberately, and
 stay in sync with it: a reader should not be able to tell which flow produced the comment. The

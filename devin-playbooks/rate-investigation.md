@@ -139,7 +139,12 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
   that you traced the calculation from procedure code rather than re-running the order, that a tool
   or a check was refused: all of it goes in your structured output, where the engineer weighing the
   change reads it, and none of it on the ticket, where nobody can act on it. Method limits reach the
-  ticket as the strength of the wording, not as a disclaimer after it. Don't paste the PR link:
+  ticket as the strength of the wording, not as a disclaimer after it. No `**Finding:**` /
+  `**Remedy:**` labels — those are our stages, not the reader's reading order. Length is not capped,
+  but it must be spent on what the reader needs to decide: who is affected beyond this merchant,
+  what happens to orders already calculated or filed, what you are asking and from which authority.
+  Not on how the engine reaches the number. `!txc-support`'s Step 6 carries the worked
+  before-and-after pair for this, and it is worth reading before you write. Don't paste the PR link:
   Jira already surfaces it from the ticket key in the branch name and PR title, and a second copy
   in prose just ages.
   The caller states how strongly the evidence reads and you write at that strength — a traced,
