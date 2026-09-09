@@ -34,7 +34,7 @@ both a repo trap and a workflow rule. Route each part by what kind of thing it i
 | A proven instance of a `new-rate-engine`-labelled deferral | `ratevariant-audit/references/limitations.md`, under the labelled ticket it instances |
 | An unproven mechanism hypothesis for an open ticket | `ratevariant-audit/references/open-theories.md`, labelled as a hypothesis |
 
-Every destination is a file in a repo, reached by a PR. There is deliberately no "general
+Every destination above is a file in a repo, reached by a PR. There is deliberately no "general
 knowledge base" row: a delegated session cannot write org knowledge notes, so routing a
 learning there means it is silently lost. Cross-repo context goes to the repo whose sessions
 need it most, and a human promotes it further if it deserves it.
@@ -50,3 +50,14 @@ a data source that is the system's source of truth as a "learning" — a learnin
 documentation, not a mutation.
 
 State plainly when nothing is worth recording. That is the common case.
+
+## The case log is not one of those destinations
+
+The per-run log of what each case was and where it was written back lives in the `rate_case_log`
+memory, and the finalize stage writes it itself with its own file tools. It is orchestrator state:
+it is never delegated to a session, and it is never a file in a repo — a committed `cases.md` is
+this line being ignored, or the memory slot failing to attach.
+
+The repo's `case-law.md` is the other half of the pair and holds only what generalizes. One is a
+ledger of runs, the other a set of precedents; keeping them apart is what stops the precedents from
+drowning in entries that taught nothing.
