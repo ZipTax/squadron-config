@@ -35,15 +35,17 @@ back untouched.
 
 ## When
 
-One comment per stage outcome, and only from the stage that owns the lane. When a run ends on
-questions, the restart label goes on in the same breath — `blocked_run` owns that mechanic; the
-comment without the label waits on someone noticing, the label without the comment asks nothing.
+Rarely. A run says why, once, and asks what it needs — that is the comment. Everything after it is
+only due if something a reader was told is now wrong, or work hit something they have to resolve.
+Finishing is neither: a comment reporting the change was built, A/B'd and audited reads as a
+completion report, and a treatment nobody authorized reads as approved.
 
-When a lane finishes, what you hand over is what it left undecided — not what it got done. A stage
-that reports the change was built, A/B'd and audited gets a comment that reads as a completion
-report, and a treatment nobody authorized reads as approved. Whether the run *can* claim a settled
-treatment is the `evidence_gate` basis again: an unauthorized target value is an open question, and
-an audit verdict is not a substitute for one.
+When a run does end on questions, the restart label goes on in the same breath — `blocked_run` owns
+that mechanic; the comment without the label waits on someone noticing, the label without the comment
+asks nothing.
+
+Whether a run can claim a settled treatment is the `evidence_gate` basis again: an unauthorized
+target value is an open question, and an audit verdict is not a substitute for one.
 
 Never claim "fixed"/"resolved" (a human merges and deploys) or attach a risk rating. And never let a
 new comment silently contradict one someone may be acting on — annotate the earlier conclusion as
