@@ -5,8 +5,9 @@ unbounded "keep improving" loop burns the run and ends in a hedge.
 
 ## Emit exactly one verdict
 
-Pick from the stage's declared vocabulary and put it in a scalar output field. The router
-reads that field; prose is not routable. Verdicts split three ways:
+Pick from the stage's declared vocabulary and put it in a scalar output field, spelled as
+declared — an adjacent stage's verdict is not a synonym, and a router given one routes nowhere.
+The router reads that field; prose is not routable. Verdicts split three ways:
 
 - **terminal-good** — the stage's goal is met; downstream stages may proceed.
 - **terminal-bad** — the goal cannot be met and a human decision is required; stop and

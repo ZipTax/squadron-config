@@ -69,13 +69,13 @@ mission "rate_finalize" {
 
   input "close_reason" {
     type        = "string"
-    description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit WORKING_AS_DESIGNED', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. record_learnings routes on it — the unsupported entry is the one where recording is not discretionary."
+    description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. record_learnings routes on it — the unsupported entry is the one where recording is not discretionary."
     default     = ""
   }
 
   input "verdict" {
     type        = "string"
-    description = "The verdict this case ends on, in the vocabulary of whichever mission sent it: DEFECT_PROVEN, WORKING_AS_INTENDED, SATISFACTORY, WORKING_AS_DESIGNED."
+    description = "The verdict this case ends on, in the vocabulary of whichever mission sent it: DEFECT_PROVEN, WORKING_AS_INTENDED (rate_triage), SATISFACTORY, FIX_IS_NO_OP (rate_fix's audit)."
     default     = ""
   }
 
@@ -319,7 +319,7 @@ mission "rate_finalize" {
 
   # ---------------------------------------------------------------------------
   # Task — record_learnings. The chain's terminal. Reached from enter_finalize
-  # (rate_fix's completed lane or WORKING_AS_DESIGNED, rate_triage's unsupported
+  # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.
   # ---------------------------------------------------------------------------
