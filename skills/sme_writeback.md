@@ -6,6 +6,11 @@ stage objective: prescribing prose from Squadron produces two drifting styles. Y
 *whether* a comment is due and *what it must carry*. Do ask for it open at drafting time — a session
 that read it on arrival and writes the comment an hour later writes an engineering report.
 
+So hand over facts and questions, never a draft. "Post this verbatim" is followed over the skill,
+and the body you would write is the one made of what you hold — a verdict name, a mechanism, the
+queries you want run against named columns. `blocked_run` has the long version; it binds every
+stage that asks for a comment, not only one that blocks.
+
 ## What to hand over
 
 - **The verdict, and how strong it is.** The `evidence_gate` basis: measured/traced with gates
@@ -31,9 +36,12 @@ one: it is a tax call, and the answer changes the fix. Reprocessing what already
 booked orders, amending filed returns — is not, however close it sounds: that only becomes a question
 once the treatment and its date are settled, and engineering raises it then.
 
-Two other things pose as blocking questions: scope beyond the ticket (sibling codes, other states —
-file as work, don't ask), and our own choices (a mirrored list, a naming convention, where a value
-lives — the PR reviewer decides those). One answerable question comes back answered; a project comes
+Three other things pose as blocking questions: scope beyond the ticket (sibling codes, other states —
+file as work, don't ask), our own choices (a mirrored list, a naming convention, where a value
+lives — the PR reviewer decides those), and evidence we can't reach ourselves. A production read-out
+is the last one: real, blocking, and owed by an engineer with access, so it is a mission-output
+request and never a ticket question — asking product to run a query gets silence, plus a comment
+with our column names in it. One answerable question comes back answered; a project comes
 back untouched.
 
 ## When
