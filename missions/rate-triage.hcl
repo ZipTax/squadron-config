@@ -144,8 +144,10 @@ mission "rate_triage" {
          run on this ticket stopped on something a human had to supply, and that file says what:
          the questions outstanding, which stages already finished, and their PRs. This run is the
          resumption of that one. Absent file means either a first run or a case that closed.
-      2. getJiraIssue on ${inputs.issue}, asking for field `${vars.jira_sessions_field}` — the
-         ticket's Devin Sessions field. Every session this flow opens registers itself there as
+      2. getJiraIssue on ${inputs.issue}, `cloudId: "${vars.jira_cloud_id}"`, asking for field
+         `${vars.jira_sessions_field}`. Pass that cloudId rather than inferring one: a wrong site
+         answers "isn't explicitly granted", which reads as a permissions problem and is not one.
+         The field is the ticket's Devin Sessions. Every session this flow opens registers there as
          `<stage tag>: <session url>`, so the ticket carries its own session index, and reading it
          needs nothing but permission to view the issue. A stage appears at most once — a session
          resuming a stage overwrites that stage's line — so the url beside a tag is the one to

@@ -26,6 +26,14 @@ variable "devin_org_id" {
   secret = true
 }
 
+variable "jira_cloud_id" {
+  # Which Atlassian site a Jira tool call goes to. The MCP takes either the host
+  # or the site's uuid (3ba51218-aad2-443d-b43f-1125657b7505); the host is the
+  # readable one. An agent left to infer this guesses hostnames until one is
+  # granted, so hand it over in the brief.
+  default = "taxcloud.atlassian.net"
+}
+
 variable "jira_sessions_field" {
   # The "Devin Sessions" custom field on the DEV project: one paragraph per Devin
   # session that worked a ticket, `<stage tag>: <session url>`. It is a rich-text
