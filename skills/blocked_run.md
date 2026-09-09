@@ -16,10 +16,11 @@ Before anything else, and through the session you brief (you hold no ticket cred
 2. **Read the answers.** The comments added since the marker in the resume-state record are the
    replies to its open questions — use the marker rather than eyeballing recency, or you re-litigate
    answers a previous run already judged insufficient. Per question: is what came back enough to
-   act on? Answered means acting on it needs nothing invented — a value with its authority and
-   period, an order id, a named decision. A short answer from someone who knows the domain is
-   usually complete; take it and move. Ask again only when acting would require making up the part
-   they left out, and then ask for exactly that part.
+   act on? Answered means acting on it needs nothing invented — a value and the period it applies
+   to, an order id, a named decision. A short answer from someone who knows the domain is usually
+   complete, and an SME's ruling is authority whether or not they cite the material behind it; take
+   it and move. Ask again only when acting would require making up the part they left out, and then
+   ask for exactly that part — never for the paperwork behind an answer you already have.
 
 A resumption where nothing came back usable is not a failure: it ends again, with the questions
 sharper than they were.

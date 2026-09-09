@@ -27,8 +27,10 @@ symptom with an entry while having an ordinary, fixable cause.
 - The exact question or decision, including expected versus actual behavior.
 - The expected rate/component breakdown, its source, and the actual observed result.
 - Full source context: Jira description/comments, linked HelpScout conversation, and every
-  attachment. Attachments define the reported cases that must remain in scope; only
-  state-published material establishes rate authority.
+  attachment. Attachments define the reported cases that must remain in scope. Rate authority is
+  state-published material, or a tax SME's stated ruling on the ticket — both settle what is
+  correct; the ticket's own expectation and a sibling code's configuration settle nothing. Never
+  make an SME produce the citation before their answer counts.
 - Known identifiers: merchant or URL ID, transaction/order ID, certificate ID, state,
   address/ZIP, product/TIC, and transaction period/date.
 - Whether mixed-product transactions or different execution surfaces are possible.
@@ -97,7 +99,8 @@ identifier is required to distinguish the reported subject from a broader popula
    - Confirm the actual rate is reconciled and the mechanism, or the exact missing expected
      detail needed to locate it, is named.
    - Confirm every material statement is a code fact, dated snapshot fact, current
-     production fact, ticket expectation, state-published authority, inference, or unknown.
+     production fact, ticket expectation, stated authority (state-published or an SME's
+     ruling), inference, or unknown.
    - Reject any workaround whose blast radius exceeds the requested outcome.
 
 ## Delegated (orchestrated) mode
@@ -200,7 +203,8 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
 - Never infer current production absence from a stale snapshot.
 - Never equate a generic calculation branch with wired support.
 - Never treat current engine output as proof that the ticket expectation is wrong.
-- Never label a non-state source as authoritative for a rate or tax treatment.
+- Never label a source other than state material or a tax SME's ruling as authoritative for a
+  rate or tax treatment.
 - Never treat a total rate as an explanation without component provenance.
 - Never recommend configuration or data changes without blast-radius proof.
 - Never mutate staging or production during the investigation.
