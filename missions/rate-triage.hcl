@@ -368,9 +368,15 @@ mission "rate_triage" {
 
       If discover_sessions reported history_provenance as anything but `read`, this `start` was
       chosen without being able to see whether anyone is already on the ticket. Say so in the brief,
-      so the session knows its verdict may be a second opinion rather than the only one, and it
-      returns that in its structured output — which, with this stage's result, is where a human sees
-      that a blind start happened.
+      so the session knows its verdict may be a second opinion rather than the only one, and returns
+      that in its structured output — which, with this stage's result, is where a human sees that a
+      blind start happened.
+
+      Tell it that plainly and leave it there: this is an operational fact about our run, and the
+      brief is not a source of ticket copy. It reaches the ticket, if at all, only as the hedging its
+      own writing skill already requires of an unconfirmed finding. A brief that instructs the
+      session to state a refused lookup on the ticket gets a comment opening on our tooling, in front
+      of a reader who can do nothing with it.
 
       Return investigation_session_id, the verdict it reached, and its report.
     EOT

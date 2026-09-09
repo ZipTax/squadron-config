@@ -1,9 +1,10 @@
 # Briefing the ticket writeback
 
 The session posts the comment — it holds the Jira credentials, and the wording is owned by its
-`writing-ticket-updates` skill (shape, tone, worked bad/good pair). Don't restate that here or in a
+`writing-ticket-updates` skill (shape, tone, worked bad/good pairs). Don't restate that here or in a
 stage objective: prescribing prose from Squadron produces two drifting styles. Your half is
-*whether* a comment is due and *what it must carry*.
+*whether* a comment is due and *what it must carry*. Do ask for it open at drafting time — a session
+that read it on arrival and writes the comment an hour later writes an engineering report.
 
 ## What to hand over
 
@@ -20,7 +21,9 @@ stage objective: prescribing prose from Squadron produces two drifting styles. Y
 
 Don't hand over what nobody on the ticket can act on. A refused tool, unreadable session history, a
 snapshot predating the order: that travels in mission output and structured output, where the
-engineer weighing the change reads it. A limit in what the *product* can express is the opposite —
+engineer weighing the change reads it. Handing it over anyway and adding "state this on the ticket"
+is worse than either — the session obeys the brief over its skill, and the comment opens on our
+tooling instead of the finding. A limit in what the *product* can express is the opposite —
 it changes the answer available, so it belongs in the finding.
 
 From when the corrected treatment applies is a real question for this audience, and often the second

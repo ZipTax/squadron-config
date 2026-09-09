@@ -132,7 +132,9 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
   assume the challenge is right; you exist because two readings disagree.
 - **One product-level ticket comment, if the caller asks for it.** You hold the Jira credentials,
   so the writeback is yours. Use the `writing-ticket-updates` skill — it owns the shape, the tone,
-  and a worked bad/good pair taken from a comment this playbook got wrong. Read it before you write.
+  and two worked bad/good pairs taken from comments this playbook got wrong. Open it at the moment
+  you draft, however recently you read it — both of those pairs were written from memory of it by a
+  session that had read it hours earlier.
   The caller states how strongly the evidence reads and you write at that strength: a traced,
   evidence-complete finding may read as a finding, an inferred one still reads as a theory.
 
