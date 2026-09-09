@@ -130,27 +130,11 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
   prior `WORKING_AS_INTENDED` conclusion plus the rebuttal and evidence against it — investigate
   the question fresh, from the code and data, and neither defer to the prior conclusion nor
   assume the challenge is right; you exist because two readings disagree.
-- **One product-level ticket comment, if the caller asks for it.** You hold the Jira
-  credentials, so the writeback is yours. A couple of sentences in product language for a
-  merchant-facing reader, opening with the automated-review attribution line, plus whatever a
-  human must confirm — often one thing, sometimes two (the jurisdiction *and* the rate), sometimes
-  nothing. No SQL, schema paths, query output, checklists, or process narration; engineering detail
-  lives in your structured output and on the PR. No caveat paragraph either — the snapshot's date,
-  that you traced the calculation from procedure code rather than re-running the order, that a tool
-  or a check was refused: all of it goes in your structured output, where the engineer weighing the
-  change reads it, and none of it on the ticket, where nobody can act on it. Method limits reach the
-  ticket as the strength of the wording, not as a disclaimer after it. No `**Finding:**` /
-  `**Remedy:**` labels — those are our stages, not the reader's reading order. Length is not capped,
-  but it must be spent on what the reader needs to decide: who is affected beyond this merchant,
-  what happens to orders already calculated or filed, what you are asking and from which authority.
-  Not on how the engine reaches the number. `!txc-support`'s Step 6 carries the worked
-  before-and-after pair for this, and it is worth reading before you write. Don't paste the PR link:
-  Jira already surfaces it from the ticket key in the branch name and PR title, and a second copy
-  in prose just ages.
-  The caller states how strongly the evidence reads and you write at that strength — a traced,
-  evidence-complete finding may read as a finding, an inferred one still reads as a theory. When
-  the gap is something the SMEs hold, ask for the specific artifacts by name (the transaction
-  ids, the expected rate and its published authority, the period), not for generic confirmation.
+- **One product-level ticket comment, if the caller asks for it.** You hold the Jira credentials,
+  so the writeback is yours. Use the `writing-ticket-updates` skill — it owns the shape, the tone,
+  and a worked bad/good pair taken from a comment this playbook got wrong. Read it before you write.
+  The caller states how strongly the evidence reads and you write at that strength: a traced,
+  evidence-complete finding may read as a finding, an inferred one still reads as a theory.
 
 ## Specifications
 

@@ -188,8 +188,8 @@ mission "rate_triage" {
         to `none`, naming what was refused. That reading is safe for this case and only this case: no run
         of this flow got far enough to write a state file, so there is no lane of ours to abandon.
         What it does not rule out is a session someone opened by hand, or one predating the state
-        file — so the session this run briefs says on the ticket that it could not check for prior
-        work, which is how a human catches the collision the search would have caught.
+        file, so a collision the search would have caught can still be live — which is why every
+        stage downstream is told the start was blind.
       - Never infer any mode other than `start` from a failed read, and never report a ticket as
         having no history when what happened is that you were refused. On the ordinary path, where
         both calls answered, history_provenance is `read` — it is stated on every run, so a reader
@@ -301,7 +301,7 @@ mission "rate_triage" {
       }
       field "history_provenance" {
         type        = "string"
-        description = "How you came to know this ticket's session history, always stated: read (the search and the session reads answered), recorded (a call was refused — name which — and you fell back to the resume-state file's ids and states), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat — which travels in mission output and session structured output, not in the ticket comment, where nobody can act on our search being refused."
+        description = "How you came to know this ticket's session history, always stated: read (the search and the session reads answered), recorded (a call was refused — name which — and you fell back to the resume-state file's ids and states), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and it is an operational fact about our run rather than a finding about the tax behavior."
         required    = true
       }
     }
@@ -368,10 +368,9 @@ mission "rate_triage" {
 
       If discover_sessions reported history_provenance as anything but `read`, this `start` was
       chosen without being able to see whether anyone is already on the ticket. Say so in the brief,
-      so the session knows its verdict may be a second opinion rather than the only one. Keep it out
-      of the ticket comment: nobody reading the ticket can act on our session search being refused,
-      and a caveat there costs the comment its point. It belongs in this stage's result and the
-      session's structured output, which is where a human sees that a blind start happened.
+      so the session knows its verdict may be a second opinion rather than the only one, and it
+      returns that in its structured output — which, with this stage's result, is where a human sees
+      that a blind start happened.
 
       Return investigation_session_id, the verdict it reached, and its report.
     EOT

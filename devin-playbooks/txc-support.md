@@ -258,43 +258,7 @@ addCommentToJiraIssue(
 
 ### Format
 
-Plain prose, three short paragraphs, no headings, no checklists, no tables. There is no word count: a simple finding lands in five sentences, and one that genuinely turns on nuance runs longer — but the length has to come from what the reader needs in order to decide, never from explaining the engine, and never at a question's expense. Always open with the attribution line verbatim so no one mistakes the comment for a person's:
-
-```markdown
-_This is an automated review from Devin._
-
-<1-2 sentences: what appears to be happening, in customer/product terms.>
-
-<1 sentence: which orders would be taxed differently, who that affects, and from when.> Details and the code are in <PR link> for engineering review.
-
-<1 sentence: the specific decision or confirmation needed from a human, if any.>
-```
-
-Example:
-
-> _This is an automated review from Devin._
->
-> For merchant 12345, PA orders with TIC 40030 look like they are picking up the state rate without the county portion, which would explain the lower tax on the orders in the attachment. PA orders in that category would be taxed about 2% higher from whenever this ships, and orders already placed are not recalculated; details and the SQL are in FedTax/txc-sqlserver-database#456 for engineering review. Someone on the tax side should confirm the county rate is expected to apply here, and from what date, before this ships.
-
-A harder one, where the nuance was real — this is what we posted on DEV-8909, and it is the failure mode to avoid:
-
-> _Automated review (Devin rate investigation, read-only) — please verify before acting._
->
-> **Finding:** TIC 90409 (Tea) is taxed at the full combined Arizona rate because TaxCloud has no Arizona-specific taxability entry for it — neither in the tax matrix nor in the Arizona food handling in the cart and reporting calculations. Without an entry, the engine treats an item as fully taxable at the general rate for every jurisdiction, so the result on order 406A6020-1E03-41F7-8465-5E72F0E2BCF5 is the engine's default, not a rate error at the address. [...]
->
-> **Remedy:** giving 90409 the same Arizona treatment as 40030 is a configuration change (an Arizona tax-matrix entry for 90409) plus adding 90409 to the Arizona food lists in the cart and reporting calculations so both surfaces stay in step. [...]
-
-Same investigation, same questions, written for the people who read the ticket:
-
-> _This is an automated review from Devin._
->
-> Loose-leaf tea (TIC 90409) is being taxed at Arizona's full rate because TaxCloud has no Arizona treatment on file for that code, and anything without one is treated as fully taxable. TIC 40030, which Dave suggested, is already set up as exempt in Arizona, which is why it comes out exempt today.
->
-> Giving 90409 the same treatment would make loose-leaf tea exempt in Arizona for every merchant selling it, not only this one, on both live cart quotes and imported orders. Orders already calculated and filed are unaffected unless we choose to backdate it. The change and the code are in <PR link> for engineering review.
->
-> Before it ships, the tax side needs to settle: should unsweetened loose-leaf and bagged tea follow 40030's food treatment in Arizona — exempt at both state and city level, as 40030 is now — or state-exempt only, and which ADOR authority should we cite for it? And should it apply from the change date or be backdated to 2025-08-01, matching 40030? Related beverage-ingredient codes 90400–90413 have no Arizona treatment either, so the same decision reaches them; we have left those alone for now.
-
-The second is barely shorter, and that is the point — what changed is what the length buys. The tax matrix, the two calculation surfaces and the traced order id are gone (they are in the PR description, where the engineer weighing the change reads them), and the room went to who is affected, what happens to orders already filed, and what is being asked and from which authority. The `**Finding:**`/`**Remedy:**` labels went too: those are our stages, not the reader's.
+Use the `writing-ticket-updates` skill in `txc-sqlserver-database` — it owns the shape, the tone, the worked before-and-after pair, and what stays out. It is shared with the rate flow deliberately: a reader should not be able to tell which workflow produced the comment.
 
 ### Language and ownership
 
@@ -306,11 +270,9 @@ You investigate and propose; a human decides. This is not optional phrasing pref
 
 ### Keep out of the ticket
 
-SQL, query output, proc/function names, file paths, schema details, verification steps, checklists, risk assessments, and anything a reader would need engineering context to parse. All of it belongs in the PR description. If it would only make sense to someone reading the diff, it does not go on the ticket.
+SQL, query output, proc/function names, file paths, schema details, verification steps, checklists, risk assessments, and anything a reader would need engineering context to parse. All of it belongs in the PR description. If it would only make sense to someone reading the diff, it does not go on the ticket. How you came to know something — the snapshot's date, a refused query, a calculation traced rather than re-run — goes there too; the skill covers why, and the one kind of limitation that does belong on the ticket.
 
-That includes a caveats paragraph — the staging snapshot's date, that you traced the calculation from procedure code rather than re-running the order, that a query or a check was refused. Those limits are real and belong in the PR description, where the engineer weighing the change reads them; on the ticket they read as hedging to an audience that cannot act on any of it. How sure you are reaches the ticket through the wording of the finding itself ("appears", "one likely explanation"), never as a disclaimer appended to it. The test: a reader can act on "were these three orders expected at 7.975%, and from which notice?" and cannot act on "the snapshot predates the order".
-
-On an incremental re-run of this playbook against the same ticket, post one short comment saying what changed and linking the same PR — do not repost the original summary. It carries the same attribution line.
+On an incremental re-run of this playbook against the same ticket, post one short comment saying what changed — do not repost the original summary. It carries the same attribution line.
 
 ## Advice & Pointers
 
@@ -338,7 +300,7 @@ On an incremental re-run of this playbook against the same ticket, post one shor
 - Never hard-code a versioned staging database name (`FedTax-20260521`) in a cross-database reference — write `[FedTax]` / `[Reports]` and let the tooling rewrite it.
 - Never let one script span two databases, and never mix styles within a statement, PR, or Jira comment.
 - Never post a Jira comment without the `_This is an automated review from Devin._` line first — readers must never take it for a human's comment.
-- Never post a Jira comment containing SQL, query output, checklists, headings, or a risk rating, and never exceed ~100 words.
-- Never append a caveats or limitations paragraph to a Jira comment — evidence provenance goes in the PR description, and certainty shows in how the finding is worded.
+- Never post a Jira comment containing SQL, query output, checklists, headings, or a risk rating.
+- Never put evidence provenance in a Jira comment — the snapshot's date, a refused tool, a calculation traced rather than re-run. That goes in the PR description; certainty shows in how the finding is worded. A limit in what the *product* can express is different and does belong — see the `writing-ticket-updates` skill.
 - Never state in Jira that something is confirmed, verified, a bug, root-caused, fixed, or resolved — that call belongs to a human.
 - Never write to or mutate staging or prod from this workflow — staging is read-only and prod changes ship as reviewed scripts.
