@@ -35,9 +35,9 @@ back untouched.
 
 ## When
 
-Rarely. A run says why, once, and asks what it needs — that is the comment. Everything after it is
-only due if something a reader was told is now wrong, or work hit something they have to resolve.
-Finishing is neither: a comment reporting the change was built, A/B'd and audited reads as a
+Two conditions, either one: information that is meaningfully new and needed for a product-level
+understanding of the issue, or work that cannot continue without an answer. Nothing else is due.
+Finishing is neither — a comment reporting the change was built, A/B'd and audited reads as a
 completion report, and a treatment nobody authorized reads as approved.
 
 When a run does end on questions, the restart label goes on in the same breath — `blocked_run` owns
