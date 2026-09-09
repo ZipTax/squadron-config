@@ -30,8 +30,8 @@ mission "rate_finalize" {
   #
   # Objective convention (same as the other two): "You"/"# You do" is this
   # Squadron stage, "the session"/"# Brief the session" is text for the Devin
-  # task. This mission holds no credentials either: every Jira comment, query and
-  # write-back PR is a Devin session's work.
+  # task. Every Jira comment, query and write-back PR here is a Devin session's
+  # work; the sentinel label is the stage's own, per blocked_run.
   memories = [memories.rate_case_log, memories.rate_resume_state]
 
   agents = [
@@ -428,7 +428,8 @@ mission "rate_finalize" {
         run resume a case that already closed, and it will believe the file over the ticket.
 
       When something outstanding needs a person, the ticket side of blocked_run applies here too:
-      your session posts the questions and sets the label. This is the normal closure path, not the
+      your session posts the questions and you set the label yourself with `editJiraIssue`, as an
+      add on labels rather than a write of the whole list. This is the normal closure path, not the
       only one — a stage that ends the run before reaching you does its own close-out.
 
       Hand it over as what is undecided, not what the chain got done. A lane that finished tempts a

@@ -99,6 +99,6 @@ a new comment lands. The **memory file** is for the next run, not the human, and
 the run blocked so the resumption re-enters at that stage instead of re-running finished work —
 along with the verdict it may proceed on, the messageable sessions, the branches, the loop counters,
 and a marker of which ticket replies were already read. The
-entry session removes the label before doing anything else, so an ordinary ticket discussion doesn't
+entry stage removes the label itself before doing anything else, so an ordinary ticket discussion doesn't
 spawn a mission per message, and it reads the comments since the last run to say whether each answer
 is enough to act on. The mechanics live in the `blocked_run` skill, not in the playbooks.

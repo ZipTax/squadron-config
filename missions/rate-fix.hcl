@@ -217,9 +217,9 @@ mission "rate_fix" {
 
       ${inputs.resume_state}
 
-      The stage you route to owes the blocked_run entry steps — clearing the `TaxRates:Needs-Info`
-      label and judging whatever came back on the ticket — since its session is the first one this
-      run briefs and you hold no credentials to do either.
+      Clear the `TaxRates:Needs-Info` label with `editJiraIssue` before you route — the blocked_run
+      entry step, add/remove on labels and nothing else on the ticket. The stage you route to owes
+      the other half, judging whatever came back on the ticket, since the questions were its.
       %{ endif ~}
 
       Return the entry you settled on, the state of each session, and one line on anything the
@@ -615,8 +615,9 @@ mission "rate_fix" {
 
       A terminal CASES_INADEQUATE, a stall, or the cap ends the chain here — rate_finalize does not
       run after it, so nothing else will close the case out — so close it out yourself per blocked_run (slot `rate_resume_state`, path
-      `${inputs.issue}.md`, blocked at audit, the fix session posting). What this stage owes the
-      file: the uncoverable paths and why, the fix PR, and what a human has to decide. Skip the
+      `${inputs.issue}.md`, blocked at audit, the fix session posting the comment and you setting the
+      label). What this stage owes the file: the uncoverable paths and why, the fix PR, and what a
+      human has to decide. Skip the
       ticket comment only when the open item is a coverage limit for a reviewer rather than a
       question for a person.
     EOT
