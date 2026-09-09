@@ -394,6 +394,10 @@ mission "rate_finalize" {
 
       # The case log
 
+      This one is yours, not a session's: you read and write it with your own file tools, and it
+      never becomes a file in a repo — if the slot won't attach, say so and record nothing rather
+      than asking a session to commit it somewhere.
+
       Read it before you decide, and append to it after. `file_grep` the `rate_case_log` slot for
       this case's mechanism class first: a mechanism appearing for the second or third time is
       itself the durable finding, and it is the one thing this stage cannot see from the ticket in
