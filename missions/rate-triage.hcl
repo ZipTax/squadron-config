@@ -635,6 +635,20 @@ mission "rate_triage" {
       output and stays off the ticket. Then send the questions themselves — a comment body you
       drafted is followed over the session's own writing skill, and yours is built from the verdict
       name, the mechanism and the queries you wanted run.
+
+      Two things that brief has to carry, because a writeback session opened without them posts
+      something worse than nothing:
+
+      - It gets ${inputs.repo_url}, and is told to read `writing-ticket-updates` and
+        `registering-on-the-ticket` before it writes anything. Its skills live in that repo, so a
+        session told to stay out of it has none and improvises both the comment and the format of
+        the line it registers. Forbid the changes — branch, commit, push, PR, edits, queries — and
+        never the clone.
+      - It reads the ticket's comments to the end first, and returns which of your questions the
+        ticket already answers rather than asking them. Your questions come from sessions that may
+        predate the ticket's latest state by months; where the two disagree the ticket is the
+        current record, and re-asking a question an SME answered on it reads as their answer not
+        having counted.
     EOT
     agents = [agents.rate_investigator]
 

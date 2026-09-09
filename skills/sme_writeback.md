@@ -11,6 +11,26 @@ and the body you would write is the one made of what you hold — a verdict name
 queries you want run against named columns. `blocked_run` has the long version; it binds every
 stage that asks for a comment, not only one that blocks.
 
+## The ticket has already answered some of this
+
+Your questions come out of the sessions you read, and those sessions may be months old while the
+ticket has moved. So the session posting must read the ticket's comments through to the latest one
+before it drafts, and drop or narrow whatever is already settled there. Two ways a run gets this
+wrong, both of which we have shipped:
+
+- **Asking a question the ticket already answered.** It was asked in July, an SME answered it in
+  September, and the run asked it again as a blocker — so the answer reads as not having counted,
+  and the ticket is blocked on a decision that exists. An answer in the comments is an answer,
+  wherever the run's own state says the question stands.
+- **Asking them to confirm something the ticket already retired.** Inherited session context is
+  the *older* record here: a schedule the ticket corrected a year ago still lives in a session
+  that predates the correction. Where the two disagree, the ticket wins, and the question worth
+  asking is about the disagreement — never a request to re-confirm the version the ticket dropped,
+  which tells the reader we have not read their ticket.
+
+If reading the comments leaves nothing unanswered, there is no comment to post: say so and record
+what closed each question.
+
 ## What to hand over
 
 - **The verdict, and how strong it is.** The `evidence_gate` basis: measured/traced with gates
