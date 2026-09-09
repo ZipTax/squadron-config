@@ -23,11 +23,15 @@ snapshot predating the order: that travels in mission output and structured outp
 engineer weighing the change reads it. A limit in what the *product* can express is the opposite —
 it changes the answer available, so it belongs in the finding.
 
-Three things pose as blocking questions and are not: sequencing that follows from the answer
-(effective date, backdating, amendments — engineering directs those once the treatment is settled),
-scope beyond the ticket (sibling codes, other states — file as work, don't ask), and our own choices
-(a mirrored list, a naming convention, where a value lives — the PR reviewer decides those). One
-answerable question comes back answered; a project comes back untouched.
+From when the corrected treatment applies is a real question for this audience, and often the second
+one: it is a tax call, and the answer changes the fix. Reprocessing what already exists — re-rating
+booked orders, amending filed returns — is not, however close it sounds: that only becomes a question
+once the treatment and its date are settled, and engineering raises it then.
+
+Two other things pose as blocking questions: scope beyond the ticket (sibling codes, other states —
+file as work, don't ask), and our own choices (a mirrored list, a naming convention, where a value
+lives — the PR reviewer decides those). One answerable question comes back answered; a project comes
+back untouched.
 
 ## When
 
@@ -35,7 +39,7 @@ One comment per stage outcome, and only from the stage that owns the lane. When 
 questions, the restart label goes on in the same breath — `blocked_run` owns that mechanic; the
 comment without the label waits on someone noticing, the label without the comment asks nothing.
 
-Handing over a finished lane, hand over what it leaves undecided — not what it accomplished. A stage
+When a lane finishes, what you hand over is what it left undecided — not what it got done. A stage
 that reports the change was built, A/B'd and audited gets a comment that reads as a completion
 report, and a treatment nobody authorized reads as approved. Whether the run *can* claim a settled
 treatment is the `evidence_gate` basis again: an unauthorized target value is an open question, and
