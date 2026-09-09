@@ -25,6 +25,13 @@ In these words or close to them:
   ordinary fix regardless of the ticket's labels, and even on a match a scoped partial fix stays
   legitimate — this is best-effort work. Unproven hypotheses live in
   `references/open-theories.md` and are not limitations.
+- The new engine is a disposition, never a place to look. `FedTax/taxengine` is cloned on the
+  box, `spImportEngineTransaction` and `TransactionEngineBreakdown` hook it from the legacy side,
+  and the label above names it — so reading it is one `cd` away and looks like diligence. Do not:
+  no grepping its rule corpus, no reasoning about what it taxes, and above all no question to the
+  SMEs about its behavior, which is where the cost lands. Your lane is the legacy path. If the
+  evidence says the number came from the engine, that is the finding — name the record and the
+  evidence and stop there.
 - Emit the routing verdict in your structured output — DEFECT_PROVEN, WORKING_AS_INTENDED, or
   EVIDENCE_INCOMPLETE — alongside the question-matched verdict you reason in (`Discrepancy
   explained` etc.) and the mapping you used.

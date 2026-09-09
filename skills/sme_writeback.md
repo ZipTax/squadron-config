@@ -60,13 +60,19 @@ one: it is a tax call, and the answer changes the fix. Reprocessing what already
 booked orders, amending filed returns — is not, however close it sounds: that only becomes a question
 once the treatment and its date are settled, and engineering raises it then.
 
-Three other things pose as blocking questions: scope beyond the ticket (sibling codes, other states —
+Four other things pose as blocking questions: scope beyond the ticket (sibling codes, other states —
 file as work, don't ask), our own choices (a mirrored list, a naming convention, where a value
-lives — the PR reviewer decides those), and evidence we can't reach ourselves. A production read-out
-is the last one: real, blocking, and owed by an engineer with access, so it is a mission-output
-request and never a ticket question — asking product to run a query gets silence, plus a comment
-with our column names in it. One answerable question comes back answered; a project comes
-back untouched.
+lives — the PR reviewer decides those), the new rate engine's behavior, and evidence we can't reach
+ourselves. A production read-out is the last one: real, blocking, and owed by an engineer with
+access, so it is a mission-output request and never a ticket question — asking product to run a
+query gets silence, plus a comment with our column names in it. One answerable question comes back
+answered; a project comes back untouched.
+
+The engine one is the worst of them because it reads as diligence. A run investigating a legacy
+ticket finds the engine hook in the schema, wonders what the engine does with the code, and asks —
+and now a tax SME is scoping a system this ticket was never about. Whatever the engine taxes, it
+does not change the legacy fix, which is the only thing this run can ship. Cut the question; if the
+disputed number turns out to be engine-produced, that is a finding for the comment, not an enquiry.
 
 ## When
 
