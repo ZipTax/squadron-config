@@ -203,7 +203,8 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
 - Never infer current production absence from a stale snapshot.
 - Never equate a generic calculation branch with wired support.
 - Never treat current engine output as proof that the ticket expectation is wrong.
-- Never label a non-state source as authoritative for a rate or tax treatment.
+- Never label a source other than state material or a tax SME's ruling as authoritative for a
+  rate or tax treatment.
 - Never treat a total rate as an explanation without component provenance.
 - Never recommend configuration or data changes without blast-radius proof.
 - Never mutate staging or production during the investigation.
