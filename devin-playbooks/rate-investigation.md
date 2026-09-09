@@ -108,6 +108,9 @@ identifier is required to distinguish the reported subject from a broader popula
 When an orchestrator invokes you rather than a human — the squadron `rate_triage` mission does
 — these overrides apply, and nothing else changes:
 
+- **Register yourself on the ticket, first thing**, under the tag `rate-investigation`, per the
+  `registering-on-the-ticket` skill — it owns the field, the ADF shape and the upsert. It is how
+  the next run on this ticket finds you rather than re-deriving your work.
 - **Never block.** There is no interactive user, so a question you would have asked goes in
   `blocking_questions` (there may be more than one — a jurisdiction question and a rate question
   are separate) and you proceed on what the evidence supports. A question that genuinely

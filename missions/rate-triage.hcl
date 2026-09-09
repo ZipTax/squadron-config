@@ -144,14 +144,28 @@ mission "rate_triage" {
          run on this ticket stopped on something a human had to supply, and that file says what:
          the questions outstanding, which stages already finished, and their PRs. This run is the
          resumption of that one. Absent file means either a first run or a case that closed.
-      2. find_sessions(tags: ["${inputs.issue}"]). Every stage tags its sessions with the ticket
-         key, so this is the whole history of the ticket: prior investigations, fix sessions, case
-         sessions, verifications. Zero matches is a real answer, not a failure.
-      3. check_session on each candidate that could be an investigation (tagged
+      2. getJiraIssue on ${inputs.issue}, asking for field `${vars.jira_sessions_field}` — the
+         ticket's Devin Sessions field. Every session this flow opens registers itself there as
+         `<stage tag>: <session url>`, so the ticket carries its own session index, and reading it
+         needs nothing but permission to view the issue. A stage appears at most once — a session
+         resuming a stage overwrites that stage's line — so the url beside a tag is the one to
+         message, not the first one ever opened for it. The field is rich text, so it comes back as
+         an ADF document rather than a string: the lines are the text of its paragraphs. This is
+         the primary source: it is the one that works. An empty or absent field means no session
+         registered — a real answer for any run of this flow since the field existed, and it says
+         nothing about older ones.
+      3. Only if step 2 left the history unknown — the field was empty, absent, or the read was
+         refused — fall back to find_sessions(tags: ["${inputs.issue}"]), which can still name
+         sessions predating the field or opened by hand. Do not run it when the field answered:
+         what it would add is sessions that never registered, and the ones this flow opens always
+         do. It is best-effort in any case — an organization-wide read our key is often refused —
+         so a refusal is never a reason to end the run. Zero matches from a search that actually
+         ran is a real answer; a refusal is not, and neither is a search you skipped.
+      4. check_session on each candidate from either source that could be an investigation (tagged
          `rate-investigation` or `verify-wai`, or titled as one). A search result gives status and
          PR links; only the session itself says whether it reached a verdict, and what of.
-      4. Honor the overrides if they are set — they are a human or an automation telling you
-         something the search cannot know:
+      5. Honor the overrides if they are set — they are a human or an automation telling you
+         something no index can know:
          %{ if inputs.wip_investigation_session_id != "" ~}
          · wip_investigation_session_id = ${inputs.wip_investigation_session_id} — treat this
            session as the one to continue, even if the search surfaced others.
@@ -166,34 +180,30 @@ mission "rate_triage" {
            verbatim — it is authoritative input and the confirming stage needs all of it.
          %{ endif ~}
          %{ if inputs.wip_investigation_session_id == "" && inputs.stale_investigation_session_id == "" && inputs.wai_challenge == "" ~}
-         · No overrides were passed on this run, so the search is all you have to go on.
+         · No overrides were passed on this run, so what you read is all you have to go on.
          %{ endif ~}
 
-      # If the session API refuses you
+      # If a read refuses you
 
-      An authorization failure on find_sessions or check_session — a 403, a permissions error — is
-      not an answer about this ticket's history; it means you cannot see the history, which is a
-      different thing from there being none. Do not read it as zero matches, and do not end the run
-      on it either. Instead:
+      An authorization failure — a 403, a permissions error — is not an answer about this ticket's
+      history; it means you cannot see that part of it, which is a different thing from there being
+      none. Never read one as zero sessions, never infer any mode but `start` from one, and never
+      end the run on one.
 
-      - Fall back to the ids the resume-state file records. It names the sessions a prior run opened
-        and whether each was messageable, which is what the search would have told you, so a
-        resumption survives the search being unavailable. Try check_session on those ids; where that
-        is refused too, take the file's account of each session's state and say that is where it
-        came from. The stage you route to finds out for certain when it sends: a refused send is the
-        correction, so state a belief downstream rather than a fact. Set history_provenance to
-        `recorded` and name the call that was refused, so downstream reads those states as the
-        file's account rather than as something you confirmed.
-      - With no resume-state file and no readable history, route `start` and set history_provenance
-        to `none`, naming what was refused. That reading is safe for this case and only this case: no run
-        of this flow got far enough to write a state file, so there is no lane of ours to abandon.
-        What it does not rule out is a session someone opened by hand, or one predating the state
-        file, so a collision the search would have caught can still be live — which is why every
-        stage downstream is told the start was blind.
-      - Never infer any mode other than `start` from a failed read, and never report a ticket as
-        having no history when what happened is that you were refused. On the ordinary path, where
-        both calls answered, history_provenance is `read` — it is stated on every run, so a reader
-        never has to infer from its absence that the history was seen.
+      What it costs depends on what still answered, and mostly it costs nothing: a refused search
+      after the field answered leaves you the index this flow maintains, and a refused field read
+      with the search working leaves you the search. Either way provenance is `read`.
+
+      Only when nothing answered are you guessing, and then the resume-state file is the fallback:
+      it names the sessions a prior run opened and whether each was messageable. Try check_session
+      on those ids; where that is refused too, pass on the file's account as the file's account —
+      provenance `recorded`, naming the refused call, so downstream treats those states as belief.
+      The stage you route to learns the truth when it sends, since a refused send is the correction.
+
+      With no file either, route `start`, provenance `none`. That is safe here and only here: no run
+      of this flow wrote a state file, so there is no lane of ours to abandon — but a hand-opened or
+      pre-field session can still be live, and a fix PR names the sessions that wrote it, so tell
+      the stage you route to that its start was blind and that the ticket's PRs are worth reading.
 
       # What you are deciding
 
@@ -245,8 +255,9 @@ mission "rate_triage" {
       stages route on it: work a prior run finished is not re-done, and a question already answered
       is not asked again.
 
-      You cannot read the ticket — no Atlassian credentials here — so you do not judge whether the
-      open questions were answered. Hand them to whichever stage you route to as questions to check,
+      Your Jira read is the sessions field, not the case. You do not judge whether the open
+      questions were answered — that turns on what an SME's comment means, which is the investigating
+      session's call. Hand them to whichever stage you route to as questions to check,
       and the session it briefs (which can read the comments) makes that call per blocked_run. A
       resumption where nothing came back usable is an escalation, not a failure: that stage ends the
       run again, with the questions sharpened.
@@ -296,12 +307,12 @@ mission "rate_triage" {
       }
       field "sessions_found" {
         type        = "string"
-        description = "The tagged sessions found for this ticket — id, stage tag, state — and one line on why the chosen one was chosen over the others. Where the search was refused rather than empty, say so instead of reporting no history."
+        description = "The sessions found for this ticket — id, stage tag, state, and which source named it (the ticket's Devin Sessions field or the tag search) — and one line on why the chosen one was chosen over the others. Where a read was refused rather than empty, say so instead of reporting no history."
         required    = true
       }
       field "history_provenance" {
         type        = "string"
-        description = "How you came to know this ticket's session history, always stated: read (the search and the session reads answered), recorded (a call was refused — name which — and you fell back to the resume-state file's ids and states), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and it is an operational fact about our run rather than a finding about the tax behavior."
+        description = "How you came to know this ticket's session history, always stated: read (a source answered — the ticket's sessions field, the tag search, or both — and the session reads went through; name which, since a field-only read cannot see sessions that predate it), recorded (every source was refused and you fell back to the resume-state file's ids and states — name what was refused), or none (refused with no state file to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and it is an operational fact about our run rather than a finding about the tax behavior."
         required    = true
       }
     }

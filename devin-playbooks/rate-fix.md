@@ -50,6 +50,10 @@ A/B has run, not a rewrite before anyone has seen a result.
 
 ## Procedure
 
+0. **Register yourself on the ticket** under the tag `rate-fix`, per the
+   `registering-on-the-ticket` skill. That is how a later run finds this session instead of
+   re-deriving the fix.
+
 1. **Confirm the brief against the code.** Read the affected roots and check the briefed
    mechanism is actually there. If the code contradicts the diagnosis, stop and report what you
    found instead — do not improvise a different fix, and do not re-open whether the ticket is

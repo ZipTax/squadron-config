@@ -61,6 +61,10 @@ These exist because past sessions have gone wrong here. Follow them exactly.
    would have asked (with the exact figure needed, per scenario) in your report instead of
    waiting. Everything else below is unchanged.
 
+   Register yourself on the ticket before you start, under the tag `bruno-tests`, per
+   `txc-sqlserver-database`'s `registering-on-the-ticket` skill. That is how the next run on this
+   ticket finds you rather than re-deriving your work.
+
    An unwritten scenario has to be *actionable*: name the scenario, the exact figure, and the
    authority that would supply it, because the orchestrator puts it on the ticket and the next run
    resumes from it (messaging this session, if it is still alive). A vague "needs confirmation"

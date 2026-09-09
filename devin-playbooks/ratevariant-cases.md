@@ -69,6 +69,10 @@ supposed to do, and that is a finding.
 
 ## Procedure
 
+0. **Register yourself on the ticket** under the tag `ratevariant-cases`, per the
+   `registering-on-the-ticket` skill. That is how a later run finds this session rather than
+   re-authoring its cases.
+
 1. **Set up.** Check out the PR's branch in `txc-sqlserver-database` and merge `main`
    into it. Clone `FedTax/ratebench` separately (`~/repos/ratebench`) — it holds the
    ratevariant harness, the case loader, and `cmd/sqlprobe`. Cases themselves live in
