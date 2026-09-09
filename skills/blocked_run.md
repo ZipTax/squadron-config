@@ -56,6 +56,13 @@ the one you opened for this stage), and check on return that it posted. The labe
 in the same breath. A run that ends blocked without that comment leaves the ticket sitting until
 somebody happens to look.
 
+If you open a session for this rather than reusing the one that holds the context, tag and register
+it as `writeback` — never under the stage that blocked. It did no work on that lane, so a name
+saying it did is what a later run reads: it is the newest session on the case and the only
+messageable one, and discovery hands it downstream as the investigation it never ran. Record it in
+the resume-state file as the writeback, separately from the lane's real sessions and their
+messageable flags.
+
 Send it the questions and what is missing — never a comment body. A drafted body is followed
 verbatim over the session's own `writing-ticket-updates` skill, and what you would draft is what
 you hold: the verdict name, the mechanism, the queries you want run, the object and column names
