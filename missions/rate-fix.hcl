@@ -30,7 +30,7 @@ mission "rate_fix" {
   #   develop     --send_to--> author_tests
   #   author_tests --send_to--> audit
   #   audit       --router--> bruno_tests            (SATISFACTORY: lock the settled fix in)
-  #                      \--> missions.rate_finalize (WORKING_AS_DESIGNED: the fix was a no-op)
+  #                      \--> missions.rate_finalize (FIX_IS_NO_OP: the fix changes nothing)
   #   bruno_tests --router--> missions.rate_finalize
   #
   # The audit loop is why these four stages are one mission: the correction loop
@@ -540,7 +540,7 @@ mission "rate_fix" {
       has the deepest picture of the snapshot. State the question and the values you need back,
       not the query.
 
-      Loop until SATISFACTORY or WORKING_AS_DESIGNED, up to 10 iterations. The cap is a runaway
+      Loop until SATISFACTORY or FIX_IS_NO_OP, up to 10 iterations. The cap is a runaway
       guard, not a budget to spend: what actually ends the loop is progress. Keep going while each
       pass closes a specific named gap — a case gained coverage, a wrong value became right, a
       no-diff got diagnosed.
@@ -597,10 +597,12 @@ mission "rate_fix" {
         send_message(fix_session_id) with ONLY that fix and its supporting data. If the
         fix changes a scripts/*.sql migration, the mirroring alteration is now stale — also
         send_message(cases_session_id) to re-sync it. Loop.
-      - WORKING_AS_DESIGNED — the A/B, grounded in data, shows the fix changes nothing: the
+      - FIX_IS_NO_OP — the A/B, grounded in data, shows the fix changes nothing: the
         pre-change behavior was already correct, or the changed branch is provably dead. This
         requires POSITIVE data (the decomposed correct value, or the precluding condition),
-        never an absent diff or an inability to construct one. The fix session made the change
+        never an absent diff or an inability to construct one. One intended diff rules it out:
+        a run whose cases diverged as predicted is SATISFACTORY, and reporting that as
+        "working as designed" says the opposite of what the evidence shows. The fix session made the change
         and is best placed to confirm it: send_message(fix_session_id) with the
         data-grounded finding and have it verify in-situ, then post ONE product-level Jira
         comment routing to the SMEs, plus a brief PR note so the reviewer knows it is a no-op.
@@ -623,7 +625,7 @@ mission "rate_fix" {
     output {
       field "verdict" {
         type        = "string"
-        description = "SATISFACTORY | WORKING_AS_DESIGNED | CASES_INADEQUATE | FIX_OR_TICKET_WRONG at exit"
+        description = "SATISFACTORY | FIX_IS_NO_OP | CASES_INADEQUATE | FIX_OR_TICKET_WRONG at exit. These four are the whole vocabulary; the investigation's DEFECT_PROVEN / WORKING_AS_INTENDED belong to another stage and mean something else."
         required    = true
       }
       field "iterations" {
@@ -660,7 +662,7 @@ mission "rate_fix" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "verdict == WORKING_AS_DESIGNED — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno. Pass entry_stage = record_learnings, close_reason = 'audit WORKING_AS_DESIGNED', the audit verdict and confirmed findings, and every session id still open — rate_finalize asks each of them for its own learnings and cannot find them itself."
+        condition = "verdict == FIX_IS_NO_OP — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno. Pass entry_stage = record_learnings, close_reason = 'audit FIX_IS_NO_OP', the audit verdict and confirmed findings, and every session id still open — rate_finalize asks each of them for its own learnings and cannot find them itself."
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
       # route; on the rare terminal CASES_INADEQUATE the chain exits here with the uncoverable

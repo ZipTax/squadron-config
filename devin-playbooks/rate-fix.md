@@ -112,8 +112,11 @@ A/B has run, not a rewrite before anyone has seen a result.
    When adopting, report what the existing change does and that the lane now has an owner.
 
    Say what establishes the value your change now produces — the state notice or bulletin, or an
-   SME's stated figure on the ticket. If nothing does, say that plainly: the ticket's expectation and
-   a sibling code's configuration are the targets, not authority for them, and a change built on one
+   SME's stated figure on the ticket. Who said it and where is the whole record: "per <name>,
+   DEV-1234" is a complete answer, and an attachment you cannot open is named, not chased — never
+   ask anyone to re-key a citation you already have an answer behind. If nothing establishes the
+   value, say that plainly: the ticket's expectation and a sibling code's configuration are the
+   targets, not authority for them, and a change built on one
    is a proposal. It is not yours to resolve or to block on, but a caller who is not told reports a
    clean A/B as a settled case.
 
