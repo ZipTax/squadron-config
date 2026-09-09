@@ -136,7 +136,7 @@ mission "rate_triage" {
   task "discover_sessions" {
     objective = <<-EOT
       Decide how the investigation of ${inputs.issue} starts, from what this ticket already has.
-      You read only: no session is created, messaged, or briefed in this stage.
+      No session is created, messaged, or briefed in this stage; the one write you make is step 6.
 
       # You do
 
@@ -185,6 +185,11 @@ mission "rate_triage" {
          · No overrides were passed on this run, so what you read is all you have to go on.
          %{ endif ~}
 
+      6. Clear the `TaxRates:Needs-Info` label on ${inputs.issue} with `editJiraIssue`, if it is
+         there — the blocked_run entry step, and yours because you are the first stage of the run
+         whatever it re-enters at. Add/remove on labels, never a `fields` set of the whole list, and
+         no other field. Left on, it fires a fresh run off the writeback this run posts.
+
       # If a read refuses you
 
       An authorization failure — a 403, a permissions error — is not an answer about this ticket's
@@ -215,9 +220,9 @@ mission "rate_triage" {
       risks a second verdict that disagrees with the one the fix was built on. So if the file names
       a blocked stage downstream of assessment, and the verdict and fix PR it records are intact,
       set resume_stage to that stage and carry its state (fix PR, session ids, what was
-      outstanding). Say in resume_state that the stage you route to is this run's entry, so its
-      session does the blocked_run entry steps — clearing the label is the entry's job wherever the
-      run re-enters, and you hold no credentials to do it yourself.
+      outstanding). Say in resume_state that the stage you route to is this run's entry, so it does
+      the blocked_run entry steps — judging what came back on the ticket, which needs the questions
+      that stage asked — the label is already off by then, since step 6 is yours.
 
       Anything unclear — no verdict recorded, the PR gone, the file contradicting the sessions you
       found — is not a resume: leave resume_stage blank and pick an entry mode, since re-deriving is
@@ -643,7 +648,9 @@ mission "rate_triage" {
         `registering-on-the-ticket` before it writes anything. Its skills live in that repo, so a
         session told to stay out of it has none and improvises both the comment and the format of
         the line it registers. Forbid the changes — branch, commit, push, PR, edits, queries — and
-        never the clone.
+        never the clone. Have it name the skill it authored the comment from when it reports: a
+        session answering "no such skill here" wrote from nothing, and that is yours to fix before
+        the comment lands.
       - It reads the ticket's comments to the end first, and returns which of your questions the
         ticket already answers rather than asking them. Your questions come from sessions that may
         predate the ticket's latest state by months; where the two disagree the ticket is the

@@ -6,13 +6,23 @@ entry half if you are the first stage of a run; read the rest when you hit the w
 
 ## If you are the first stage of a run
 
-Before anything else, and through the session you brief (you hold no ticket credentials yourself):
+Before anything else:
 
-1. **Clear the sentinel label** — `TaxRates:Needs-Info`, once, if it is there. It is what fired this
-   run, and leaving it on means every later comment on the ticket, including the writeback this run
-   is about to post, fires another one; an ordinary ticket discussion would then cost a run per
-   message. Removing it is not the same as answering: only a stage that again ends blocked puts it
-   back, which is what keeps the label meaning "a human owes us something".
+1. **Clear the sentinel label** — `TaxRates:Needs-Info`, once, if it is there. This one is yours,
+   with `editJiraIssue`, before you brief anybody: it is what fired this run, and leaving it on
+   means every later comment on the ticket, including the writeback this run is about to post,
+   fires another one; an ordinary ticket discussion would then cost a run per message. A session
+   is the wrong instrument for it — a whole machine for one call, and a run that fails to open one
+   leaves the ticket labelled and looping. Removing it is not the same as answering: only a stage
+   that again ends blocked puts it back, which is what keeps the label meaning "a human owes us
+   something".
+
+   Both directions are an `update` with the labels `add`/`remove` operation, never a `fields` value
+   for `labels`: a ticket carries labels that are not ours — the linear-team tag, `rate-issue`,
+   `ratevariant` — and setting the field writes the whole list, so a run that composes it drops
+   whatever it did not know about. The label is also the only field you touch. You do not edit the
+   summary, the description, the status, or anything else, and you never post the comment: how a
+   comment is worded is a skill in the acting repo, which a session has and you do not.
 2. **Read the answers.** The comments added since the marker in the resume-state record are the
    replies to its open questions — use the marker rather than eyeballing recency, or you re-litigate
    answers a previous run already judged insufficient. Per question: is what came back enough to
@@ -41,10 +51,10 @@ Both, every time, and they are not substitutes:
   in a session's structured output, a PR comment, or the memory file reaches nobody. Every question
   the run blocked on goes in one comment, per `sme_writeback`, alongside the sentinel label.
 
-You almost certainly hold no ticket credentials, so both are a session's to do: `send_message` the
-session that already owns the context (or the one you opened for this stage), and check on return
-that it posted and labelled. A run that ends blocked without that comment leaves the ticket sitting
-until somebody happens to look.
+The comment is a session's to write — `send_message` the session that already owns the context (or
+the one you opened for this stage), and check on return that it posted. The label you set yourself,
+in the same breath. A run that ends blocked without that comment leaves the ticket sitting until
+somebody happens to look.
 
 Send it the questions and what is missing — never a comment body. A drafted body is followed
 verbatim over the session's own `writing-ticket-updates` skill, and what you would draft is what
@@ -92,3 +102,8 @@ Ending a run blocked means setting `TaxRates:Needs-Info` in the same breath as t
 Automation fires the mission when a new comment lands on a labelled ticket, so the answer arriving is
 the trigger — the comment alone waits on somebody noticing, and the label alone asks nothing. The
 entry half above is the other side of this: whoever enters clears it exactly once.
+
+Set it with your own `editJiraIssue`, as an `add` on labels, and set it whether or not the comment
+landed: the two are separate calls and the label is the cheap one. If the session failed to post,
+the labelled ticket with no question on it still reaches a human, where a silent ticket does not.
+Say so in the resume-state record either way.

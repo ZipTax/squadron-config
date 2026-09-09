@@ -8,8 +8,10 @@ that read it on arrival and writes the comment an hour later writes an engineeri
 
 So hand over facts and questions, never a draft. "Post this verbatim" is followed over the skill,
 and the body you would write is the one made of what you hold — a verdict name, a mechanism, the
-queries you want run against named columns. `blocked_run` has the long version; it binds every
-stage that asks for a comment, not only one that blocks.
+queries you want run against named columns. `delegated_session` has the general form of this,
+including what to require back so you find out when a session had no skill to write from;
+`blocked_run` has the blocking case. It binds every stage that asks for a comment, not only one
+that blocks.
 
 ## The ticket has already answered some of this
 

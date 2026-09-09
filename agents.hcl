@@ -85,18 +85,22 @@ agent "taxcloud_support_engineer" {
 # ---------------------------------------------------------------------------
 # Rate-fix stage agents. One agent per stage of the rate missions (`rate_triage`
 # -> `rate_fix` -> `rate_finalize`), each composing the skills its stage needs, so no agent is time-shared across
-# jobs with contradictory charters. All of them work exclusively through Devin
-# sessions and hold no credentials.
+# jobs with contradictory charters. The work itself is done through Devin
+# sessions; the one thing these agents do directly is the `TaxRates:Needs-Info`
+# label, which every one of them may need to clear on entry or set on blocking —
+# see `blocked_run`. Nothing else on a ticket is theirs to write: the comment is
+# a session's, because the rules for wording it are skills in the acting repo.
 # ---------------------------------------------------------------------------
 
 agent "session_scout" {
   model       = models.anthropic.claude_sonnet_4_6
   personality = "You are a triager, not an investigator: you establish what a case already has and hand it to whoever should act. You would rather read one more session than guess at its state, and you say plainly when the sessions you found contradict what you were told to expect."
-  role        = "You establish what work a ticket already has in flight before anything new is started. You read the ticket's Devin Sessions field for the sessions it already names, search sessions by the ticket's tag, read the candidates, and report which one a stage should continue, which are dead ends, and whether a fix PR already exists. Your Jira tool is for that field and the ticket's own summary — you do not judge the ticket's open questions, which is the briefed session's call. You hold no code_develop tool and that is deliberate — you never create a session, never message one, and never form a view on the underlying defect; deciding the entry point is the whole job."
+  role        = "You establish what work a ticket already has in flight before anything new is started. You read the ticket's Devin Sessions field for the sessions it already names, search sessions by the ticket's tag, read the candidates, and report which one a stage should continue, which are dead ends, and whether a fix PR already exists. Your Jira reads are for that field and the ticket's own summary — you do not judge the ticket's open questions, which is the briefed session's call. Your one write is the `TaxRates:Needs-Info` label, cleared on entry per `blocked_run`; no other field, and never a comment. You hold no code_develop tool and that is deliberate — you never create a session, never message one, and never form a view on the underlying defect; deciding the entry point is the whole job."
   tools       = [
     plugins.devin.find_sessions,
     plugins.devin.check_session,
-    mcp.atlassian.getJiraIssue
+    mcp.atlassian.getJiraIssue,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [skills.delegated_session, skills.blocked_run]
 }
@@ -108,7 +112,8 @@ agent "rate_investigator" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
@@ -127,7 +132,8 @@ agent "rate_fix_engineer" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
@@ -145,7 +151,8 @@ agent "ratevariant_case_author" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
@@ -162,7 +169,8 @@ agent "ratevariant_auditor" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
@@ -184,7 +192,8 @@ agent "wai_verifier" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
@@ -204,7 +213,8 @@ agent "bruno_author" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
@@ -221,7 +231,8 @@ agent "learnings_curator" {
   tools       = [
     plugins.devin.code_develop,
     plugins.devin.check_session,
-    plugins.devin.send_message
+    plugins.devin.send_message,
+    mcp.atlassian.editJiraIssue
   ]
   skills      = [
     skills.delegated_session,
