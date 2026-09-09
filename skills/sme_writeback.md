@@ -1,9 +1,10 @@
 # Briefing the ticket writeback
 
 The session posts the comment — it holds the Jira credentials, and the wording is owned by its
-`writing-ticket-updates` skill (shape, tone, worked bad/good pair). Don't restate that here or in a
+`writing-ticket-updates` skill (shape, tone, worked bad/good pairs). Don't restate that here or in a
 stage objective: prescribing prose from Squadron produces two drifting styles. Your half is
-*whether* a comment is due and *what it must carry*.
+*whether* a comment is due and *what it must carry*. Do ask for it open at drafting time — a session
+that read it on arrival and writes the comment an hour later writes an engineering report.
 
 ## What to hand over
 

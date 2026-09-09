@@ -258,7 +258,7 @@ addCommentToJiraIssue(
 
 ### Format
 
-Use the `writing-ticket-updates` skill in `txc-sqlserver-database` — it owns the shape, the tone, the worked before-and-after pair, and what stays out. It is shared with the rate flow deliberately: a reader should not be able to tell which workflow produced the comment.
+Use the `writing-ticket-updates` skill in `txc-sqlserver-database` — it owns the shape, the tone, the worked before-and-after pairs, and what stays out. Open it as you draft, not earlier in the session: its examples exist because comments were written from a memory of it. It is shared with the rate flow deliberately: a reader should not be able to tell which workflow produced the comment.
 
 ### Language and ownership
 

@@ -121,8 +121,8 @@ A/B has run, not a rewrite before anyone has seen a result.
   asked for it.
 - No file outside `output/schema/**` and `scripts/**` is modified.
 - Product-level ticket comments belong to the investigating session, which holds the Jira
-  credentials, unless the caller asks you for one — then read the `writing-ticket-updates` skill
-  first. It is not a status report: what you built, ran, and proved stays on the PR.
+  credentials, unless the caller asks you for one — then open the `writing-ticket-updates` skill as
+  you draft it, not earlier. It is not a status report: what you built, ran, and proved stays on the PR.
 
 ## Advice & Pointers
 
