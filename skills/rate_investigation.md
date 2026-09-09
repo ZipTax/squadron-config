@@ -28,7 +28,8 @@ In these words or close to them:
 - Emit the routing verdict in your structured output — DEFECT_PROVEN, WORKING_AS_INTENDED, or
   EVIDENCE_INCOMPLETE — alongside the question-matched verdict you reason in (`Discrepancy
   explained` etc.) and the mapping you used.
-- Post one product-level Jira comment per the sme_writeback format — which is also where every
+- Post one product-level Jira comment, shaped by the session's own `writing-ticket-updates` skill —
+  which is also where every
   question you are blocked on goes, all of them, in that comment: the ticket is the only interface
   a human answers on, and a question left in structured output reaches nobody. State it at the strength the
   evidence carries: where the load-bearing claims are measured or traced and the gates pass, say

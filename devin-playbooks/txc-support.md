@@ -258,23 +258,7 @@ addCommentToJiraIssue(
 
 ### Format
 
-Under 100 words, plain prose, three short paragraphs at most, no headings, no checklists, no tables. Always open with the attribution line verbatim so no one mistakes the comment for a person's:
-
-```markdown
-_This is an automated review from Devin._
-
-<1-2 sentences: what appears to be happening, in customer/product terms.>
-
-<1 sentence: what the proposed change would do for merchants.> Details and the code are in <PR link> for engineering review.
-
-<1 sentence: the specific decision or confirmation needed from a human, if any.>
-```
-
-Example:
-
-> _This is an automated review from Devin._
->
-> For merchant 12345, PA orders with TIC 40030 look like they are picking up the state rate without the county portion, which would explain the lower tax on the orders in the attachment. The proposed change would apply the county rate to these orders going forward; details and the SQL are in FedTax/txc-sqlserver-database#456 for engineering review. Someone on the tax side should confirm the county rate is expected to apply here before this ships.
+Use the `writing-ticket-updates` skill in `txc-sqlserver-database` — it owns the shape, the tone, the worked before-and-after pair, and what stays out. It is shared with the rate flow deliberately: a reader should not be able to tell which workflow produced the comment.
 
 ### Language and ownership
 
@@ -286,9 +270,9 @@ You investigate and propose; a human decides. This is not optional phrasing pref
 
 ### Keep out of the ticket
 
-SQL, query output, proc/function names, file paths, schema details, verification steps, checklists, risk assessments, and anything a reader would need engineering context to parse. All of it belongs in the PR description. If it would only make sense to someone reading the diff, it does not go on the ticket.
+SQL, query output, proc/function names, file paths, schema details, verification steps, checklists, risk assessments, and anything a reader would need engineering context to parse. All of it belongs in the PR description. If it would only make sense to someone reading the diff, it does not go on the ticket. How you came to know something — the snapshot's date, a refused query, a calculation traced rather than re-run — goes there too; the skill covers why, and the one kind of limitation that does belong on the ticket.
 
-On an incremental re-run of this playbook against the same ticket, post one short comment saying what changed and linking the same PR — do not repost the original summary. It carries the same attribution line.
+On an incremental re-run of this playbook against the same ticket, post one short comment saying what changed — do not repost the original summary. It carries the same attribution line.
 
 ## Advice & Pointers
 
@@ -316,6 +300,7 @@ On an incremental re-run of this playbook against the same ticket, post one shor
 - Never hard-code a versioned staging database name (`FedTax-20260521`) in a cross-database reference — write `[FedTax]` / `[Reports]` and let the tooling rewrite it.
 - Never let one script span two databases, and never mix styles within a statement, PR, or Jira comment.
 - Never post a Jira comment without the `_This is an automated review from Devin._` line first — readers must never take it for a human's comment.
-- Never post a Jira comment containing SQL, query output, checklists, headings, or a risk rating, and never exceed ~100 words.
+- Never post a Jira comment containing SQL, query output, checklists, headings, or a risk rating.
+- Never put evidence provenance in a Jira comment — the snapshot's date, a refused tool, a calculation traced rather than re-run. That goes in the PR description; certainty shows in how the finding is worded. A limit in what the *product* can express is different and does belong — see the `writing-ticket-updates` skill.
 - Never state in Jira that something is confirmed, verified, a bug, root-caused, fixed, or resolved — that call belongs to a human.
 - Never write to or mutate staging or prod from this workflow — staging is read-only and prod changes ship as reviewed scripts.

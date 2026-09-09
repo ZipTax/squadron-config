@@ -335,10 +335,17 @@ mission "rate_fix" {
       one — it is reading the code and you are not — and record the disagreement in
       diagnosis_contradicted either way.
 
+      Ask what establishes the value the change now produces, and take the answer as it comes:
+      state-published material or an SME's stated figure on the ticket is an authority, and the
+      ticket's own expectation or a sibling code's configuration is not one. A missing authority does
+      not stop this stage — the change is a proposal, and building it is what makes the question
+      concrete — but it travels, per `evidence_gate`, because nothing downstream can rediscover it
+      and an A/B pass will otherwise read as the case being settled.
+
       Fail the stage if no PR exists at the end. Do not report success without one.
 
-      Return the PR URL, number, head branch, develop_session_id, and a one-line summary of
-      what changed — or, when adopting, what the existing change does and that the lane is now
+      Return the PR URL, number, head branch, develop_session_id, what authority the corrected value
+      rests on, and a one-line summary of what changed — or, when adopting, what the existing change does and that the lane is now
       owned.
     EOT
     agents  = [agents.rate_fix_engineer]
@@ -377,6 +384,11 @@ mission "rate_fix" {
       field "diagnosis_contradicted" {
         type        = "string"
         description = "Set when the code contradicted the briefed diagnosis: what the session found instead. Blank normally."
+        required    = false
+      }
+      field "target_authority" {
+        type        = "string"
+        description = "What establishes the value the change now produces — the state-published material or the SME's stated figure. Blank when nothing does, which makes the fix a proposal on a hedged target: author_tests passes it through and audit carries it as an open question, since a SATISFACTORY A/B does not authorize a treatment."
         required    = false
       }
     }
@@ -479,6 +491,11 @@ mission "rate_fix" {
         description = "Roots/paths not coverable on the reporting merchant, with reasons (including reasons Devin gives)"
         required    = false
       }
+      field "target_authority" {
+        type        = "string"
+        description = "develop's target_authority, passed through unchanged (blank when develop did not run). This stage authors nothing that could establish it; it is here so audit sees it."
+        required    = false
+      }
     }
 
     send_to = [tasks.audit]
@@ -555,6 +572,13 @@ mission "rate_fix" {
       anyway, per session_lane. This is where descriptions get clobbered, and the earlier stages'
       findings are what disappears.
 
+      SATISFACTORY is a statement about the change, not about the treatment: it says the fix
+      produces the value it was built to produce, on every path it reaches. Whether that value is
+      the right one is the target_authority question the fix lane carried in — blank means nobody
+      has authorized it, and no case result can close that, so it exits in open_questions naming
+      what would — the state's own published material, or a figure an SME states — and
+      rate_finalize asks it.
+
       Exit on exactly one verdict:
       - SATISFACTORY — intended diffs present, each to the correct value, guardrails flat, all
         paths the change spans in agreement, and every path it actually reaches covered by a
@@ -619,7 +643,7 @@ mission "rate_fix" {
       }
       field "open_questions" {
         type        = "string"
-        description = "Tax-law/eligibility questions for the ticket SMEs and coverage gaps left open"
+        description = "Tax-law/eligibility questions for the ticket SMEs and coverage gaps left open. A blank target_authority from the fix lane is one of these however clean the A/B came back — name the authority that would settle the treatment."
         required    = false
       }
       field "final_summary" {
