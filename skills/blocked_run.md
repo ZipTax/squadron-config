@@ -41,9 +41,17 @@ Both, every time, and they are not substitutes:
   the run blocked on goes in one comment, per `sme_writeback`, alongside the sentinel label.
 
 You almost certainly hold no ticket credentials, so both are a session's to do: `send_message` the
-session that already owns the context (or the one you opened for this stage), tell it what to post
-and to label, and check on return that it did. A run that ends blocked without that comment leaves
-the ticket sitting until somebody happens to look.
+session that already owns the context (or the one you opened for this stage), and check on return
+that it posted and labelled. A run that ends blocked without that comment leaves the ticket sitting
+until somebody happens to look.
+
+Send it the questions and what is missing — never a comment body. A drafted body is followed
+verbatim over the session's own `writing-ticket-updates` skill, and what you would draft is what
+you hold: the verdict name, the mechanism, the queries you want run, the object and column names
+they run against. That is a status report addressed to us, on a ticket read by product and support,
+and the message asking for it is what put it there. Name each artifact you need in terms of who
+holds it and what it is worth — an SME's ruling, a figure from the state, a read-out of production
+for a period — and let the session translate it and decide what a reader has to see.
 
 ## What the record has to contain
 

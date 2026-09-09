@@ -610,6 +610,12 @@ mission "rate_triage" {
       What this stage specifically owes the file: the exact artifacts that would close each gap
       (whose transaction ids, which published rate and period), not a restatement that evidence was
       incomplete.
+
+      Split those artifacts by who can supply them before you send anything. A tax or product call
+      is a ticket question; a read-out of production is an engineer's, so it goes in this task's
+      output and stays off the ticket. Then send the questions themselves — a comment body you
+      drafted is followed over the session's own writing skill, and yours is built from the verdict
+      name, the mechanism and the queries you wanted run.
     EOT
     agents = [agents.rate_investigator]
 
