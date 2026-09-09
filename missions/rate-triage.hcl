@@ -236,6 +236,12 @@ mission "rate_triage" {
       - An investigation session exists but is terminated, expired or archived, so it can be read
         and not messaged → `forward`.
 
+      Messageable is not what the status says. Devin will not continue a session more than 30 days
+      after its last activity, and an expired one still reports `suspended (inactivity)` — the same
+      words as a session suspended an hour ago. check_session prints `Last Activity` and, past the
+      window, `Resumable: NO`; that line decides, and the status alone never does. A month-old
+      session is `forward`, whatever it says about itself.
+
       Expect more than one match — a re-fired ticket accumulates them — and pick per
       delegated_session's order: a messageable session beats a closed one even when the closed one
       got further, because `continue` keeps a lane you can still question while `forward` inherits
