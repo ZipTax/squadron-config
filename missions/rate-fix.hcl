@@ -576,7 +576,8 @@ mission "rate_fix" {
       produces the value it was built to produce, on every path it reaches. Whether that value is
       the right one is the target_authority question the fix lane carried in — blank means nobody
       has authorized it, and no case result can close that, so it exits in open_questions naming
-      what would (the ADOR notice, the SME's figure) and rate_finalize asks it.
+      what would — the state's own published material, or a figure an SME states — and
+      rate_finalize asks it.
 
       Exit on exactly one verdict:
       - SATISFACTORY — intended diffs present, each to the correct value, guardrails flat, all
