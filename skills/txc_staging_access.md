@@ -19,12 +19,18 @@ matters on every route you take:
   `measured` fact, labeled with the copy's date.
 - A snapshot row does **not** establish current production configuration. Where the verdict
   turns on config that may have changed since the snapshot date (a rate row, an enrollment, a
-  certificate), that step needs a current-production fact, which only a human can supply.
+  certificate), the session records that as an unknown and hands over the narrowest read-only
+  production query that would confirm it, for whoever reviews the fix to run.
 - The absence of a row in the snapshot is not proof of absence in production.
 
 So: never let a session dismiss a snapshot finding as stale, and never let it promote a
 snapshot row into a claim about today's production config. Both are gate failures under
-`evidence_gate`; the second returns `EVIDENCE_INCOMPLETE` naming the production query needed.
+`evidence_gate`. Neither is a reason to hold the verdict: the copy is a few months old at most
+and refreshed on purpose, so a mechanism proven in it is `DEFECT_PROVEN` with "confirm on
+production before merge" and the query in `unknowns`. A moved production row changes the fix,
+not the finding, and the fix stage's reviewer is who can run the query. Production is a real
+reason to stop only when the finding itself cannot be made from the snapshot — the subject is
+absent and nothing comparable stands in.
 
 If the merchant or transaction a case needs is absent from the snapshot, push for a comparable
 substitute. Only when that is genuinely impossible is it a coverage gap — and then it is

@@ -76,6 +76,13 @@ derive one from the prose summary.
   and shipping one leaves the ticket half-fixed.
 - Any claim inherited from another session is labelled as inherited, not as measured or traced.
 - Unknowns are explicit.
+- On a multi-part ticket the verdict is per part and the primary part drives routing. A proven
+  rate mechanism beside an unanswered scope question ("is accommodations tax in scope?") is
+  DEFECT_PROVEN with the question listed, not EVIDENCE_INCOMPLETE. Send it back if a soft leg
+  pulled a measured one down.
+- "Production may differ from the snapshot" is an unknown with a named query, not a failed gate
+  (`txc_staging_access`). Send it back if the session held a snapshot-proven mechanism at
+  EVIDENCE_INCOMPLETE for want of a production read-out.
 
 ## The three verdicts
 

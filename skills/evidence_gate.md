@@ -30,7 +30,10 @@ gate — do not treat an unmapped label as a pass:
 | unknown | `hedge` |
 
 A dated snapshot fact cannot carry a claim about *current* production configuration; that is
-the one mapping sessions routinely overreach on.
+the one mapping sessions routinely overreach on. The opposite overreach is as common: treating
+"production might have moved" as a failed gate. It is not. The mechanism measured in the dated
+copy is the load-bearing claim and it passes; the production state is an unknown with a named
+query, confirmed at fix review. See `txc_staging_access`.
 
 Hedge language to catch in your own output and in a session's report: *presumably, should
 be, expected to, likely uses the same, indirect evidence is strong, no access so I assumed,
