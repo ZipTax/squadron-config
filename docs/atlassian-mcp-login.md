@@ -51,8 +51,8 @@ have an attribute named "getJiraIssue".
 
 That is the unauthorized server, not a typo in `agents.hcl` — log in and it resolves. The
 alternative, `mcp.atlassian.all`, resolves without a connection but hands the agent every write
-tool on the server, including comment-posting; for a read-only stage like triage that is the one
-thing it must never be able to do, so name the tools instead of taking the shortcut.
+tool on the server, including comment-posting — which is exactly what a read-only stage must not be
+able to do, so name the tools instead of taking the shortcut.
 
 ## Renewal
 
