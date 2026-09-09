@@ -25,6 +25,16 @@ one lane for the life of the case (see `session_lane`).
 Pass `title` (ticket key and PR number first, so the case is identifiable) and `tags` (the
 ticket key plus the stage, so every session a case spawned can be listed later).
 
+And tell it to register itself on the ticket: read the ticket's **Devin Sessions** field and write
+it back carrying `<stage tag>: <its session url>`, as its first action. It is an upsert keyed on
+the stage tag — a session continuing a stale one replaces that stage's line rather than adding a
+second, because two urls under one tag leave the next run messaging the dead session; every other
+line survives untouched. You cannot do this yourself and neither can the stage that
+routed to you — only the session holds Jira credentials, and only it knows its own URL. It is
+what makes the ticket an index of its own sessions, which is the one place a later run can look
+that does not depend on the Devin API letting us list sessions at all (see below). A session that
+skips it is invisible to the next run and gets its work re-derived.
+
 `prompt_mode` decides what the session is told to do beyond your task. The default appends the
 create-a-branch / add-tests / commit / open-a-PR workflow, which is right for exactly one kind
 of stage: the one that authors the fix. For a read-only stage, or a stage that must push to a
@@ -35,11 +45,23 @@ everything, including the prohibitions.
 
 ## Finding the sessions a case already has
 
-Because every session is tagged with the ticket key, `find_sessions(tags: ["<TICKET>"])` is how
-you learn what a case already has instead of being told: it returns each session's id, status,
-title and PR links. Add the stage tag (`["<TICKET>", "rate-investigation"]`) to ask about one
-lane. It reads only — it never creates a session, and it does not return structured output, so
-`check_session` is still what tells you what a session concluded.
+Two indexes, and they fail differently.
+
+The ticket's **Devin Sessions** field is the one that works: every session registers itself there
+when it starts, and reading the field needs nothing but permission to view the issue. It names
+only sessions that registered — so nothing from before the field existed, and nothing a human
+opened by hand.
+
+`find_sessions(tags: ["<TICKET>"])` covers exactly that remainder, because every session is also
+tagged with the ticket key: it returns each session's id, status, title and PR links, and adding
+the stage tag (`["<TICKET>", "rate-investigation"]`) asks about one lane. But listing sessions is
+an organization-wide read, and our key is refused it more often than not — so treat the search as
+a supplement that may simply not answer, and never as the thing your run depends on. Both read
+only; neither returns structured output, so `check_session` is still what tells you what a session
+concluded.
+
+A refusal is not an empty history. "The search was refused" and "this ticket has no sessions" are
+different findings, and reporting the first as the second is how a run abandons live work.
 
 Search before you create. A tagged session that already answered the question makes a new one
 pure cost: it re-reads the ticket, re-derives the context, and can reach a different answer for

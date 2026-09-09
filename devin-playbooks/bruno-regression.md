@@ -61,6 +61,14 @@ These exist because past sessions have gone wrong here. Follow them exactly.
    would have asked (with the exact figure needed, per scenario) in your report instead of
    waiting. Everything else below is unchanged.
 
+   Register yourself on the ticket before you start: read its **Devin Sessions** field and write it
+   back carrying `bruno-tests: <your session URL>`. Upsert your own line — if a `bruno-tests`
+   session is already listed and you are continuing its work, yours replaces it, since two URLs for
+   one stage leaves a later run messaging the dead one. Every other line stays as it is. The Devin
+   API refuses us an organization-wide session list, so that field is how the next run on this
+   ticket finds you rather than re-deriving your work. No such field on the ticket is a note in
+   your report, not a blocker.
+
    An unwritten scenario has to be *actionable*: name the scenario, the exact figure, and the
    authority that would supply it, because the orchestrator puts it on the ticket and the next run
    resumes from it (messaging this session, if it is still alive). A vague "needs confirmation"
