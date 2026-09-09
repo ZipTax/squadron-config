@@ -187,36 +187,23 @@ mission "rate_triage" {
 
       An authorization failure — a 403, a permissions error — is not an answer about this ticket's
       history; it means you cannot see that part of it, which is a different thing from there being
-      none. Do not read it as zero matches, and do not end the run on it either. Which read failed
-      decides what it costs you:
+      none. Never read one as zero sessions, never infer any mode but `start` from one, and never
+      end the run on one.
 
-      - A refused find_sessions where the Devin Sessions field answered costs you only the
-        sessions the field does not name. Say which read was refused, and set history_provenance to
-        `read`: the index you have is the one this flow maintains.
-      - A refused or empty field read, with the search working, is the ordinary case for a ticket
-        older than the field. Provenance is `read` there too — nothing was refused that you needed.
-      - Both refused, or the field absent and the search refused, and you are down to what a prior
-        run wrote. Fall back to the ids the resume-state file records: it names the sessions that run
-        opened and whether each was messageable, which is what the indexes would have told you, so a
-        resumption survives every read being unavailable. Try check_session on those ids; where that
-        is refused too, take the file's account of each session's state and say that is where it
-        came from. The stage you route to finds out for certain when it sends: a refused send is the
-        correction, so state a belief downstream rather than a fact. Set history_provenance to
-        `recorded` and name the call that was refused, so downstream reads those states as the
-        file's account rather than as something you confirmed.
-      - With no resume-state file and no readable history, route `start` and set history_provenance
-        to `none`, naming what was refused. That reading is safe for this case and only this case: no run
-        of this flow got far enough to write a state file, so there is no lane of ours to abandon.
-        What it does not rule out is a session someone opened by hand, or one predating the state
-        file, so a collision the search would have caught can still be live — which is why every
-        stage downstream is told the start was blind.
-      - Neither is the last index. A fix PR's description carries the links of the sessions that
-        wrote it, so the PRs on this ticket name sessions that never registered anywhere else. You
-        cannot read a PR from here; the session you route to can, so where you are left blind the
-        recovery goes downstream in the brief rather than ending the run.
-      - Never infer any mode other than `start` from a failed read, and never report a ticket as
-        having no history when what happened is that you were refused. history_provenance is stated
-        on every run, so a reader never has to infer from its absence that the history was seen.
+      What it costs depends on what still answered, and mostly it costs nothing: a refused search
+      after the field answered leaves you the index this flow maintains, and a refused field read
+      with the search working leaves you the search. Either way provenance is `read`.
+
+      Only when nothing answered are you guessing, and then the resume-state file is the fallback:
+      it names the sessions a prior run opened and whether each was messageable. Try check_session
+      on those ids; where that is refused too, pass on the file's account as the file's account —
+      provenance `recorded`, naming the refused call, so downstream treats those states as belief.
+      The stage you route to learns the truth when it sends, since a refused send is the correction.
+
+      With no file either, route `start`, provenance `none`. That is safe here and only here: no run
+      of this flow wrote a state file, so there is no lane of ours to abandon — but a hand-opened or
+      pre-field session can still be live, and a fix PR names the sessions that wrote it, so tell
+      the stage you route to that its start was blind and that the ticket's PRs are worth reading.
 
       # What you are deciding
 
