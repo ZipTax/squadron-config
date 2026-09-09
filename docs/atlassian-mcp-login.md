@@ -4,11 +4,6 @@
 reads or writes Jira. Once a box is authorized, the server's tools are available to whatever agent
 is granted them — the login below is a property of the box, not of any one mission.
 
-What uses it today is `rate_triage`: `session_scout` reads one field, **Devin Sessions**, where the
-sessions a run opens register themselves. That field is the session index triage depends on, since
-`find_sessions` is an organization-wide read the Devin service key is usually refused, so without it
-a re-fired ticket cannot see its own history.
-
 The server uses OAuth 2.1, so there is no token in the config and nothing to check into the repo.
 It has to be authorized once per Squadron box.
 
@@ -17,11 +12,11 @@ It has to be authorized once per Squadron box.
 Whichever Atlassian account approves the flow is the identity Squadron acts as, on every mission
 that uses this server. Approve as a dedicated automation account, not a person's, which would tie
 the orchestrator's access to that person's employment and licence. Give it a Jira licence and the
-permissions the missions need — today that is **browse** on the DEV project, and anything granted
-beyond reading is available to any agent holding a write tool.
+permissions the missions that use it need — reading issues takes **browse** on the project, and
+anything granted beyond that is available to any agent holding a write tool.
 
-Squadron only reads at present. The sessions are what write the Devin Sessions field, through
-Devin's own Atlassian integration, which needs **Edit Issues** on DEV separately.
+This account is not the one Devin sessions use. They reach Jira through Devin's own Atlassian
+integration and are permissioned separately.
 
 ## The login
 
@@ -65,13 +60,13 @@ The access token refreshes itself while the server is in use. The refresh token 
 forever, and Atlassian's lapse after a period of disuse (on the order of months), so a long quiet
 spell means logging in again — the same two commands.
 
-`squadron mcp status` reporting `no token` or `expired` for `atlassian` is the signal. What it looks
-like from a mission is a refused Jira call — in `discover_sessions`, a refused field read, treated
-as history it could not see rather than a ticket with no history: the run falls back to the tag
-search and the resume-state file, degraded but not wrong.
+`squadron mcp status` reporting `no token` or `expired` for `atlassian` is the signal. From inside a
+mission it looks like a refused Jira call, which a stage should treat as something it could not see
+rather than something that is not there — a refusal is not an empty answer.
 
 ## The Devin Sessions field
 
+One field is worth documenting here because a mission depends on it and a wrong id fails silently.
 `Devin Sessions` is `customfield_11724` on the DEV project, which is `variable
 "jira_sessions_field"`'s default. Only override it if the field is ever rebuilt —
 `squadron vars set jira_sessions_field customfield_NNNNN` — and note that a wrong id reads exactly
