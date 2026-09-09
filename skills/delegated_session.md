@@ -30,9 +30,10 @@ And tell it to register itself on the ticket as its first action, naming its sta
 Sessions** field, upserted on that tag. Do not restate the procedure in your task text; a stale
 copy of it is how a session ends up wiping another stage's line. You cannot do this yourself and
 neither can the stage that routed to you — only the session holds Jira credentials, and only it
-knows its URL. It is what makes the ticket an index of its own sessions, the one place a later run
-can look that does not depend on the Devin API letting us list sessions at all (see below). A
-session that skips it is invisible to the next run and gets its work re-derived.
+knows its own Devin session url. It is what makes the ticket an index of its own sessions, the
+one place a later run can look that does not depend on the Devin API letting us list sessions at
+all (see below). A session that skips it is invisible to the next run and gets its work
+re-derived.
 
 `prompt_mode` decides what the session is told to do beyond your task. The default appends the
 create-a-branch / add-tests / commit / open-a-PR workflow, which is right for exactly one kind
