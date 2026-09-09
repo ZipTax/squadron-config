@@ -20,7 +20,9 @@ stage objective: prescribing prose from Squadron produces two drifting styles. Y
 
 Don't hand over what nobody on the ticket can act on. A refused tool, unreadable session history, a
 snapshot predating the order: that travels in mission output and structured output, where the
-engineer weighing the change reads it. A limit in what the *product* can express is the opposite —
+engineer weighing the change reads it. Handing it over anyway and adding "state this on the ticket"
+is worse than either — the session obeys the brief over its skill, and the comment opens on our
+tooling instead of the finding. A limit in what the *product* can express is the opposite —
 it changes the answer available, so it belongs in the finding.
 
 From when the corrected treatment applies is a real question for this audience, and often the second
