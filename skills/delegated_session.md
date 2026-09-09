@@ -35,6 +35,19 @@ one place a later run can look that does not depend on the Devin API letting us 
 all (see below). A session that skips it is invisible to the next run and gets its work
 re-derived.
 
+## A session without the repo has no skills
+
+The skills that govern how a session writes — `writing-ticket-updates`, `registering-on-the-ticket`
+and the rest — are files in `txc-sqlserver-database`. A session reads them from its checkout, so a
+session that has not cloned the repo does not have them, and says so only if asked. It does not
+stop: it infers a house style from whatever it can see, which on a ticket means copying the
+malformed lines an earlier unskilled session left behind.
+
+So every session you open gets the repo, including one that will never touch a file,
+and you name the skills its job depends on. The prohibition you want is on *changing* things —
+no branch, no commit, no push, no PR, no edits — never on cloning: "do not clone the repo" reads
+as one line of safety and removes every rule the session was going to follow.
+
 `prompt_mode` decides what the session is told to do beyond your task. The default appends the
 create-a-branch / add-tests / commit / open-a-PR workflow, which is right for exactly one kind
 of stage: the one that authors the fix. For a read-only stage, or a stage that must push to a
