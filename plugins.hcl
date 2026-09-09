@@ -1,6 +1,6 @@
 plugin "devin" {
   source = "github.com/FedTax/squadron-plugin-devin"
-  version = "v0.0.7"
+  version = "v0.0.8"
   settings {
     api_key              = vars.devin_api_key
     org_id               = vars.devin_org_id
