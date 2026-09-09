@@ -24,7 +24,7 @@ gate — do not treat an unmapped label as a pass:
 | code fact (read out of a proc/function under `output/schema`) | `traced` |
 | dated snapshot fact (a query against `FedTax-<yyyymmdd>` / `Reports-<yyyymmdd>`) | `measured`, for behavior **in that dated copy** — see `txc_staging_access` |
 | current-production fact | `measured` |
-| state-published authority (a DOR rate table or bulletin) | `traced`, for what is *correct*, never for what the system *does* |
+| stated authority — a DOR rate table or bulletin, or a tax SME's ruling on the ticket | `traced`, for what is *correct*, never for what the system *does*. An SME who knows the treatment need not cite it for this to hold |
 | ticket-provided expectation | `hedge` for correctness until an SME confirms it; it is the target, not the proof |
 | inference | `inferred` |
 | unknown | `hedge` |
@@ -62,7 +62,7 @@ than a softened conclusion.
 
 Gate 3 settles what the system does. What it *should* do is a separate claim with its own basis, and
 the two come apart constantly: a mechanism traced out of a proc is `traced`, while the target value
-it should have produced is a `hedge` until state-published material or an SME says so. Implementing
+it should have produced is a `hedge` until published material or an SME says so. Implementing
 against a hedged target is allowed — a proposed change is how you get a reviewable artifact and a
 question worth answering — but the run cannot then close as settled, and no amount of A/B evidence
 converts it, because a passing case only proves the change does what it was built to do. Carry the

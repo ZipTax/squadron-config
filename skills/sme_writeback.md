@@ -16,11 +16,13 @@ stage that asks for a comment, not only one that blocks.
 - **The verdict, and how strong it is.** The `evidence_gate` basis: measured/traced with gates
   passing reads as what the data shows; inferred or hedged reads as a theory and says what would
   settle it. Supplying no basis means the session hedges, and is a gate failure worth reporting.
-- **Every question the run blocks on**, each naming the artifact that answers it — the transaction
-  ids, the expected rate and its published authority, the merchant configuration. The ticket is the
-  only place questions get answered; one in structured output or a PR comment reaches nobody who
-  holds the answer. If you return three, three are asked; the session may consolidate wording, never
-  the set.
+- **Every question the run blocks on**, each naming what would answer it — the transaction ids, the
+  correct rate, the treatment for a code. Ask for the ruling, never its paperwork: an SME who knows
+  the treatment answers in a sentence, and demanding the statute or bulletin alongside turns that
+  into an afternoon of digging and a ticket that goes quiet. A citation is welcome when it is to
+  hand and is never what makes the answer count. The ticket is the only place questions get
+  answered; one in structured output or a PR comment reaches nobody who holds the answer. If you
+  return three, three are asked; the session may consolidate wording, never the set.
 - **Whether the answer binds more than this merchant.** Configuration is per-TIC/state/jurisdiction,
   so it usually does, and that scope is what a human is actually signing off.
 
