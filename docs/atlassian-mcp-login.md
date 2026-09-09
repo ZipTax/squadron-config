@@ -18,47 +18,74 @@ anything granted beyond that is available to any agent holding a write tool.
 This account is not the one Devin sessions use. They reach Jira through Devin's own Atlassian
 integration and are permissioned separately.
 
-## The login
-
-The Squadron box is headless, and the OAuth redirect lands on a loopback port there, so forward it
-rather than trying to run a browser on the box:
-
-```bash
-ssh -L 8080:localhost:8080 <squadron-box>
-squadron mcp login atlassian
-```
-
-Open the URL it prints in a local browser, approve as the automation account, and the redirect
-completes over the forwarded port. Confirm with:
-
-```bash
-squadron mcp status     # atlassian -> connected, with an expiry
-```
-
-If the printed URL redirects to a port other than 8080, forward that one instead — the port is
-chosen by Squadron's loopback listener, not fixed by this document.
-
-## Until it is authorized, the config does not load
+## The login is a chicken and egg, so point it at `mcp/` alone
 
 Squadron resolves a named tool — `mcp.atlassian.getJiraIssue`, and whatever else an agent is given
-later — by asking the server for its tool list, so on a box that has never logged in, every command
-that loads the config fails with:
+later — by asking the server for its tool list, so until the server is authorized the config cannot
+load. `squadron verify` says so plainly:
 
 ```
 Error: agent 'session_scout' tools: agents.hcl: Unsupported attribute; This object does not
 have an attribute named "getJiraIssue".
 ```
 
-That is the unauthorized server, not a typo in `agents.hcl` — log in and it resolves. The
-alternative, `mcp.atlassian.all`, resolves without a connection but hands the agent every write
-tool on the server, including comment-posting — which is exactly what a read-only stage must not be
-able to do, so name the tools instead of taking the shortcut.
+The `mcp` commands hit the same wall less plainly. They load the whole config to find the `mcp`
+blocks, so on an unauthorized box they report every server as absent — including linear, which has
+nothing to do with it:
+
+```
+$ squadron mcp status
+No mcp servers configured.
+$ squadron mcp login atlassian
+Error: mcp "atlassian": not found in config
+```
+
+That is not a missing block. Point the command at the directory holding the `mcp` blocks and
+nothing else, and it loads them without ever reaching `agents.hcl`. Pass `--squadron-home`
+explicitly, because `-c` moves the vault's default location and a token written to `mcp/.squadron`
+is one the running Squadron will never read:
+
+```bash
+squadron mcp login atlassian -c mcp --squadron-home /root/squadron/config/.squadron
+```
+
+Once the token is in the vault, the config loads and plain `squadron mcp status` works again.
+
+## The login
+
+The box is headless and the OAuth redirect lands on a loopback port there, so the browser part
+happens on your Mac over a forwarded port. The port is chosen per run, not fixed, so read it out of
+the printed url rather than guessing:
+
+```bash
+ssh <squadron-box>
+squadron mcp login atlassian -c mcp --squadron-home /root/squadron/config/.squadron
+#   ... redirect_uri=http%3A%2F%2F127.0.0.1%3A38753%2Fcallback ...   <- 38753 here
+```
+
+Leave that running, and from a second local terminal forward the port it printed:
+
+```bash
+ssh -L 38753:localhost:38753 <squadron-box>
+```
+
+Then open the printed url in your browser, approve as the automation account, and the redirect
+completes over the forwarded port. Confirm with:
+
+```bash
+squadron mcp status     # atlassian -> connected, with an expiry
+```
+
+The shortcut that avoids all of this — `mcp.atlassian.all` — resolves without a connection, but it
+hands the agent every write tool on the server, including comment-posting, which is exactly what a
+read-only stage must not be able to do. Name the tools and do the login.
 
 ## Renewal
 
 The access token refreshes itself while the server is in use. The refresh token does not live
 forever, and Atlassian's lapse after a period of disuse (on the order of months), so a long quiet
-spell means logging in again — the same two commands.
+spell means logging in again — the same command, and without the `-c mcp` dance, since a config
+that has been authorized once still loads.
 
 `squadron mcp status` reporting `no token` or `expired` for `atlassian` is the signal. From inside a
 mission it looks like a refused Jira call, which a stage should treat as something it could not see
