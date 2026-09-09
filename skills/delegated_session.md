@@ -90,7 +90,14 @@ without re-searching, so an unexplained pick is one nobody downstream can correc
 
 ## When a session cannot be messaged
 
-A terminated or archived session is readable but not messageable, and a stage can inherit one:
+**Age is the trap.** Devin refuses to continue a session more than 30 days after its last
+activity, and nothing in the status says so: a session idle since July reads
+`suspended (inactivity)`, exactly like one suspended an hour ago. `check_session` reports
+`Last Activity` and, past the window, `Resumable: NO` — read that line, because a run that
+reads only the status routes `continue` and briefs a session that will never see it. Past
+30 days the session is a report to inherit, not a lane to reopen.
+
+A terminated, archived or expired session is readable but not messageable, and a stage can inherit one:
 a verdict may be carried forward from a session that is already closed. Where a stage passes an
 id on, it passes a `session_messageable` flag with it, and a false flag changes what you may do
 with that id — not just how you send to it:
