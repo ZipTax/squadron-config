@@ -25,6 +25,10 @@ Reusable mechanics live in the repo's skills — load them rather than re-derivi
 - The ticket key, and the investigation's result: the proven mechanism (what is wrong and where
   expected and actual part ways), the remediation disposition, the affected roots
   (procs/functions) or tables/rows.
+- Any "confirm on production before merge" query the investigation left in its unknowns. The
+  finding rests on the dated snapshot; put that query and what it must return in the PR
+  description so the reviewer runs it, and note that a moved row changes the rows the fix
+  writes, not whether it is written.
 - The base branch, if not the repo default.
 - Whether you are writing the fix or **adopting** one that already exists (see below).
 

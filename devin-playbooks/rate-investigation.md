@@ -49,6 +49,9 @@ identifier is required to distinguish the reported subject from a broader popula
    - Preserve every explicitly reported state, transaction, product, rate component, and
      expected behavior; do not select a convenient subset or guess the "real issue."
    - Treat a ticket-provided rate as the investigation target, not authoritative evidence.
+   - Treat a ticket-stated treatment ("unprepared food stays exempt") as settled: check the code
+     against it, do not ask product to decide it again. Ask only what the ticket, the state's
+     notice and the code together cannot answer.
 
 2. **Classify the request.**
    - Continue for current-behavior, rate-production, rate-discrepancy, and support
@@ -71,9 +74,9 @@ identifier is required to distinguish the reported subject from a broader popula
    - Invoke `write-taxcloud-sql-query` before composing or delivering SQL.
    - Invoke `query-staging-snapshot` only after the query is schema-verified, indexed,
      bounded, read-only, and scoped to an explicit dated `PROBE_DB`.
-   - If decisive current rows may postdate the snapshot, ask for the narrowest safe
-     production query/result; do not substitute another merchant, product, certificate,
-     or period.
+   - If decisive current rows may postdate the snapshot, write the narrowest safe
+     production query, hand it over in the same turn, and proceed on the snapshot; do not
+     substitute another merchant, product, certificate, or period.
 
 5. **Prepare separate deliverables.**
    - Engineering artifact: retain the frozen question, evidence outcomes, cited code,
@@ -119,11 +122,23 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
   | `Supported`, `No discrepancy reproduced`, `Explained` (behavior is correct as designed) | `WORKING_AS_INTENDED` |
   | any `Unknown from available evidence`, `Partially explained` | `EVIDENCE_INCOMPLETE` |
 
+  Map per part when the ticket has several. A county rate rise, an accommodations rate and a
+  food exemption are three questions; the part the ticket was raised for drives the routing
+  verdict, and each other part carries its own verdict and its own `blocking_questions` entry
+  or `unknowns` entry. A proven primary part beside an unanswered scope question is
+  `DEFECT_PROVEN` with that question listed — not `EVIDENCE_INCOMPLETE` because one leg is soft.
+
   Label every load-bearing claim `measured`, `traced`, `inferred`, or `hedge`. `DEFECT_PROVEN` and
   `WORKING_AS_INTENDED` both require the mechanism to be measured or traced and the disposition
   known; an inferred chain, however plausible, is `EVIDENCE_INCOMPLETE` with `unknowns` naming the
   exact artifact that would close each gap. Do not upgrade a verdict because a stage downstream is
   waiting on it.
+- **The snapshot decides; production is a verify note.** The dated copy is refreshed on purpose
+  and is the freshest data you can reach, so a mechanism measured in it is measured. Where the
+  decisive rows are the kind that move (a rate period, an override), put the narrowest read-only
+  production query in `unknowns` marked "confirm before the fix merges" and route on the snapshot.
+  A moved row changes the fix, not the finding. Missing production access is
+  `EVIDENCE_INCOMPLETE` only when the finding itself cannot be made from the copy.
 - **Three entry modes, told to you by the caller.** A fresh investigation is the usual one. A
   *gap-closing* follow-up gives you a prior report and the specific missing evidence: close that
   gap, and revise the verdict only if the new evidence moves it. A *WAI challenge* gives you a
