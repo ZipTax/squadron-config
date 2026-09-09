@@ -55,8 +55,9 @@ A/B has run, not a rewrite before anyone has seen a result.
    `rate-fix` session and you are taking that work over, your line replaces it — two URLs for one
    stage leaves a later run messaging the dead one. Never touch another stage's line. The Devin API
    refuses us an organization-wide session list, so that field is how a later run finds this
-   session instead of re-deriving the fix. If the ticket has no such field, note it in your report
-   and carry on.
+   session instead of re-deriving the fix. It is `customfield_11724`, rich text, so write it as ADF
+   — one paragraph per line — since a plain string is rejected, and it reads back as ADF too. If the
+   ticket has no such field, note it in your report and carry on.
 
 1. **Confirm the brief against the code.** Read the affected roots and check the briefed
    mechanism is actually there. If the code contradicts the diagnosis, stop and report what you

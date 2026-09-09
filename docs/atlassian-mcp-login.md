@@ -62,16 +62,27 @@ like from a mission is a refused field read, which `discover_sessions` treats as
 not see rather than a ticket with no history: the run continues on the tag search and the
 resume-state file, degraded but not wrong.
 
-## The field id
+## The field
 
-The field's id is not hardcoded. `variable "jira_sessions_field"` in `variables.hcl` defaults to a
-placeholder; set the real one on the box:
+`Devin Sessions` is `customfield_11724` on the DEV project, which is `variable
+"jira_sessions_field"`'s default. Only override it if the field is ever rebuilt —
+`squadron vars set jira_sessions_field customfield_NNNNN` — and note that a wrong id reads exactly
+like a ticket with no field on it, silently. To find an id: read any DEV issue with
+`fields=["*all"]` and `expand=names`, or look at the field's URL in Settings → Issues → Custom
+fields.
 
-```bash
-squadron vars set jira_sessions_field customfield_NNNNN
+It is a **rich text** paragraph field (Jira lists the type as "Text Field (multi-line)"), which
+decides how sessions write it: the value is an ADF document, one paragraph per line, and a plain
+string is rejected —
+
+```
+"customfield_11724": "rate-fix: https://..."
+  → Operation value must be an Atlassian Document
+
+"customfield_11724": {"type": "doc", "version": 1, "content": [
+    {"type": "paragraph", "content": [{"type": "text", "text": "rate-fix: https://..."}]}]}
+  → ok
 ```
 
-Find it as a Jira admin under Settings → Issues → Custom fields (the id is in the field's URL), or
-by reading any DEV issue with `fields=*all` and looking for the one named `Devin Sessions`. A wrong
-or unset id reads exactly like a ticket with no field on it, which is silent — so check
-`squadron vars` after the field is created.
+Reads come back as ADF whatever `responseContentFormat` asks for, so the index a stage parses is
+the text of those paragraphs, not a newline-separated string.

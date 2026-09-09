@@ -29,8 +29,9 @@ And tell it to register itself on the ticket: read the ticket's **Devin Sessions
 it back carrying `<stage tag>: <its session url>`, as its first action. It is an upsert keyed on
 the stage tag — a session continuing a stale one replaces that stage's line rather than adding a
 second, because two urls under one tag leave the next run messaging the dead session; every other
-line survives untouched. You cannot do this yourself and neither can the stage that
-routed to you — only the session holds Jira credentials, and only it knows its own URL. It is
+line survives untouched. The field is `customfield_11724`, rich text: it is written as ADF, one
+paragraph per line, and rejects a plain string. You cannot do this yourself and neither can the
+stage that routed to you — only the session holds Jira credentials, and only it knows its URL. It is
 what makes the ticket an index of its own sessions, which is the one place a later run can look
 that does not depend on the Devin API letting us list sessions at all (see below). A session that
 skips it is invisible to the next run and gets its work re-derived.

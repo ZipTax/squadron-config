@@ -116,7 +116,9 @@ When an orchestrator invokes you rather than a human — the squadron `rate_tria
   overwrite is your own stage's. It is how the next run on this ticket finds you: the Devin API
   refuses us an organization-wide session list, so a session absent from that field is one a later
   triage cannot see, and it re-derives your work instead of asking you. If the field does not exist
-  on the ticket, say so in your report and carry on; it is not a blocker.
+  on the ticket, say so in your report and carry on; it is not a blocker. It is `customfield_11724`,
+  rich text, so write it as ADF — one paragraph per line — since a plain string is rejected, and it
+  reads back as ADF too.
 - **Never block.** There is no interactive user, so a question you would have asked goes in
   `blocking_questions` (there may be more than one — a jurisdiction question and a rate question
   are separate) and you proceed on what the evidence supports. A question that genuinely

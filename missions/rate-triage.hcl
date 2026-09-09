@@ -149,9 +149,11 @@ mission "rate_triage" {
          `<stage tag>: <session url>`, so the ticket carries its own session index, and reading it
          needs nothing but permission to view the issue. A stage appears at most once — a session
          resuming a stage overwrites that stage's line — so the url beside a tag is the one to
-         message, not the first one ever opened for it. This is the primary source: it is the one
-         that works. An empty or absent field means no session registered — which is a real answer
-         for any run of this flow since the field existed, and says nothing about older ones.
+         message, not the first one ever opened for it. The field is rich text, so it comes back as
+         an ADF document rather than a string: the lines are the text of its paragraphs. This is
+         the primary source: it is the one that works. An empty or absent field means no session
+         registered — a real answer for any run of this flow since the field existed, and it says
+         nothing about older ones.
       3. find_sessions(tags: ["${inputs.issue}"]) as a supplement, for what the field cannot name:
          sessions predating it, and any a human opened by hand. Treat it as best-effort — it is an
          organization-wide read our key is often refused — so a refusal here is not a gap in the

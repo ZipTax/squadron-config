@@ -27,11 +27,14 @@ variable "devin_org_id" {
 }
 
 variable "jira_sessions_field" {
-  # The "Devin Sessions" custom field on the DEV project: one line per Devin
-  # session that worked a ticket, `<stage tag>: <session url>`. Override with
-  # `squadron vars set jira_sessions_field customfield_NNNNN` — the default is a
-  # placeholder, and a field id that does not exist reads as an absent field.
-  default = "customfield_XXXXX"
+  # The "Devin Sessions" custom field on the DEV project: one paragraph per Devin
+  # session that worked a ticket, `<stage tag>: <session url>`. It is a rich-text
+  # textarea, so it reads back as ADF rather than a plain string.
+  #
+  # Override with `squadron vars set jira_sessions_field customfield_NNNNN` if the
+  # field is ever rebuilt — a field id that does not exist reads as an absent field,
+  # silently.
+  default = "customfield_11724"
 }
 
 variable "ratevariant_webhook_secret" {

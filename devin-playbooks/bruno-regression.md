@@ -66,8 +66,9 @@ These exist because past sessions have gone wrong here. Follow them exactly.
    session is already listed and you are continuing its work, yours replaces it, since two URLs for
    one stage leaves a later run messaging the dead one. Every other line stays as it is. The Devin
    API refuses us an organization-wide session list, so that field is how the next run on this
-   ticket finds you rather than re-deriving your work. No such field on the ticket is a note in
-   your report, not a blocker.
+   ticket finds you rather than re-deriving your work. It is `customfield_11724`, rich text, so
+   write it as ADF — one paragraph per line — since a plain string is rejected, and it reads back as
+   ADF too. No such field on the ticket is a note in your report, not a blocker.
 
    An unwritten scenario has to be *actionable*: name the scenario, the exact figure, and the
    authority that would supply it, because the orchestrator puts it on the ticket and the next run
