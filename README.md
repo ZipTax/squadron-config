@@ -4,11 +4,6 @@ Configuration repository for [Squadron](https://docs.squadron.sh/) -- a declarat
 
 This repo defines the agents, models, plugins, skills, and missions used to automate code development, QA, and peer review workflows for the ZipTax project.
 
-The proposed event-driven process for long-running rate tickets is documented in
-[Rate-ticket orchestration](docs/rate-ticket-orchestration.md). It explains which responsibilities
-belong to Squadron, Devin, Jira, and the planned bridge service before describing the webhook and
-checkpoint mechanics.
-
 ## Prerequisites
 
 - [Squadron CLI](https://docs.squadron.sh/) installed
@@ -136,6 +131,6 @@ A lightweight mission that retrieves and structures Linear issue details for eng
 
 ## Further Reading
 
-- [Rate-ticket orchestration](docs/rate-ticket-orchestration.md)
+- [Project documentation](docs/README.md)
 - [Squadron Documentation](https://docs.squadron.sh/)
 - [Squadron SDK](https://github.com/mlund01/squadron-sdk)
