@@ -10,8 +10,8 @@ The design therefore separates active work from durable coordination:
 - Devin holds the working context for one engineering lane.
 - Squadron owns decisions, routing, and the current case checkpoint.
 - Jira is where people receive and answer product-level questions.
-- The bridge reliably wakes Squadron when Jira has new information; it does not decide what work
-  happens next or select a Devin session.
+- The bridge reliably wakes Squadron when Jira receives an explicit ready signal; it does not
+  decide what work happens next or select a Devin session.
 - Repository skills and documentation hold reusable engineering procedure and precedents.
 
 This is a target design. The existing rate missions still implement their current memory-and-label
@@ -80,7 +80,8 @@ When Devin reports `needs_human`, Squadron owns the blocking workflow:
    better product context. Devin supplies the words because it can read the ticket and the
    co-located guidance; Squadron decides that the question may be posted.
 4. Confirm the Jira comment exists, then register the blocker with the bridge.
-5. Write the current checkpoint, add the configured needs-information label, and end the mission.
+5. Write the current checkpoint, add the configured needs-information label, remove any stale
+   ready-for-Squadron label, and end the mission.
 
 The order matters. A label without a visible question leaves a ticket that appears blocked but gives
 the reader nothing to answer. A question without a registered blocker cannot reliably wake
@@ -96,7 +97,7 @@ two conceptual endpoints:
 
 ```text
 POST /blockers       Squadron registers or revises a human blocker.
-POST /webhooks/jira  Jira delivers comments on tickets waiting for information.
+POST /webhooks/jira  Jira delivers ready-label changes on tickets waiting for information.
 ```
 
 It also needs a durable outbox for calls to Squadron. A webhook receiver should persist an accepted
@@ -104,10 +105,10 @@ event before returning success, then deliver it asynchronously. This protects th
 process restarts, Jira retries, and an unavailable Squadron instance. Because the bridge does not
 message Devin, it does not need a Devin API key.
 
-The bridge may validate webhook identity and blocker generation, but it does not infer the next
-phase or whether a comment answers the question. Squadron records a resume mission and entry stage
-when it registers the blocker. The bridge later invokes exactly that target with the new Jira
-comment ID.
+The bridge may validate webhook identity, the ready-label transition, and blocker generation, but
+it does not infer the next phase or whether the discussion answers the question. Squadron records a
+resume mission and entry stage when it registers the blocker. The bridge later invokes exactly that
+target with the Jira event ID and the active blocker generation.
 
 For example, if audit pauses while investigation obtains a human tax decision, the blocker can say
 that new Jira activity returns to `rate-fix` at `audit`. The resumed audit stage may send the answer
@@ -123,25 +124,31 @@ Squadron registers blocker and exits
                     |
                     | time passes
                     v
-Jira update -> bridge -> recorded Squadron entry point
-                                      |
-                                      v
-                         selected Devin session(s)
+Human adds ready label -> bridge -> recorded Squadron entry point
+                                           |
+                                           v
+                              selected Devin session(s)
 ```
 
 In detail:
 
-1. Jira sends a comment webhook for a ticket carrying the needs-information label.
-2. The bridge finds the active blocker for the ticket and ignores automation-authored comments.
-3. The bridge claims the Jira comment for that blocker and invokes the recorded Squadron mission
-   and entry stage. Its payload identifies the blocker generation and new comment; it does not
-   claim that the comment is a sufficient answer.
-4. Squadron reads the checkpoint and the new Jira discussion. It may decide that the comment is
-   irrelevant or incomplete without waking Devin.
-5. If engineering interpretation is needed, Squadron selects the appropriate registered lane and
+1. A person answers or discusses the question in its existing Jira discussion. Ordinary comments
+   do not start a mission.
+2. When the person believes the available answer is ready for another attempt, they add the
+   configured ready-for-Squadron label.
+3. Jira sends an issue-update webhook. The bridge accepts only an addition of that label on a
+   ticket with an active blocker and the needs-information label; removals and unrelated field
+   changes do nothing.
+4. The bridge claims that ready transition and invokes the recorded Squadron mission and entry
+   stage. Its payload identifies the Jira event and active blocker generation; it does not claim
+   that the discussion is a sufficient answer.
+5. Squadron clears the ready label, then reads the checkpoint and Jira discussion after the last
+   processed comment. It may decide that the response is irrelevant or incomplete without waking
+   Devin.
+6. If engineering interpretation is needed, Squadron selects the appropriate registered lane and
    sends that session a bounded request to read the Jira update. This may be different from the
    session that raised or authored the question.
-6. Squadron receives the normal Devin result, checks the session as it would in any live mission,
+7. Squadron receives the normal Devin result, checks the session as it would in any live mission,
    updates the checkpoint, and decides whether to continue, refine the blocker, or close the case.
 
 This means Devin neither restarts Squadron nor chooses the next phase. It only performs the work
@@ -164,6 +171,7 @@ raised_by:
 root_comment_id: "184900"
 current_question_comment_id: "184927"
 last_processed_comment_id: "184926"
+last_dispatched_ready_event_id: "jira-event-5512"
 question_digest: sha256-of-normalized-open-questions
 state: waiting
 resume_mission: rate-fix
@@ -184,23 +192,26 @@ At minimum, storage enforces uniqueness for:
 
 ```text
 Jira webhook identifier
-(blocker_id, Jira answer comment ID)
 (blocker_id, blocker generation)
+(blocker_id, blocker generation, ready-label transition ID)
 Squadron start event ID
 ```
 
-The Squadron start request carries a stable event ID derived from the blocker generation and Jira
-comment ID. Both the bridge and the mission deduplicate it. This covers the case where Squadron
+The bridge dispatches only a newly observed addition of the ready label for the active generation.
+It does not dispatch merely because the generation is higher than the last successful one: a person
+may add the ready label again for the same generation after supplying a better answer to an
+unchanged question. Duplicate deliveries of one label transition are ignored, while a later
+remove-and-add transition is a new request for review.
+
+The Squadron start request carries a stable event ID derived from the blocker generation and ready
+transition ID. Both the bridge and the mission deduplicate it. This covers the case where Squadron
 accepts a start but the response is lost before the bridge records success.
 
-Only one resume may be in flight for a blocker. If several human replies arrive close together, the
-bridge records all of their IDs but starts one mission. Squadron reads the Jira discussion after
-`last_processed_comment_id`, so it sees the answer as a whole instead of evaluating fragments in
-parallel. When the mission finishes, the bridge starts another run only if newer, unprocessed human
-comments remain and the blocker is still open.
-
-The needs-information label remains until Squadron decides the answer is sufficient. Clearing it as
-soon as the first comment arrives can lose a second comment when a person answers in several parts.
+Only one resume may be in flight for a blocker. Squadron reads all discussion after
+`last_processed_comment_id`, so comments written before it claims the ready signal are considered
+together. The ready label is an edge-trigger: Squadron removes it when the mission starts so a later
+addition can request another review. The needs-information label is durable state and remains until
+Squadron decides the blocker is resolved.
 
 ## How missions remain coarse-grained
 
@@ -277,6 +288,18 @@ The production-query identity should be read-only, limited to approved catalogs 
 audited. Queries should be bounded by ticket-relevant identifiers and dates. The evidence record
 captures the query, execution time, relevant catalog objects, and a small result or summary.
 
+Production evidence has an explicit status: `sufficient`, `insufficient`, or `unavailable`. No
+matching rows, incomplete history in the replica, stale synchronization, access refusal, and a
+truncated result are different findings and must not be collapsed into "production showed
+nothing." In particular, absence from the accessible Databricks data is not proof that the reported
+behavior is working as intended.
+
+When missing production data prevents a supported conclusion, Squadron surfaces the gap on the Jira
+ticket. The comment identifies the unavailable artifact or period, why it matters to the decision,
+and whether local investigation can still proceed. The same blocker workflow applies if a person
+can supply the missing evidence; otherwise the case closes or escalates with an explicit
+`insufficient_production_evidence` outcome rather than an inferred verdict.
+
 The proof chain remains:
 
 1. Databricks establishes what production data contained.
@@ -292,10 +315,11 @@ procedure change is correct.
 The design can be introduced without rewriting every mission at once:
 
 1. Define a typed Devin output for `needs_human`.
-2. Replace the free-form resume record with a versioned checkpoint schema.
-3. Build blocker registration, the Jira receiver, delivery deduplication, and the durable outbox.
-4. Make the three existing rate phases webhook-entry-capable and accept explicit entry stages.
-5. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
+2. Define the production-evidence status and ticket-visible gap outcome.
+3. Replace the free-form resume record with a versioned checkpoint schema.
+4. Build blocker registration, the Jira receiver, delivery deduplication, and the durable outbox.
+5. Make the three existing rate phases webhook-entry-capable and accept explicit entry stages.
+6. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
 
 Until a phase is migrated, its current blocking behavior remains authoritative. Do not run the old
 label-triggered resumption and the bridge webhook for the same ticket, because both will believe
