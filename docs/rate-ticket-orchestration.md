@@ -10,7 +10,8 @@ The design therefore separates active work from durable coordination:
 - Devin holds the working context for one engineering lane.
 - Squadron owns decisions, routing, and the current case checkpoint.
 - Jira is where people receive and answer product-level questions.
-- The bridge reliably delivers asynchronous events; it does not decide what work happens next.
+- The bridge reliably wakes Squadron when Jira has new information; it does not decide what work
+  happens next or select a Devin session.
 - Repository skills and documentation hold reusable engineering procedure and precedents.
 
 This is a target design. The existing rate missions still implement their current memory-and-label
@@ -31,9 +32,11 @@ The lane registry records the exact owner:
 | `ratevariant-cases` | Author and maintain local A/B fixtures and alterations. |
 | `bruno-tests` | Author live-API regression coverage from settled expectations. |
 
-An asynchronous event always names a lane and session. The bridge must never choose the newest
-session or combine conclusions from several sessions. If the recorded owner is unavailable,
-Squadron handles that as an explicit recovery case.
+The checkpoint records each lane's exact owner. When new information arrives, Squadron chooses
+which owner needs it; the session that raised a question is not necessarily the session that can
+answer the resulting engineering question. The bridge must never choose the newest session or
+combine conclusions from several sessions. If the selected owner is unavailable, Squadron handles
+that as an explicit recovery case.
 
 Audit is a Squadron responsibility rather than another implementation lane. It uses the existing
 sessions to obtain work and evidence:
@@ -55,14 +58,10 @@ For example, an audit iteration can ask the cases session to cover a missing roo
 turn, inspect the new output, and audit the new commit. The bridge adds no value inside this live
 loop.
 
-Every message to Devin declares how its result will be collected:
-
-| Continuation mode | Caller | Devin behavior when the turn finishes |
-| --- | --- | --- |
-| `synchronous` | A running Squadron mission | Return structured output to the caller. Do not emit a bridge event. |
-| `callback` | The bridge after a cold pause | Emit one completion event using the supplied continuation token. |
-
-Declaring the mode prevents a running mission and the bridge from both starting the next run.
+Devin needs no live-versus-cold mode. It responds to a message and becomes idle when messages stop.
+Squadron always collects the result in the same way: it sends work to the chosen session and then
+uses the returned result and `check_session`. Whether the mission was already running or was just
+started by a Jira webhook is invisible to Devin.
 
 ## When Squadron ends the mission
 
@@ -74,16 +73,18 @@ an interrupted tool call.
 When Devin reports `needs_human`, Squadron owns the blocking workflow:
 
 1. Validate that the missing information really requires a person.
-2. Assign the blocker to the exact lane and session that can interpret the answer.
-3. Ask that context-owning session to author the Jira question using the repository's ticket-writing
-   skill. Devin supplies the words because it can read the ticket and the co-located guidance;
-   Squadron decides that the question may be posted.
+2. Record which session raised the question and which mission stage must reconsider it when Jira
+   receives new information. This does not preselect the session that will consume the answer.
+3. Ask a context-owning session to author the Jira question using the repository's ticket-writing
+   skill. Usually this is the session that raised it, but Squadron may choose another session with
+   better product context. Devin supplies the words because it can read the ticket and the
+   co-located guidance; Squadron decides that the question may be posted.
 4. Confirm the Jira comment exists, then register the blocker with the bridge.
 5. Write the current checkpoint, add the configured needs-information label, and end the mission.
 
 The order matters. A label without a visible question leaves a ticket that appears blocked but gives
-the reader nothing to answer. A question without a registered blocker cannot reliably wake the
-right session.
+the reader nothing to answer. A question without a registered blocker cannot reliably wake
+Squadron to evaluate the response.
 
 If any step fails, record the partial state and retry idempotently. Do not create a second question
 or a second Devin session to escape an uncertain result.
@@ -91,25 +92,27 @@ or a second Devin session to escape an uncertain result.
 ## What the bridge does
 
 The bridge is delivery infrastructure, not an agent and not an alternate workflow engine. It needs
-three conceptual endpoints:
+two conceptual endpoints:
 
 ```text
 POST /blockers       Squadron registers or revises a human blocker.
 POST /webhooks/jira  Jira delivers comments on tickets waiting for information.
-POST /events         A callback-mode Devin continuation reports that its turn ended.
 ```
 
-It also needs a durable outbox for calls to Devin and Squadron. A webhook receiver should persist
-an accepted event before returning success, then deliver it asynchronously. This protects the
-workflow from process restarts, provider retries, and an unavailable downstream service.
+It also needs a durable outbox for calls to Squadron. A webhook receiver should persist an accepted
+event before returning success, then deliver it asynchronously. This protects the workflow from
+process restarts, Jira retries, and an unavailable Squadron instance. Because the bridge does not
+message Devin, it does not need a Devin API key.
 
-The bridge may validate identities and workflow transitions, but it does not infer the next phase.
-Squadron records the callback mission and entry stage when it creates the continuation. The bridge
-later invokes exactly that target.
+The bridge may validate webhook identity and blocker generation, but it does not infer the next
+phase or whether a comment answers the question. Squadron records a resume mission and entry stage
+when it registers the blocker. The bridge later invokes exactly that target with the new Jira
+comment ID.
 
 For example, if audit pauses while investigation obtains a human tax decision, the blocker can say
-that the completed continuation returns to `rate-fix` at `audit`. Investigation does not decide that
-audit is next, and the bridge does not derive it from the result.
+that new Jira activity returns to `rate-fix` at `audit`. The resumed audit stage may send the answer
+to investigation, the fix session, or more than one session in sequence. The bridge does not make
+that choice.
 
 ## How a human answer resumes work
 
@@ -120,67 +123,81 @@ Squadron registers blocker and exits
                     |
                     | time passes
                     v
-Jira answer -> bridge -> recorded Devin session -> completion event
-                                                    |
-                                                    v
-                                    recorded Squadron entry point
+Jira update -> bridge -> recorded Squadron entry point
+                                      |
+                                      v
+                         selected Devin session(s)
 ```
 
 In detail:
 
 1. Jira sends a comment webhook for a ticket carrying the needs-information label.
 2. The bridge finds the active blocker for the ticket and ignores automation-authored comments.
-3. The bridge claims the Jira comment for that blocker and sends a callback-mode message to the
-   recorded Devin session. The message identifies the Jira comment; Devin reads the answer from
-   Jira rather than trusting an unverified copy in the webhook payload.
-4. Devin continues its lane. It returns either usable work or another `needs_human` result.
-5. Devin emits a completion event with the continuation token. It does not choose a mission or
-   register another blocker.
-6. The bridge invokes the callback mission and entry stage recorded by Squadron.
-7. Squadron reads the session's structured output, updates its checkpoint, and decides whether to
-   continue, create a new blocker generation, or close the case.
+3. The bridge claims the Jira comment for that blocker and invokes the recorded Squadron mission
+   and entry stage. Its payload identifies the blocker generation and new comment; it does not
+   claim that the comment is a sufficient answer.
+4. Squadron reads the checkpoint and the new Jira discussion. It may decide that the comment is
+   irrelevant or incomplete without waking Devin.
+5. If engineering interpretation is needed, Squadron selects the appropriate registered lane and
+   sends that session a bounded request to read the Jira update. This may be different from the
+   session that raised or authored the question.
+6. Squadron receives the normal Devin result, checks the session as it would in any live mission,
+   updates the checkpoint, and decides whether to continue, refine the blocker, or close the case.
 
-This means a second human question still belongs to Squadron. Devin only reports what remains
-unknown.
+This means Devin neither restarts Squadron nor chooses the next phase. It only performs the work
+Squadron routes to it and reports what remains unknown.
 
 ## How duplicate resumes are prevented
 
 Jira delivery retries and repeated human discussion are different problems. The bridge therefore
 tracks both webhook delivery and the logical blocker.
 
-A blocker is identified by ticket, owning lane, and a monotonically increasing generation:
+A blocker has a stable Jira discussion and a monotonically increasing question generation:
 
 ```yaml
-blocker_id: TAX-123/investigation/3
+blocker_id: TAX-123/start-date-treatment
 ticket: TAX-123
-lane: investigation
 generation: 3
-owner_session_id: devin-abc123
-question_comment_id: "184927"
+raised_by:
+  lane: fix
+  session_id: devin-fix
+root_comment_id: "184900"
+current_question_comment_id: "184927"
+last_processed_comment_id: "184926"
 question_digest: sha256-of-normalized-open-questions
 state: waiting
-callback_mission: rate-fix
-callback_entry_stage: audit
+resume_mission: rate-fix
+resume_entry_stage: audit
 ```
 
 The generation advances only when Squadron approves a materially different question set. Receiving
-a Jira webhook does not advance it. If a reply is insufficient and the same question remains open,
-the bridge returns the same blocker to `waiting` after Squadron reviews the continuation.
+a Jira webhook does not advance it. When an answer exposes a missing date, scope, or other necessary
+detail, Squadron replies in the existing Jira discussion with the refined question and advances the
+generation. The root comment remains stable, while `current_question_comment_id` identifies the ask
+that the next reply must address. A net-new top-level comment would separate the clarification from
+the context that explains it.
+
+If a reply is merely irrelevant and Squadron asks nothing new, the generation does not advance. The
+same question remains current.
 
 At minimum, storage enforces uniqueness for:
 
 ```text
 Jira webhook identifier
 (blocker_id, Jira answer comment ID)
-(ticket, lane, blocker generation)
-Devin completion event ID
+(blocker_id, blocker generation)
 Squadron start event ID
 ```
 
-Messages sent to Devin carry a stable marker containing the blocker and Jira comment IDs. If a
-network failure makes delivery uncertain, the bridge checks the session messages for that marker
-before retrying. A completion event similarly carries a stable continuation token so a repeated
-callback starts at most one logical Squadron run.
+The Squadron start request carries a stable event ID derived from the blocker generation and Jira
+comment ID. Both the bridge and the mission deduplicate it. This covers the case where Squadron
+accepts a start but the response is lost before the bridge records success.
+
+Only one resume may be in flight for a blocker. If several human replies arrive close together, the
+bridge records all of their IDs but starts one mission. Squadron reads the Jira discussion after
+`last_processed_comment_id`, so it sees the answer as a whole instead of evaluating fragments in
+parallel. When the mission finishes, the bridge starts another run only if newer, unprocessed human
+comments remain and the blocker is still open.
 
 The needs-information label remains until Squadron decides the answer is sufficient. Clearing it as
 soon as the first comment arrives can lose a second comment when a person answers in several parts.
@@ -198,8 +215,8 @@ Each phase can accept an `entry_stage` plus the checkpoint and session identifie
 tasks remain ordinary mission tasks and routes. Only the stable phase boundaries need webhook entry
 points.
 
-Squadron chooses and records `callback_mission` and `callback_entry_stage` before it exits. The
-bridge consequently makes no dynamic routing decision when the continuation finishes. An optional
+Squadron chooses and records `resume_mission` and `resume_entry_stage` before it exits. The bridge
+consequently makes no dynamic routing decision when Jira reports new information. An optional
 single webhook-ingress mission could validate and forward events, but it is not required if the
 bridge calls the recorded phase webhook directly.
 
@@ -212,7 +229,7 @@ succeeds but its response is lost.
 
 Squadron is the only writer of the per-ticket checkpoint. The bridge passes delivery records and
 Devin returns structured facts, but neither edits orchestration memory directly. Single ownership
-prevents a late callback from overwriting a newer audit decision.
+prevents a late Jira delivery from overwriting a newer audit decision.
 
 The checkpoint is an index and decision record, not a transcript:
 
@@ -274,13 +291,12 @@ procedure change is correct.
 
 The design can be introduced without rewriting every mission at once:
 
-1. Define typed Devin outputs for `needs_human` and callback completion.
+1. Define a typed Devin output for `needs_human`.
 2. Replace the free-form resume record with a versioned checkpoint schema.
 3. Build blocker registration, the Jira receiver, delivery deduplication, and the durable outbox.
-4. Add callback mode to the relevant Devin playbooks and skills.
-5. Make the three existing rate phases webhook-entry-capable and accept explicit entry stages.
-6. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
+4. Make the three existing rate phases webhook-entry-capable and accept explicit entry stages.
+5. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
 
 Until a phase is migrated, its current blocking behavior remains authoritative. Do not run the old
-label-triggered resumption and the bridge callback for the same ticket, because both will believe
+label-triggered resumption and the bridge webhook for the same ticket, because both will believe
 they own the next run.
