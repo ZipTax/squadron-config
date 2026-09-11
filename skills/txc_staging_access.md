@@ -1,56 +1,34 @@
-# TaxCloud staging data access
+# Request TaxCloud data evidence
 
-Staging is a **dated copy** of the two production databases (`FedTax-<yyyymmdd>` /
-`Reports-<yyyymmdd>`). The connection settings and credentials live in the Devin environment
-(`RATEBENCH_*`) — they are not yours to hold or to paste. Never put a host, user, or password
-in an objective, a prompt, or a ticket comment.
+## Your responsibility
 
-## The snapshot is the best available data — and it is dated
+You supply the data question and scope, then judge whether the returned evidence supports
+the claim.
 
-The dated databases are the freshest data a session can query. There is no newer source it can
-reach, so do not instruct one to go looking for one, and **do not discount a finding on the
-grounds that the snapshot is stale or incomplete**. That discount is a common route to a false
-working-as-designed verdict.
+## Work with Devin
 
-What the discount is protecting against is a different, narrower thing, and the distinction
-matters on every route you take:
+Ensure the Devin session uses
+`write-taxcloud-sql-query` and `query-staging-snapshot` in the SQL repository. Do not put
+credentials, connection settings, SQL templates, or copied query procedures in its brief.
 
-- A snapshot row **establishes behavior in that dated copy** — a legitimate, citable
-  `measured` fact, labeled with the copy's date.
-- A snapshot row does **not** establish current production configuration. Where the verdict
-  turns on config that may have changed since the snapshot date (a rate row, an enrollment, a
-  certificate), the session records that as an unknown and hands over the narrowest read-only
-  production query that would confirm it, for whoever reviews the fix to run.
-- The absence of a row in the snapshot is not proof of absence in production.
+For case data gaps, ask the Devin session authoring cases to use ratevariant-case-data
+and find an eligible situation or explain the coverage limit. Let Devin select substitute
+merchants and investigate fixture requirements. A substitute must not be presented as the reported production transaction.
 
-So: never let a session dismiss a snapshot finding as stale, and never let it promote a
-snapshot row into a claim about today's production config. Both are gate failures under
-`evidence_gate`. Neither is a reason to hold the verdict: the copy is a few months old at most
-and refreshed on purpose, so a mechanism proven in it is `DEFECT_PROVEN` with "confirm on
-production before merge" and the query in `unknowns`. A moved production row changes the fix,
-not the finding, and the fix stage's reviewer is who can run the query. Production is a real
-reason to stop only when the finding itself cannot be made from the snapshot — the subject is
-absent and nothing comparable stands in.
+## Interpret the evidence
 
-If the merchant or transaction a case needs is absent from the snapshot, push for a comparable
-substitute. Only when that is genuinely impossible is it a coverage gap — and then it is
-reported as a gap, not smoothed over.
+The dated FedTax/Reports snapshot proves facts about that copy. Its date alone does not
+invalidate a measured mechanism, but neither matching nor missing rows establish today's
+production configuration. Preserve a bounded production verification request when current
+rows matter; if the finding itself cannot be supported, retain the evidence gap.
 
-## When a session cannot reach staging
+Governed production access, when available, is a separate observation source recorded in
+production_evidence. Do not assume it exists, describe staging as the only possible source,
+or treat production observations as a substitute for local SQL Server behavior proof.
 
-Older sessions may predate the environment wiring. Do not preemptively hand out variables or
-request a password. Wait until the session reports it cannot reach the database, then have it
-check its `.env` for the `RATEBENCH_*` settings, and if a secret is genuinely missing have the
-session request it from a human through Devin's secret request — the value never passes
-through you.
+## Finish or pause
 
-## Querying
-
-Read-only, bounded, indexed — but none of the how is yours. The repo owns it: have the session
-load `write-taxcloud-sql-query` (produces the scoped query) and `query-staging-snapshot`
-(executes it with ratebench's `cmd/sqlprobe`, and documents the date/index traps) rather than
-improvising SQL or scaffolding a querier. Relaying query advice from here produces stale SQL.
-
-The session's login is read-only and cannot reach the canonical databases the ratevariant
-deploy/run/cleanup commands default to. Those mutate shared staging and are driven through the
-PR labels, never from a session.
+If access fails, have the Devin session check its environment wiring and report the missing
+capability. Secrets remain in Devin's secret mechanism; a required human dependency returns
+through blocked_run rather than keeping the mission open. Shared staging mutations run
+through the repository's PR workflows, not ad hoc commands from a session.

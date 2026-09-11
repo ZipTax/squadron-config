@@ -1,0 +1,20 @@
+{
+  "outcome": "needs_human",
+  "human_questions": [
+    {
+      "question": "Should a replay with a changed payload return the original record or be rejected?",
+      "context": "The accepted contract covers identical submissions. The same identifier with a changed payload reaches this path too, and its required handling is not defined."
+    }
+  ],
+  "implemented": false,
+  "adopted_existing_pr": false,
+  "pr_url": "",
+  "branch": "",
+  "head_sha": "",
+  "change_type": "none",
+  "files_changed": [],
+  "roots_touched": [],
+  "mirrored_paths_checked": false,
+  "diagnosis_disagreement": "",
+  "fix_summary": "No change was made because handling conflicting payloads requires a decision."
+}

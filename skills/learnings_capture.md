@@ -1,63 +1,46 @@
-# Capturing learnings
+# Capture reusable learning
 
-Most cases teach nothing durable and should end without a write-back. A learning is worth
-recording only when it is both durable and new: it would change how the *next* case is
-handled, and it is not already written down. Grep the destination first — a rule restated in
-a second place is two sources of truth waiting to disagree, and an entry already present takes
-at most this ticket added as another instance.
+## Your responsibility
 
-## Is it generalizable?
+Decide whether a case established a useful, new rule for future work. Most cases need no
+writeback. A ticket outcome belongs on its ticket; a reusable discovery belongs where the
+next person doing similar work will look for guidance.
 
-Record it when it is a **rule about the system or the process**, restated so it applies
-beyond this case:
+## Work with Devin
 
-- a trap that produced a wrong conclusion and would again (a shadowing pattern, an index
-  requirement, a surface that must be checked in parallel with another);
-- a fact about the environment or tooling that was expensive to discover;
-- a place where the documented behavior and the actual behavior differ.
+Ask the Devin sessions that did the work for concrete discoveries supported by evidence.
+Use their reports when they cannot be messaged. Have Devin check the intended destination
+for existing guidance before proposing another rule, because duplicate instructions drift.
 
-Do not record: the outcome of this ticket (that lives on the ticket and the PR), a restatement
-of existing documentation, or anything you could not cite (`evidence_gate` applies —
-speculative "lessons" are worse than none, because they get trusted).
+For a qualifying lesson, ask Devin to author a reviewable documentation PR, supplying the
+facts and destination rather than a drafted body. One Devin session may update several
+repositories when each needs a distinct part of the lesson. Prefer amending existing guidance.
 
-## Where it goes
+## Assess the candidate and destination
 
-Route through one session, which may legitimately write to several repos — a lesson is often
-both a repo trap and a workflow rule. Route each part by what kind of thing it is:
+A useful lesson changes how a similar case would be handled: a proven failure pattern,
+an expensive environment discovery, or a mismatch between documented and actual behavior.
+Require a citation and distinguish established findings from hypotheses.
 
-| Kind of learning | Destination |
-|---|---|
-| How to work in a repo — a trap, a procedure, a tool invocation | that repo's skill/docs directory, as a PR |
-| How to run this workflow — a stage boundary, a verdict rule, a gate | the corresponding skill here, as a PR |
-| A fact about the system's data or configuration | the owning repo's reference docs |
-| A rate-audit precedent (symptom → mechanism → how it was proven) | `ratevariant-audit/references/case-law.md` in `txc-sqlserver-database` |
-| A proven instance of a `new-rate-engine`-labelled deferral | `ratevariant-audit/references/limitations.md`, under the labelled ticket it instances |
-| An unproven mechanism hypothesis for an open ticket | `ratevariant-audit/references/open-theories.md`, labelled as a hypothesis |
+| Learning | Destination |
+| --- | --- |
+| Repository procedure, query trap, or tool usage | Owning repository's skills or docs |
+| Workflow boundary, evidence gate, or routing behavior | Corresponding workflow skill |
+| Data or configuration fact | Owning repository's reference docs |
+| Proven rate-audit precedent | SQL repository's ratevariant-audit case-law reference |
+| Proven limitation deferred under new-rate-engine | SQL repository's ratevariant-audit limitations reference |
+| Unproven mechanism | Open-theories reference, explicitly labelled as a hypothesis |
 
-Every destination above is a file in a repo, reached by a PR. There is deliberately no "general
-knowledge base" row: a delegated session cannot write org knowledge notes, so routing a
-learning there means it is silently lost. Cross-repo context goes to the repo whose sessions
-need it most, and a human promotes it further if it deserves it.
+New limitations need not match an existing entry. Preserve the proven scope in case law
+when no deferral has been decided; do not invent a new-rate-engine decision to fit the
+limitations reference. For an existing limitation, add useful new evidence or the new case
+rather than restating the rule.
 
-Prefer amending an existing document over adding a new one, and keep it short: a rule plus
-the one case that demonstrates it. Case law earns its keep by being cited, not by being long.
+## Finish
 
-## How
+Accept a concise rule with its supporting case in a reviewable PR, or state why nothing
+qualifies. Documentation must not mutate the underlying data or silently change production.
 
-Propose the write-back through the session that holds the evidence and the credentials, as a
-normal reviewable change. Never write to a durable store silently, and never edit history or
-a data source that is the system's source of truth as a "learning" — a learning is
-documentation, not a mutation.
-
-State plainly when nothing is worth recording. That is the common case.
-
-## The case log is not one of those destinations
-
-The per-run log of what each case was and where it was written back lives in the `rate_case_log`
-memory, and the finalize stage writes it itself with its own file tools. It is orchestrator state:
-it is never delegated to a session, and it is never a file in a repo — a committed `cases.md` is
-this line being ignored, or the memory slot failing to attach.
-
-The repo's `case-law.md` is the other half of the pair and holds only what generalizes. One is a
-ledger of runs, the other a set of precedents; keeping them apart is what stops the precedents from
-drowning in entries that taught nothing.
+The mission's rate_case_log is separate: use your mission file tools for its run ledger.
+Do not ask Devin to commit that log into a repository if the memory slot is unavailable.
+The ledger records runs; repository references preserve only what generalizes.

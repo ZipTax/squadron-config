@@ -1,6 +1,27 @@
 {
   "type": "object",
   "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "needs_human"
+      ],
+      "description": "Whether this lane completed its bounded work. Use needs_human only when the Bruno deliverable cannot safely finish without information or a decision that only a person can provide; deliberately unwritten scenarios can coexist with a completed outcome."
+    },
+    "human_questions": {
+      "type": "array",
+      "description": "Questions that prevent this lane from completing. Empty when outcome is completed. Squadron decides who receives them and where work resumes.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": { "type": "string" },
+          "context": { "type": "string" }
+        },
+        "required": ["question", "context"],
+        "additionalProperties": false
+      }
+    },
     "pr_url": {
       "type": "string",
       "description": "Bruno PR URL."
@@ -72,6 +93,8 @@
     }
   },
   "required": [
+    "outcome",
+    "human_questions",
     "pr_url",
     "branch",
     "scenarios",

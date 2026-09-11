@@ -16,8 +16,9 @@ A build/plan step succeeding proves less still: it validates mechanics, not beha
 
 ## Predict before you look
 
-Write the expected per-case outcome **from the change itself** — read the changed code — and
-from the requirement in the ticket. Do not predict from the PR description or commit message:
+Obtain expected per-case outcomes **from the change itself** and the ticket requirement.
+In a delegated mission, have the independent evidence session read the changed code and
+return its predictions with citations; you check that the evidence supports them. Do not predict from the PR description or commit message:
 they are frequently wrong about their own change. Then compare each case's actual result to
 that prediction.
 
@@ -62,7 +63,7 @@ get a diff" is the classic opening line of a false working-as-designed conclusio
 
 Per-execution columns — timestamps, generated identities, run ids — are noise and belong in
 the capture's output exclusions, which is the one place that list should live. A case that
-differs only on those is a no-diff. Add the column to the exclusions rather than re-deciding
+differs only on those is a no-diff. Route the exclusion change to the harness owner rather than re-deciding
 it is noise each run, and remember the underlying no-diff may be hiding a no-op change.
 
 ## Scope and consistency
@@ -71,7 +72,7 @@ it is noise each run, and remember the underlying no-diff may be hiding a no-op 
   surface and missed on a parallel one is a worse state than before.
 - Data changes must have a blast radius matching the migration exactly: the targeted entity
   diverges, its neighbours do not, and teardown reverts cleanly.
-- Correct aggregate, wrong attribution is still a bug. Assert the identifying/classifying
+- Correct aggregate, wrong attribution is still a bug. Require evidence for the identifying/classifying
   fields, not only the headline number.
 
 ## Exit bar

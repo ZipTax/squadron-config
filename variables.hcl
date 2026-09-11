@@ -48,3 +48,20 @@ variable "jira_sessions_field" {
 variable "ratevariant_webhook_secret" {
   secret = true  # Shared secret for the /ratevariant mission webhook
 }
+
+variable "mcp_host_secret" {
+  secret = true
+}
+
+variable "bridge_url" {
+  # HTTPS base URL without a trailing slash; may use tailnet DNS.
+  default = ""
+}
+
+variable "bridge_registration_token" {
+  secret = true
+}
+
+variable "rate_ready_label" {
+  default = "TaxRates:Ready-for-Squadron"
+}

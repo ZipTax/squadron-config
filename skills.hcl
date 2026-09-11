@@ -56,8 +56,13 @@ skill "verdict_loop" {
 }
 
 skill "blocked_run" {
-  description  = "Load at both ends of a blocked case: when you are the first stage of a run (clear the sentinel label once, read the ticket's answers and judge whether each is enough to act on) and when you cannot finish without something only a human can supply (end rather than wait, the resume-state record for the next run versus the ticket comment for the human, what that index must contain, and the label that restarts the run)."
+  description  = "Load when a rate mission resumes from, or ends on, a question that only a person can answer. Keeps the Jira discussion separate from Squadron's routing state."
   instructions = load("./skills/blocked_run.md")
+}
+
+skill "rate_checkpoint" {
+  description  = "Load when reading, migrating, updating, or deleting a rate ticket's current Squadron checkpoint. Defines schema validation and checkpoint_revision handling."
+  instructions = load("./skills/rate_checkpoint.md")
 }
 
 skill "sme_writeback" {
@@ -86,6 +91,12 @@ skill "rate_investigation" {
 }
 
 skill "txc_staging_access" {
-  description  = "Load when a stage needs TaxCloud staging data. The dated snapshot is authoritative and must not be discounted as stale, credentials stay in the Devin environment, and queries go through the repo's query skills and ratebench sqlprobe."
+  description  = "Load when a stage needs TaxCloud staging data. Distinguishes dated snapshot proof from current production observations; delegates query and fixture mechanics to the repository skills."
   instructions = load("./skills/txc_staging_access.md")
+}
+
+skill "bridge" {
+  description = "Load to register or resolve a rate-ticket human wait through the bridge."
+  instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nReady label: ${vars.rate_ready_label}"
+  tools = [tools.save_rate_blocker]
 }
