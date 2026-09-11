@@ -242,8 +242,8 @@ mission "rate_finalize" {
       # Delegate to Devin
 
       Have the stage agent create a fresh read-only Devin session through plugins.devin.code_develop
-      on ${inputs.repo_url}, with prompt_mode raw, title ${inputs.issue} — verify working-as-intended,
-      and tags ${inputs.issue}, verify-wai. Have Devin use the repository's investigate-tax-behavior
+      on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} — verify working-as-intended,
+      and tags `["${inputs.issue}", "verify-wai"]`. Have Devin use the repository's investigate-tax-behavior
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
       Use delegated_session for registration and follow-ups.
 
@@ -335,7 +335,7 @@ mission "rate_finalize" {
 
       For qualifying lessons, have the stage agent use plugins.devin.code_develop to obtain a
       reviewable documentation PR in the owning repository. Supply facts and destination, with
-      title ${inputs.issue} — record <lesson> and tags ${inputs.issue}, learnings. Prefer an amendment
+      title ${inputs.issue} — record <lesson> and tags `["${inputs.issue}", "learnings"]`. Prefer an amendment
       to an existing document. Devin authors the documentation; do not send a prewritten body.
 
       # Finish or pause

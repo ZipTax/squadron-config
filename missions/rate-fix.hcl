@@ -264,8 +264,8 @@ mission "rate_fix" {
       # Delegate to Devin
 
       Use delegated_session to resume the registered owner. When a new owner is needed, have the
-      stage agent call plugins.devin.code_develop with !rate-fix in the task, prompt_mode raw,
-      and tags ${inputs.issue}, rate-fix. Supply base branch ${inputs.base_branch}, existing
+      stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
+      and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
       PR ${inputs.fix_pr_url}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
       disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
       and relevant unanswered questions. An existing PR is an adoption task, not a rewrite.
@@ -362,7 +362,7 @@ mission "rate_fix" {
       ${inputs.fix_branch}. Resume the cases owner ${inputs.cases_session_id} or the checkpoint's
       owner through delegated_session. If a replacement is needed, have the stage agent call
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
-      prompt_mode raw, and tags ${inputs.issue}, rate-cases. Ask it to adopt existing cases.
+      `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
       Supply the PR, mechanism ${inputs.mechanism}, disposition ${inputs.disposition}, prior
       coverage, and outstanding questions. Devin selects situations and investigates fixtures
@@ -547,8 +547,8 @@ mission "rate_fix" {
       Use the fix PR from develop or ${inputs.fix_pr_url}, branch ${inputs.fix_branch}.
       Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
       have the stage agent call plugins.devin.code_develop with repo_url
-      https://github.com/FedTax/txc-bruno, !bruno-regression in the task, prompt_mode raw,
-      and tags ${inputs.issue}, bruno. Ensure Devin can read the SQL repository skills too.
+      https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
+      and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
       Supply the ticket, PR, accepted audit findings, target authority, and open questions.
       Devin selects portable API scenarios and authors tests without making live API calls.

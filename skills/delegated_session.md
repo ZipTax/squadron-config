@@ -23,8 +23,9 @@ Use the tool and companion skill appropriate to the assignment:
 Honor the task's choice of review method and session independence. A tool that creates a
 session is not a substitute for sending a follow-up to an existing owner.
 
-For a playbook-driven `code_develop` call, supply `repo_url` and put the literal macro in
-`task` alongside the assignment, for example:
+When delegating with a playbook, include its literal macro alongside the assignment in the
+chosen tool's task or instruction field. Follow that tool's companion skill for required
+arguments and supported options. For example, the text sent to Devin could be:
 
 ```text
 Use playbook !rate-fix for DEV-1234. Implement the supplied mechanism on the existing PR

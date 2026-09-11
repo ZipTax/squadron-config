@@ -48,3 +48,7 @@ variable "jira_sessions_field" {
 variable "ratevariant_webhook_secret" {
   secret = true  # Shared secret for the /ratevariant mission webhook
 }
+
+variable "mcp_host_secret" {
+  secret = true
+}

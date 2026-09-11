@@ -226,7 +226,7 @@ mission "rate_triage" {
       # Delegate to Devin
 
       Have the stage agent call plugins.devin.code_develop on ${inputs.repo_url}, with
-      !rate_investigation in the task, prompt_mode raw, and tags ${inputs.issue}, rate-investigation.
+      !rate_investigation in the task, `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`.
       Supply the ticket, reported scope, and any evidence from discovery. Use a title naming the
       reported behavior. If discovery could not establish prior history, tell Devin that existing
       work may be unknown; do not turn this operational caveat into a requested ticket update.
@@ -261,8 +261,8 @@ mission "rate_triage" {
       # Delegate to Devin
 
       Have the stage agent create a fresh session through plugins.devin.code_develop on
-      ${inputs.repo_url}, with !rate_investigation in the task, prompt_mode raw, and tags
-      ${inputs.issue}, rate-investigation, wai-challenge. Use a title naming the disputed behavior.
+      ${inputs.repo_url}, with !rate_investigation in the task, `prompt_mode: "raw"`, and tags
+      `["${inputs.issue}", "rate-investigation", "wai-challenge"]`. Use a title naming the disputed behavior.
       Supply the ticket, prior conclusion, and rebuttal as claims to test against code and data:
       %{ if inputs.wai_challenge != "" ~}
       ${inputs.wai_challenge}
@@ -340,7 +340,7 @@ mission "rate_triage" {
       Have the stage agent read the selected report with check_session. Reuse it when its cited
       evidence settles the question. If gaps remain, create a read-only session through
       plugins.devin.code_develop on ${inputs.repo_url}, with !rate_investigation in the task,
-      prompt_mode raw, and tags ${inputs.issue}, rate-investigation. Supply the attributed report
+      `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`. Supply the attributed report
       and the specific gaps, following rate_investigation; do not ask for a restart from zero.
 
       # Assess and finish
@@ -398,8 +398,11 @@ mission "rate_triage" {
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
-      For needs_human, use blocked_run and rate_checkpoint. For a production gap no person can
-      resolve, record insufficient_production_evidence without inventing a question.
+      For needs_human, use blocked_run and rate_checkpoint. If a production evidence gap ends
+      the work without an actionable request, record insufficient_production_evidence and have
+      Devin post a ticket update explaining what remains unproven and why work stopped, using
+      sme_writeback. Confirm the comment reference; do not invent a question or claim nobody
+      can resolve the gap unless the evidence establishes that.
     EOT
     agents = [agents.taxcloud_legacy_sql_investigator]
 
@@ -499,11 +502,11 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true AND disposition != 'unsupported at available granularity'"
+        condition = "outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true AND disposition != 'unsupported at available granularity' — proceed with a supported, implementable defect, entering author_tests if the existing fix PR has a messageable owner or develop otherwise."
       }
       route {
         target    = missions.rate_finalize
-        condition = "outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN AND disposition == 'unsupported at available granularity'))"
+        condition = "outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN AND disposition == 'unsupported at available granularity')) — enter verify_wai to independently check correct behavior, or record_learnings to preserve a proven unsupported result."
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.
     }

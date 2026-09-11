@@ -40,5 +40,7 @@ Have Devin post the update and confirm its comment reference. If it revises a pr
 conclusion, ask Devin to annotate that earlier comment so readers see the changed status.
 For a blocking human dependency, use blocked_run to confirm the comment, save state, and
 apply the trigger label. Missing production evidence may need a real ticket question. Ask for the data, access, or
-decision that would settle it; if no actionable request remains, record the evidence gap
-without inventing an answerer.
+decision that would settle it. If the evidence gap ends the work with no actionable request,
+have Devin post a finding explaining what remains unproven and why work stopped, and confirm
+the comment reference. Do not invent an answerer or present the missing evidence as proof
+of correct behavior.

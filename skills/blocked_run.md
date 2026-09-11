@@ -48,4 +48,6 @@ Insufficient production evidence may have a concrete Jira question: request data
 or the decision needed to proceed. Use the human-wait workflow when that answer is required.
 Record insufficient_production_evidence when no supported production conclusion is possible;
 that finding does not itself prohibit a useful ticket question. If no actionable request
-remains, explain the gap without manufacturing a question or claiming the behavior is correct.
+remains and work ends, use sme_writeback to have Devin explain the gap and stopping reason
+on the ticket, then confirm the comment reference. Do not manufacture a question or claim
+the behavior is correct.
