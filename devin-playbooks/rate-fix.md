@@ -1,170 +1,52 @@
-## Overview
+# Implement the proven rate fix
 
-Implement a tax-rate fix in `FedTax/txc-sqlserver-database` whose cause has **already been
-proven** by a separate evidence-only investigation (`!rate_investigation`), then open the PR and
-label it so ratevariant A/B testing can run.
+Implement the supplied diagnosis in `FedTax/txc-sqlserver-database`. The caller supplies the
+ticket, mechanism, disposition, evidence, base branch, and any existing fix PR. The separate
+investigation owns diagnosis, and the cases session owns test artifacts, so implementation
+must neither expand the remedy nor manufacture its own proof.
 
-You implement a diagnosis; you do not re-derive one. If the caller has not given you a mechanism
-and a disposition, say so rather than starting an investigation of your own — that is a different
-stage with different rules, and an investigation run from a session that can write code tends to
-stop at the first plausible cause.
+## Procedure and lane
 
-You also do **not** author the ratevariant cases. That split is deliberate: finding an eligible
-merchant, transaction and date for a case is a large discovery job with no bearing on the fix, and
-carrying it here makes both worse. A separate session runs `!ratevariant-cases` on your branch
-after you push.
+Read repository instructions and step 1 of `ratevariant-testing/references/process.md`.
+That procedure owns schema copies, migration ownership, and the `ratevariant` opt-in label.
+Use `tax-rule-change` for data/migration conventions and the SQL/query skills for read-only
+verification. Apply only the implementation portion of those skills: their broader testing
+or rollout guidance does not authorize this lane to author cases, run A/B, or deploy.
+Register with `registering-on-the-ticket` under `rate-fix`.
 
-Reusable mechanics live in the repo's skills — load them rather than re-deriving:
+Own `output/schema/**` schema objects and `scripts/**` migrations. The cases lane owns
+`tests/ratevariant-cases/**`; Bruno owns its separate repository. Report out-of-lane
+requests. If a required skill is unavailable or conflicts with this boundary, identify the
+conflict before affected work rather than guessing a procedure.
 
-- `tax-rule-change` — data/configuration changes and migration script conventions.
-- `write-taxcloud-sql-query` / `query-staging-snapshot` — any read-only verification.
-- `ratevariant-testing` — how the A/B workflows fire (you need the label part only).
+1. Confirm the supplied mechanism against the code. Report a contradiction in
+   `diagnosis_contradicted` and stop changing code rather than inventing a different fix.
+2. Implement the briefed scope, including both data and code when disposition is `both`.
+   An unsupported general remedy is not an implementation task unless the caller has
+   explicitly scoped a feasible partial fix.
+3. Open the fix PR on the requested base and confirm the `ratevariant` label is present.
+   Preserve production verification questions in its review/testing context because a
+   snapshot-proven mechanism does not establish today's production rows.
+4. Return the attached schema's PR identifiers, branch, label status, summary,
+   contradictions, and `target_authority`. A state publication or a tax SME's ruling is
+   authority; an unverified ticket expectation is only a proposed target. Missing authority
+   may travel to audit and does not itself prevent producing a reviewable proposal.
 
-## What's Needed From User
+## Continue or adopt existing work
 
-- The ticket key, and the investigation's result: the proven mechanism (what is wrong and where
-  expected and actual part ways), the remediation disposition, the affected roots
-  (procs/functions) or tables/rows.
-- Any "confirm on production before merge" query the investigation left in its unknowns. The
-  finding rests on the dated snapshot; put that query and what it must return in the PR
-  description so the reviewer runs it, and note that a moved row changes the rows the fix
-  writes, not whether it is written.
-- The base branch, if not the repo default.
-- Whether you are writing the fix or **adopting** one that already exists (see below).
+On adoption, check out the existing PR branch, inspect the diff against the diagnosis, and
+report ownership and discrepancies. Do not rewrite, revert, or open another PR. On a later
+correction, change only the evidenced finding and push to that same branch without force.
+Report migration changes so Squadron can ask the cases owner to update the alteration.
+Read the current PR description before editing it and preserve other authors' content.
+Session registration belongs on the ticket; do not add process history to the PR body.
 
-If the disposition is `unsupported at available granularity`, there is no fix to write: the proven
-mechanism is one this engine cannot express, and the deliverable is that limitation, not a diff.
-Report it back. A narrower partial fix may still be worth filing — but only if the caller briefed
-it as feasible and accurate, and never presented as closing the class.
+Stop after pushing. Do not grade A/B results, run staging-mutating harness commands, or add
+`ratevariant:run` on your own initiative. An explicit request to apply the run label is
+mechanical delegation, not permission to judge the fix.
 
-## Adopting an existing fix PR
-
-Sometimes the fix already exists and the session that wrote it is gone. Then your job is to take
-over the lane, not to redo the work: later stages route corrections to whoever owns the fix, and
-an unowned PR strands every finding the audit reaches.
-
-Read the PR diff and its branch, confirm the change matches the briefed mechanism, and report what
-you found. Do not re-implement it, revert it, widen it, or open a second PR. If the existing change
-contradicts the diagnosis, say so and stop — whether to correct it is the auditor's call once the
-A/B has run, not a rewrite before anyone has seen a result.
-
-## Procedure
-
-0. **Register yourself on the ticket** under the tag `rate-fix`, per the
-   `registering-on-the-ticket` skill. That is how a later run finds this session instead of
-   re-deriving the fix.
-
-1. **Confirm the brief against the code.** Read the affected roots and check the briefed
-   mechanism is actually there. If the code contradicts the diagnosis, stop and report what you
-   found instead — do not improvise a different fix, and do not re-open whether the ticket is
-   valid.
-
-2. **Implement the proven disposition, and nothing wider.** When the disposition is `both`,
-   implement both halves: a rate row that is wrong *and* applied wrongly needs the migration and
-   the proc change, and shipping one is shipping half a fix.
-
-   - *Procedure/function change*: edit the object under `output/schema/` — or add it there, if the
-     fix needs an object that doesn't exist yet (a helper function, rarely a type): new file beside
-     its peers, same coverage rules. Every object exists in
-     **both** a prod and a staging copy, and in both databases when the logic is duplicated there
-     — change every copy of the object you touch: `output/schema/fedtax-prod/…`,
-     `output/schema/fedtax-staging/…`, `output/schema/reports-prod/…`,
-     `output/schema/reports-staging/…`. `ratevariant plan` only watches the `-prod` copies, so a
-     staging-only edit gets no A/B, and a prod-only edit leaves the mirror stale. See DEV-9519
-     (#198) and DEV-9402 (#182) for the shape.
-   - *Data/configuration change*: author the migration under `scripts/`, per `tax-rule-change`.
-     One database per script, two-part `[dbo].[Object]` names, `USE [<database>]; GO` header. You
-     do **not** author the mirroring alteration YAML — that is the case session's.
-   - Non-SSUTA warning: the cart path computes inline in `spTransactionLookup_nonssuta` while the
-     ETL recalculates in `fnGetTaxRatesforTx_nonssuta` — separate implementations that drift.
-     Fixing one copy of a four-copy function is this repo's most repeated defect, so state
-     explicitly which paths your change reaches.
-
-3. **Stay in your lane.** You own `output/schema/**` and `scripts/**`. You must NOT touch
-   `tests/ratevariant-cases/**` — cases and alterations belong to the case-authoring session,
-   which pushes to your branch after you. A PR comment asking for a case or coverage change is
-   out of your lane: report it rather than answering it with code.
-
-4. **Open the PR and label it.** Push the branch, open the PR against the base branch, then:
-
-   ```
-   gh pr edit <pr> --add-label ratevariant
-   gh pr view <pr> --json number,url,headRefName,labels
-   ```
-
-   Confirm the label landed — without it `ratevariant plan` never runs and the fix ships
-   unaudited. Adopting an existing PR: check out its head branch, open no PR, and *check* the
-   label rather than assuming, since a prior run may never have applied it.
-
-5. **The PR description is shared state.** Several sessions push to this branch and edit this
-   description — see `CLAUDE.md` § "Sharing a PR with other sessions". Every edit is a
-   read-then-append: fetch the current description, add your part, put the whole thing back. This
-   binds you at the end of the run and again every time someone messages you to change something:
-   composing the description from what you remember silently deletes whatever landed after you
-   started, and what is lost is the last thing written — usually the investigation link or a
-   coverage note a reviewer needs.
-
-6. **Do not run or interpret the A/B.** Don't add `ratevariant:run` unless the auditor asks you
-   to directly — it is theirs to fire. If they do ask (a re-run after your correction lands, say),
-   that is mechanics: label it and report, don't read the result and decide. A separate auditor
-   owns running it and reading the result, precisely so the session that wrote the fix is not the one
-   grading it. Expect to be messaged mid-audit with a specific correction and its supporting data;
-   implement exactly that, and push to the same branch.
-
-7. **Report** the PR URL and number, the head branch, exactly what changed and where, which paths
-   the change reaches, and anything about the brief that did not survive contact with the code.
-   When adopting, report what the existing change does and that the lane now has an owner.
-
-   Say what establishes the value your change now produces — the state notice or bulletin, or an
-   SME's stated figure on the ticket. Who said it and where is the whole record: "per <name>,
-   DEV-1234" is a complete answer, and an attachment you cannot open is named, not chased — never
-   ask anyone to re-key a citation you already have an answer behind. If nothing establishes the
-   value, say that plainly: the ticket's expectation and a sibling code's configuration are the
-   targets, not authority for them, and a change built on one
-   is a proposal. It is not yours to resolve or to block on, but a caller who is not told reports a
-   clean A/B as a settled case.
-
-## Specifications
-
-- The change implements the briefed disposition at the briefed scope — both halves when the
-  disposition is `both` — with every copy of each edited object updated.
-- The `ratevariant` label is present on the PR; `ratevariant:run` is absent unless the auditor
-  asked for it.
-- No file outside `output/schema/**` and `scripts/**` is modified.
-- Product-level ticket comments belong to the investigating session, which holds the Jira
-  credentials, unless the caller asks you for one — then open the `writing-ticket-updates` skill as
-  you draft it, not earlier. It is not a status report: what you built, ran, and proved stays on the PR.
-
-## Advice & Pointers
-
-- `output/schema/**` is the source of truth for a proc fix: editing the procedure/function already
-  tracked there is exactly how every recent rate fix shipped, and a *new* object the fix genuinely
-  needs — most often a function, occasionally a type — gets a new file in the same folder as its
-  peers, in every copy that object should exist in. What `CLAUDE.md` rules out is a file that isn't
-  a schema object: dacpacs, diff reports, `Security/`, notes, scratch SQL. The test is whether the
-  weekly `extract-schema` job would produce that file from the live database — if it wouldn't, it
-  doesn't belong there, and that is also why a data fix goes in `scripts/`: a migration is not a
-  schema object.
-- The weekly extract job reconciles `output/schema` with the live databases, so the change has to
-  reach the database too or the next extraction reverts your file.
-- Keep the blast radius minimal and mechanical. A fix that also cleans up adjacent logic makes the
-  A/B unreadable, because the auditor can no longer predict a per-case outcome from the diff.
-- Effective dates are part of the fix. An override effective tomorrow cannot be demonstrated by a
-  case dated yesterday.
-- Running as a delegated session with no human available: never block. Implement what the evidence
-  supports and return the open questions in your report — each stated precisely enough to be
-  actioned (the value needed and who holds it), because the orchestrator records them against the
-  ticket and the next run resumes from them, messaging this session if it is still alive.
-
-## Forbidden Actions
-
-- Never author or edit ratevariant cases, alterations, or Bruno tests.
-- Never add the `ratevariant:run` label on your own initiative — when the auditor asks you
-  directly, that is mechanics and you do it, but you never read the result and judge it. Never run
-  `ratevariant deploy/run/run-alter/cleanup`, and never mutate staging.
-- Never widen the change beyond the proven disposition, and never re-litigate the investigation's
-  verdict.
-- Never paste SQL into a Jira comment — a data change ships as a script in the PR.
-- Never open a second PR or branch for the same ticket; later stages push to yours.
-- Never rewrite the PR description from a template or from memory, and never force-push the
-  branch: other sessions are working on it.
+Return `outcome: needs_human` and exact question-and-context pairs in `human_questions`
+only if implementation cannot safely finish without a person's answer. Otherwise return
+`completed` with an empty list and preserve non-blocking questions in the report. Do not
+wait. Post a Jira comment only when requested, using `writing-ticket-updates`; Squadron
+owns workflow labels, checkpointing, and the next stage.

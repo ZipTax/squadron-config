@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "ticket": "DEMO-100",
+  "checkpoint_revision": 1,
+  "updated_at": "2026-09-11T18:00:00Z",
+  "stage": "start_investigation",
+  "verdict": "",
+  "mechanism": "",
+  "lanes": {
+    "investigation": {
+      "session_id": "11111111111111111111111111111111",
+      "messageable": true,
+      "output_revision": 0
+    },
+    "fix": null,
+    "ratevariant-cases": null,
+    "bruno-tests": null
+  },
+  "production_evidence": [],
+  "artifacts": {
+    "fix_pr": null,
+    "bruno_pr": null
+  },
+  "completed_stages": [],
+  "wai_refire_count": 0,
+  "audit": {
+    "iteration": 0,
+    "last_result": "",
+    "stall_count": 0
+  },
+  "blocker": null,
+  "processed_start_event_ids": [],
+  "next_entry": {
+    "mission": "rate-triage",
+    "stage": "continue_investigation"
+  }
+}

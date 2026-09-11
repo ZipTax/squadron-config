@@ -14,8 +14,102 @@ The design therefore separates active work from durable coordination:
   decide what work happens next or select a Devin session.
 - Repository skills and documentation hold reusable engineering procedure and precedents.
 
-This is a target design. The existing rate missions still implement their current memory-and-label
-resumption flow until the bridge and event contracts described here are available.
+This is a target design. The Devin blocker contract, production-evidence contract, and checkpoint
+schema are now defined in this repository. Runtime instructions target the bridge workflow. Bridge endpoints, tools, and mission event
+inputs must be wired before deployment; this text does not establish that they are available.
+During deployment, triage converts an existing `rate_resume_state/<TICKET>.md` record only when no
+new checkpoint exists, verifies the new checkpoint with `checkpoint_revision: 1`, and then removes
+the legacy record.
+This read-once path prevents already-waiting tickets from disappearing during the format change.
+
+Apply the four updated playbooks and their structured-output schemas in Devin before deploying the
+mission changes that require `outcome` and `human_questions`. The files under `devin-playbooks/` are a
+reviewable mirror, not an automatic UI sync; reversing this order would make an old-format session
+look like a failed mission stage. Existing sessions that may resume during rollout must also be
+checked for the new contract before the mission requirement is enabled.
+
+## Where instructions belong
+
+Keep each decision at the layer that has the context to make it. A mission should not carry
+a second copy of a SQL or test-authoring procedure: Squadron cannot inspect the repository
+itself, and a copied procedure can disagree with the skill Devin reads there.
+
+| Layer | Owns | Changes when |
+| --- | --- | --- |
+| Squadron missions | Entry points, inputs/outputs, route conditions, and case-specific handoffs | The workflow graph or handoff contract changes. |
+| Squadron skills | Session lifecycle, evidence acceptance, blockers, checkpointing, and correction routing | A coordination rule changes across stages. |
+| Devin playbooks | Lane boundary, repository skill entry points, and mapping results to the attached schema | A lane or its machine-readable contract changes. |
+| Repository skills | Investigation, SQL, fixture selection, test mechanics, and writing for repository/ticket readers | Engineering practice changes. |
+| Attached schemas | Field names, types, and allowed result values | A consumer needs a different result contract. |
+
+Squadron asks for evidence and accepts or rejects it. Devin reads diffs, derives predictions,
+reconciles rates, selects case data, and interprets captures. Asking Squadron to repeat those
+calculations from pasted procedure bodies adds another interpretation without another source
+of evidence. Missing support should therefore produce a bounded request to the evidence owner,
+not a calculation improvised by the orchestrator.
+
+Audit acceptance remains with Squadron. A Devin session with relevant context supplies read-only technical
+analysis using the repository audit skill, while cases supplies captures and fixture evidence.
+This does not create a new implementation lane or let either author approve its own work.
+If no investigation session is available, Squadron asks another Devin session with relevant
+context to investigate the bounded question. The session keeps its file ownership, while
+Squadron judges the evidence; a missing lane alone does not block the audit. WAI verification retains its separate session
+because it exists specifically to challenge the original investigation's conclusion.
+
+Agent profiles group reusable responsibilities with relevant capability access. The
+`taxcloud_legacy_sql_investigator`, `taxcloud_legacy_sql_implementer`, and
+`taxcloud_legacy_sql_reviewer` retain SQL/data skills because their evidence needs differ
+from general code work. Their roles do not select Devin playbooks. Both A/B review and WAI
+verification use the reviewer profile; their tasks still require different session ownership
+and independence. Sharing the profile does not mean sharing the Devin session.
+
+Ratevariant and Bruno authoring share `test_authoring_coordinator` because both delegate test
+construction and assess coverage. Their tasks and playbooks specify the repository, allowed
+execution, and whether artifacts contain inputs or assertions. Repository query mechanics stay
+with Devin. The current rate checkpoint skill remains attached where needed; generalizing its
+storage and schema to other ticket workflows is a separate change.
+
+The shortened playbooks remain self-contained at their boundary: Devin cannot assume it can
+read this repository's README or Squadron-only skills. A few repeated lines about registration,
+completion, and lane scope are intentional; the reusable engineering procedure is referenced
+rather than copied. See [the playbook maintenance guide](../devin-playbooks/README.md) for
+known upstream conflicts and the deployment checks needed before these mirrors run in Devin.
+
+## What belongs in a task objective versus its output
+
+Organize runtime instructions around responsibility, interaction with Devin, evidence
+assessment, and completion. Address the executing agent as “you” and name a “Devin session”
+when that is the intended recipient. Send Devin only the task and relevant constraints;
+checkpoint handling and other orchestration responsibilities stay with the coordinating agent.
+
+A task objective states the desired result, the work needed to establish it, and constraints
+on that work. Its `output` field descriptions state how to synthesize the result: field meaning,
+source/provenance, allowed values, and what an empty value means. Do not repeat a list of fields
+as “return these” in the objective. Squadron presents the schema to the commander and requires
+schema-matching submission through `submit_output`; downstream tasks can query that stored data.
+See [Tasks](https://docs.squadron.sh/missions/tasks).
+
+For example, case authoring must obtain coverage and evidence for gaps, so that work belongs in
+the objective. Copying `target_authority` from development or the checkpoint belongs in the output
+field's description: this stage preserves a prior conclusion rather than establishing authority.
+Evidence acceptance still needs an objective or skill because a correctly shaped result can be
+unsupported.
+
+The mission objective addresses a task commander. Plugin access belongs to its Squadron agent,
+which delegates repository work to Devin. An objective's request to inspect a session therefore
+means arranging that inspection through the stage agent, not giving the commander plugin tools.
+See [The Harness](https://docs.squadron.sh/missions/harness).
+
+Within a mission, summaries and queryable ancestor outputs provide context, including across a
+selected dynamic route. Cross-mission routing creates another instance: `task_complete` presents
+the destination inputs for the commander to fill. Keep meaningful mappings, such as an audit
+no-op selecting `record_learnings`, with the route rather than repeating the destination schema.
+Route conditions are natural-language choices evaluated by the commander, not executable scalar
+expressions. See [Routing](https://docs.squadron.sh/missions/routing).
+
+Devin's attached schema and Squadron's task output remain separate contracts. The former reports
+lane work; the latter records the commander's accepted result and orchestration metadata. Removing
+an objective's field list does not remove the need to collect and assess the Devin result.
 
 ## Why a case has several Devin sessions
 
@@ -32,7 +126,8 @@ The lane registry records the exact owner:
 | `ratevariant-cases` | Author and maintain local A/B fixtures and alterations. |
 | `bruno-tests` | Author live-API regression coverage from settled expectations. |
 
-The checkpoint records each lane's exact owner. When new information arrives, Squadron chooses
+The checkpoint records each lane's exact owner. The independent WAI verifier is a verification
+session, not a replacement owner of the investigation lane. When new information arrives, Squadron chooses
 which owner needs it; the session that raised a question is not necessarily the session that can
 answer the resulting engineering question. The bridge must never choose the newest session or
 combine conclusions from several sessions. If the selected owner is unavailable, Squadron handles
@@ -143,8 +238,8 @@ In detail:
    stage. Its payload identifies the Jira event and active blocker generation; it does not claim
    that the discussion is a sufficient answer.
 5. Squadron clears the ready label, then reads the checkpoint and Jira discussion after the last
-   processed comment. It may decide that the response is irrelevant or incomplete without waking
-   Devin.
+   processed comment. It may discard a duplicate or unrelated event without waking Devin; domain
+   sufficiency is assessed by the selected context-owning session.
 6. If engineering interpretation is needed, Squadron selects the appropriate registered lane and
    sends that session a bounded request to read the Jira update. This may be different from the
    session that raised or authored the question.
@@ -242,28 +337,49 @@ Squadron is the only writer of the per-ticket checkpoint. The bridge passes deli
 Devin returns structured facts, but neither edits orchestration memory directly. Single ownership
 prevents a late Jira delivery from overwriting a newer audit decision.
 
-The checkpoint is an index and decision record, not a transcript:
+The checkpoint is an index and decision record, not a transcript. Required keys describe the
+coordination envelope, not completed work: lanes and artifacts may be null, results and lists
+may be empty, and a new session has output_revision 0 until a result is collected. See the
+[early checkpoint](schemas/examples/rate-ticket-checkpoint.early.json). Its authoritative contract is
+[`schemas/rate-ticket-checkpoint.schema.json`](schemas/rate-ticket-checkpoint.schema.json); the
+production observations it contains use
+[`schemas/production-evidence.schema.json`](schemas/production-evidence.schema.json). Readers reject
+an unknown `schema_version`, and writers increment `checkpoint_revision` after re-reading the
+current file so a late mission cannot overwrite a newer decision. This field identifies the current
+checkpoint write; it is not a Jira revision or a history of stored snapshots.
+
+The following excerpt shows the responsibilities rather than every required field:
 
 ```yaml
+schema_version: 1
 ticket: TAX-123
+checkpoint_revision: 4
+updated_at: 2026-09-10T19:20:00Z
 stage: audit
 verdict: defect_proven
 mechanism: district rate selected from an obsolete effective row
 lanes:
   investigation:
-    session_id: devin-investigation
+    session_id: 8e72920a57d04c5592603de7085cb45e
     output_revision: 4
   fix:
-    session_id: devin-fix
-    pr_url: https://github.example/pull/123
-    head_sha: abc123
+    session_id: 93b2501d2bf94cc7a81208134c8c1ca2
   ratevariant-cases:
-    session_id: devin-cases
+    session_id: ab854fca652b46bf98e98c55c862f1a8
+artifacts:
+  fix_pr:
+    url: https://github.com/FedTax/txc-sqlserver-database/pull/123
+    branch: TAX-123-fix
     head_sha: abc123
 audit:
   iteration: 2
   last_result: changes_requested
 blocker: null
+completed_stages:
+  - develop
+  - author_tests
+wai_refire_count: 0
+processed_start_event_ids: []
 next_entry:
   mission: rate-fix
   stage: audit
@@ -286,7 +402,9 @@ local `txc-sqlserver-database` checkout, SQL Server execution, or the ratevarian
 
 The production-query identity should be read-only, limited to approved catalogs or views, and
 audited. Queries should be bounded by ticket-relevant identifiers and dates. The evidence record
-captures the query, execution time, relevant catalog objects, and a small result or summary.
+captures a stable query reference, execution time, relevant catalog objects, bounded scope, and the
+domain conclusion. Raw rows and large tool output stay with the system that produced them because
+copying them into the checkpoint would make it a second evidence store.
 
 Production evidence has an explicit status: `sufficient`, `insufficient`, or `unavailable`. No
 matching rows, incomplete history in the replica, stale synchronization, access refusal, and a
@@ -314,13 +432,18 @@ procedure change is correct.
 
 The design can be introduced without rewriting every mission at once:
 
-1. Define a typed Devin output for `needs_human`.
-2. Define the production-evidence status and ticket-visible gap outcome.
-3. Replace the free-form resume record with a versioned checkpoint schema.
+1. Define a typed Devin output for `needs_human`. **Defined:** every rate-lane playbook schema now
+   returns `outcome` plus structured question-and-context pairs in `human_questions`.
+2. Define the production-evidence status and ticket-visible gap outcome. **Defined:** investigation
+   output and checkpoint records distinguish `sufficient`, `insufficient`, and `unavailable`, then
+   say whether the ticket outcome is `none`, `needs_human`, or
+   `insufficient_production_evidence`.
+3. Replace the free-form resume record with a checkpoint that has an explicit schema version.
+   **Defined and adopted by the mission memory contract:** `rate_checkpoint/<TICKET>.yaml` is
+   Squadron-owned, and `checkpoint_revision` identifies its current write.
 4. Build blocker registration, the Jira receiver, delivery deduplication, and the durable outbox.
 5. Make the three existing rate phases webhook-entry-capable and accept explicit entry stages.
 6. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
 
-Until a phase is migrated, its current blocking behavior remains authoritative. Do not run the old
-label-triggered resumption and the bridge webhook for the same ticket, because both will believe
-they own the next run.
+Deploy these blocking instructions with the bridge wiring and disable the old comment-triggered
+resumption for the migrated tickets. Both triggers must not own the same ticket.

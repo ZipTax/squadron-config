@@ -1,0 +1,26 @@
+{
+  "outcome": "completed",
+  "human_questions": [],
+  "pr_url": "https://example.invalid/bruno/pull/200",
+  "branch": "DEMO-200-bruno",
+  "linked_sql_pr": "https://example.invalid/sql/pull/200",
+  "scenarios": [
+    {
+      "name": "Exempt item on the effective date",
+      "expectation": "Tax amount is 0.00 for the qualifying item.",
+      "authority": "sme_stated_in_ticket",
+      "citation": "https://example.invalid/tickets/DEMO-200#sme-treatment"
+    },
+    {
+      "name": "Taxable neighbor remains taxable",
+      "expectation": "Tax amount is 5.00 on a 100.00 taxable base at the stated 5% rate.",
+      "authority": "state_published",
+      "citation": "https://example.invalid/publication/demo-rate-table"
+    }
+  ],
+  "unwritten": [
+    "Filing-code attribution is covered by A/B; this V3 endpoint does not expose filing codes."
+  ],
+  "authority_conflicts": [],
+  "open_questions": []
+}

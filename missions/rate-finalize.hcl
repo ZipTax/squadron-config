@@ -32,11 +32,11 @@ mission "rate_finalize" {
   # Squadron stage, "the session"/"# Brief the session" is text for the Devin
   # task. Every Jira comment, query and write-back PR here is a Devin session's
   # work; the sentinel label is the stage's own, per blocked_run.
-  memories = [memories.rate_case_log, memories.rate_resume_state]
+  memories = [memories.rate_case_log, memories.rate_checkpoint]
 
   agents = [
     agents.session_scout,
-    agents.wai_verifier,
+    agents.taxcloud_legacy_sql_reviewer,
     agents.learnings_curator
   ]
 
@@ -103,6 +103,12 @@ mission "rate_finalize" {
     default     = ""
   }
 
+  input "production_evidence" {
+    type        = "string"
+    description = "Typed governed-production observations carried from investigation. Preserve these in a retained checkpoint so a later run does not reinterpret an unavailable or incomplete read as proof of absence."
+    default     = "[]"
+  }
+
   input "audit_findings" {
     type        = "string"
     description = "From rate_fix: the confirmed bugs, dead/shadowed branches, wrong-value diffs and path inconsistencies, each with the case result that demonstrated it. Blank when no A/B ran."
@@ -111,7 +117,7 @@ mission "rate_finalize" {
 
   input "open_questions" {
     type        = "string"
-    description = "Anything left outstanding by the fix lane: tax-law questions for the SMEs, coverage gaps, bruno scenarios unwritten for want of an authoritative figure. Non-blank means the case is not really closed and the resume-state file gets written rather than deleted."
+    description = "Anything left outstanding by the fix lane: tax-law questions for the SMEs, coverage gaps, bruno scenarios unwritten for want of an authoritative figure. Non-blank means the case is not really closed and the checkpoint retains an active blocker rather than being deleted."
     default     = ""
   }
 
@@ -163,9 +169,9 @@ mission "rate_finalize" {
     default     = 0
   }
 
-  input "resume_state" {
+  input "checkpoint" {
     type        = "string"
-    description = "What rate_resume_state/<TICKET>.md said this case was waiting on and which stages finished, plus the run marker a resumption needs. Blank when there was no such file."
+    description = "The validated rate_checkpoint/<TICKET>.yaml record. Blank when there was no checkpoint."
     default     = ""
   }
 
@@ -179,26 +185,21 @@ mission "rate_finalize" {
 
   task "enter_finalize" {
     objective = <<-EOT
-      The case for ${inputs.issue} has reached its close-out, at `${inputs.entry_stage}`, because:
-      ${inputs.close_reason}. Establish what is still reachable, then route. You read only: no
-      session is created, messaged, or briefed here.
+      Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
+      because ${inputs.close_reason}.
 
-      # You do
+      # Inspect the handoff
 
-      check_session on each session this case produced — investigation
-      ("${inputs.investigation_session_id}"), fix ("${inputs.fix_session_id}"), cases
-      ("${inputs.cases_session_id}"), bruno ("${inputs.bruno_session_id}") — and say which can
-      still be messaged. Both terminals need that answer and neither should discover it by
-      sending: record_learnings asks every open session for its own two learnings, and verify_wai
-      passes the investigation id back if it re-fires. find_sessions(tags: ["${inputs.issue}"]) if
-      an id is missing but a lane clearly ran; a session the handoff dropped is still findable by
-      tag.
+      Have session_scout check supplied Devin ids: investigation ${inputs.investigation_session_id},
+      fix ${inputs.fix_session_id}, cases ${inputs.cases_session_id}, and Bruno ${inputs.bruno_session_id}.
+      Use delegated_session's discovery guidance if an id is missing for known work. An unavailable
+      session still contributes its report; it cannot answer follow-up questions. Do not create
+      or message sessions here.
 
-      Route on `${inputs.entry_stage}` — verify_wai only when a working-as-intended claim has not
-      yet been independently checked, record_learnings for every other close-out. Do not re-verify
-      a claim verify_wai already confirmed.
+      # Select the entry
 
-      Return the routed terminal and the reachable sessions.
+      Choose verify_wai for a working-as-intended claim not yet independently checked; otherwise
+      choose record_learnings. Do not repeat a completed verification.
     EOT
     agents = [agents.session_scout]
 
@@ -236,50 +237,33 @@ mission "rate_finalize" {
 
   task "verify_wai" {
     objective = <<-EOT
-      The investigation concluded the system is working as intended for ${inputs.issue} (no
-      fix, no PR). There is nothing to A/B — your job is to skeptically verify that claim.
+      Independently assess the working-as-intended conclusion for ${inputs.issue}.
 
-      # You do
+      # Delegate to Devin
 
-      Start a FRESH code_develop session — not the investigation's, so the check is not
-      anchored on its conclusion.
+      Have the stage agent create a fresh read-only Devin session through plugins.devin.code_develop
+      on ${inputs.repo_url}, with prompt_mode raw, title ${inputs.issue} — verify working-as-intended,
+      and tags ${inputs.issue}, verify-wai. Have Devin use the repository's investigate-tax-behavior
+      skill to check the ticket's disputed value against data independently of the earlier reasoning.
+      Use delegated_session for registration and follow-ups.
 
-      - title: "${inputs.issue} — verify working-as-intended"
-      - tags: `${inputs.issue}`, `verify-wai`
-      - prompt_mode: `raw`
+      # Assess the result
 
-      You hold no data access: every
-      query, capture, and Jira comment below is that session's work, and you judge what comes
-      back. (investigation_session_id is what you pass as wip_investigation_session_id if you
-      re-fire.)
+      Collect evidence with check_session and apply evidence_gate. Confirmation requires positive
+      proof of correct behavior, not an absent reproduction. Refutation requires evidence of the
+      missed defect. Ask Devin to investigate any gap rather than choosing a side without support.
 
-      # Brief the session
+      # Finish or pause
 
-      Re-derive independently rather than reviewing the investigation's reasoning: decompose the
-      ticket's claimed-wrong value from the data and establish whether the engine produces the
-      correct one, or whether a real defect was dismissed. Read-only — no branch, no commit, no
-      PR. Confirming requires positive data; an absent reproduction is not evidence.
-
-      # Outcomes
-
-      - WAI_CONFIRMED — the current behavior is correct and the ticket is a misunderstanding.
-        Have the session post that to the Jira ticket at product level: plainly why the system
-        is behaving correctly and what the ticket misread, with only the minimum basis an SME
-        needs.
-
-      - WAI_REFUTED — a real defect the investigation dismissed:
-        · If wai_refire_count (${inputs.wai_refire_count}) < 1: re-fire the chain at rate_triage.
-          Fill its inputs — same issue/repo_url/base_branch, wip_investigation_session_id =
-          investigation_session_id, wai_refire_count = ${inputs.wai_refire_count} + 1, and wai_challenge
-          stating the prior WAI reasoning, your rebuttal WITH its supporting data (expected vs
-          actual, the rows that prove it), and an instruction to re-validate skeptically — it
-          may still be right, this verification may be wrong, determine the truth — and to
-          annotate the prior Jira comment as under investigation.
-        · If wai_refire_count (${inputs.wai_refire_count}) >= 1: STOP. Two rounds of disagreement is a human decision — have
-          the session post the standoff to the ticket for an SME reader: both positions and what
-          each turns on, with only the minimum basis each side rests on. Do NOT re-fire.
+      On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
+      On WAI_REFUTED, allow the declared triage route only when ${inputs.wai_refire_count} < 1.
+      Preserve the prior reasoning and evidenced rebuttal as a challenge, not a predetermined
+      answer. Ask Devin to annotate the prior comment as under investigation. At a repeated
+      standoff, use blocked_run and rate_checkpoint to ask for the decision with both positions
+      and their evidence, rather than re-firing. Use the same pause workflow if the verification
+      itself needs a human answer; do not manufacture confirmation or refutation.
     EOT
-    agents = [agents.wai_verifier]
+    agents = [agents.taxcloud_legacy_sql_reviewer]
 
     output {
       field "verdict" {
@@ -326,117 +310,44 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      The case for ${inputs.issue} is closed. Decide whether anything durable AND new was
-      learned, per the learnings_capture skill. The default answer is no — and a rule already
-      written down, in any of the places below, is not new: re-stating it in a second place is
-      how two sources of truth start disagreeing.
+      Decide whether ${inputs.issue} produced a durable new lesson and settle its close-out state.
+      Use learnings_capture. The result was ${inputs.verdict} — ${inputs.close_reason}; mechanism
+      ${inputs.mechanism}, fix PR ${inputs.fix_pr_url}, audit findings ${inputs.audit_findings},
+      and disposition ${inputs.disposition}.
 
-      What this case ended on: ${inputs.verdict} — ${inputs.close_reason}. The mechanism was
-      ${inputs.mechanism}. The fix PR, if there was one, is ${inputs.fix_pr_url}, and the audit's
-      confirmed findings were: ${inputs.audit_findings}
+      # Gather candidates
 
-      Consider only what would change how the NEXT case is handled — a trap that produced or
-      nearly produced a wrong conclusion, an environment/tooling fact that was expensive to
-      discover, or a documented-vs-actual behavior mismatch. The outcome of this ticket is not
-      a learning: it already lives on the ticket and the PR.
+      Have the stage agent ask each reachable Devin session for up to two reusable discoveries
+      that would save effort on a similar case. None is a valid answer. Use enter_finalize's
+      reachable_sessions; unavailable sessions contribute their reports. Include workflow misfires
+      as candidates when evidence shows a brief, gate, or routing rule caused the problem.
 
-      This run's own misfires count, and they are the ones that can actually be fixed in
-      configuration: a stage that reported the entry mode was wrong for the session it got, a
-      brief a session read the wrong way, a gate that passed something it should have caught. Those
-      are workflow rules, so they land in this config's skills.
+      Have the stage agent search rate_case_log for this mechanism before deciding. Repeated
+      occurrence may establish a precedent that this ticket alone would not reveal.
 
-      # Ask the sessions first
+      # Assess and record
 
-      You did not do the work and cannot see where it went slowly — a session that spent two hours
-      finding out which merchant has an eligibility row knows that, and nothing in its final report
-      says so. So ask each session still open on this case (investigation, fix, cases, bruno) in
-      these words or close to them, before you decide anything:
+      Require a useful rule, supporting evidence, and a check for existing guidance, per
+      learnings_capture. An unsupported disposition may establish a known limitation or a new
+      one; ${inputs.limitation_class} is a reference when supplied, not a prerequisite for proof.
+      Record proven findings in the appropriate repository reference without treating an unproven
+      hypothesis as a limitation or claiming a deferral that has not been decided.
 
-      > Please tell me the two most complex, unclear, or difficult things you had to figure out
-      > this session that would have saved you time and/or effort. These should be reusable and
-      > focused on future effort of a similar nature or having a similar requirement. You do not
-      > need to provide any, if you do not think there are any that are relevant or worthwhile.
+      For qualifying lessons, have the stage agent use plugins.devin.code_develop to obtain a
+      reviewable documentation PR in the owning repository. Supply facts and destination, with
+      title ${inputs.issue} — record <lesson> and tags ${inputs.issue}, learnings. Prefer an amendment
+      to an existing document. Devin authors the documentation; do not send a prewritten body.
 
-      Which sessions those are, and which can still be messaged, is enter_finalize's
-      reachable_sessions. An unmessageable one contributes its report and nothing more, per
-      delegated_session.
+      # Finish or pause
 
-      Their answers are candidates, not learnings: hold each to the same bar as your own —
-      durable, new, citable, and not already written down. A session's frustration with a
-      one-off flake is not a rule.
+      Have the stage agent append one line to rate_case_log/cases.md, even when no lesson qualifies:
+      <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
+      Use mission file tools for this log, not a repository commit. Report unavailable storage
+      rather than inventing another destination.
 
-      One entry point is not discretionary: a disposition of "unsupported at available
-      granularity" (this case: ${inputs.disposition}) means a proven instance of a deferred
-      limitation, and limitation_class ("${inputs.limitation_class}") names the entry it instances, so it is recorded in the
-      ratevariant-audit skill's limitations reference — under the labelled ticket it instances,
-      with the data that proved the mechanism is that one. Only tickets carrying `new-rate-engine`
-      belong in that file; an unproven mechanism goes to `references/open-theories.md` instead.
-      A limitation only known inside a closed session gets re-investigated from scratch next
-      quarter. If the class is already there, add the instance and nothing else.
-
-      Otherwise, route it as a reviewable PR through exactly one code_develop session — that
-      session may well write to more than one repo, and often should, since a lesson can be both
-      a repo trap and a workflow rule. Where each kind goes: a repo-specific trap or precedent
-      to that repo's .claude/skills
-      (for a rate-audit precedent, an entry in the ratevariant-audit skill's case-law
-      reference: symptom, mechanism, and how it was proven, with the ticket key), a workflow
-      rule to this config's skills, a data/configuration fact to the owning repo's docs. Pass
-      title "${inputs.issue} — record <the learning, in a few words>" and tags `${inputs.issue}`,
-      `learnings`. Prefer amending an existing document; keep it to the rule plus the one case
-      that demonstrates it.
-
-      Every recorded learning must be citable — the case result, capture, or query that
-      establishes it. An uncitable "lesson" is worse than none because it will be trusted.
-      Never mutate a source of truth as a "learning": a learning is documentation.
-
-      If nothing qualifies, set recorded = false and say why in one line. Do not manufacture
-      something to record.
-
-      # The case log
-
-      This one is yours, not a session's: you read and write it with your own file tools, and it
-      never becomes a file in a repo — if the slot won't attach, say so and record nothing rather
-      than asking a session to commit it somewhere.
-
-      Read it before you decide, and append to it after. `file_grep` the `rate_case_log` slot for
-      this case's mechanism class first: a mechanism appearing for the second or third time is
-      itself the durable finding, and it is the one thing this stage cannot see from the ticket in
-      front of it — recurrence is what turns "one odd case" into a precedent worth writing down.
-      Cite the prior tickets you found when it does.
-
-      Then `file_create` (append) one line to `rate_case_log`, path `cases.md`, whatever the
-      outcome — including recorded = false, since a case that taught nothing is still a case:
-
-      `<date> | ${inputs.issue} | <mechanism class, few words> | <verdict> | <written back where, or none>`
-
-      One line. Anything longer belongs in the reviewable document, not here, and the log is only
-      useful while it stays greppable.
-
-      # Resume state
-
-      Last, settle the ticket's `rate_resume_state` file, path `${inputs.issue}.md`:
-
-      - Anything still outstanding (the lane reported: ${inputs.open_questions}) — an unanswered
-        question, a bruno scenario left unwritten for
-        want of an authoritative figure, a coverage gap nobody could close, a WAI still contested
-        — means the case is not really closed. Write the file: what is outstanding, who has to
-        answer it, which stages finished and their PRs, and where the next run resumes — the full
-        contents blocked_run specifies, including the run marker a resumption needs to tell new
-        ticket replies from the ones already read. Overwrite any existing file; it is current
-        state, not history.
-      - Nothing outstanding: `file_delete` it if it exists. A stale resume-state file makes the next
-        run resume a case that already closed, and it will believe the file over the ticket.
-
-      When something outstanding needs a person, the ticket side of blocked_run applies here too:
-      your session posts the questions and you set the label yourself with `editJiraIssue`, as an
-      add on labels rather than a write of the whole list. This is the normal closure path, not the
-      only one — a stage that ends the run before reaching you does its own close-out.
-
-      Hand it over as what is undecided, not what the chain got done. A lane that finished tempts a
-      completion report — the change built, the A/B clean, the paths agreeing — and that reads on the
-      ticket as approved, which is the opposite of asking. What reaches this audience is per
-      sme_writeback and the session's own writing skill; the run's work is already on the PR, which
-      is where the person who cares about it looks.
+      Use rate_checkpoint for ${inputs.issue}.yaml. If ${inputs.open_questions} contains a
+      closure-blocking question, use blocked_run and retain the checkpoint. Delete it only when
+      nothing remains, so a later run does not restart completed work.
     EOT
     agents = [agents.learnings_curator]
 
@@ -456,9 +367,9 @@ mission "rate_finalize" {
         description = "PR URL of the write-back, when one was made"
         required    = false
       }
-      field "resume_state" {
+      field "checkpoint" {
         type        = "string"
-        description = "What was left outstanding and therefore written to rate_resume_state/<TICKET>.md, or 'none — file deleted' when the case closed clean. Never blank: silence here is indistinguishable from a stale file."
+        description = "The ticket's current checkpoint, or 'none — file deleted' when the case closed."
         required    = true
       }
     }

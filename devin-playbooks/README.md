@@ -4,13 +4,13 @@ Every `code_develop` session this repo's missions start runs a Devin **playbook*
 its macro (`!rate_investigation`, `!rate-fix`, `!ratevariant-cases`, `!bruno-regression`). The
 playbook is the session's standing procedure; the mission objective supplies only what that
 particular run knows. So the two halves have to agree, and the playbooks live in Devin's UI where
-nothing tells you when they drift. All five are applied in the UI as of this PR, with the
-`schemas/` files attached as each playbook's `structured_output_schema`.
+nothing tells you when they drift. The running UI text has not been verified against this revision. Apply each changed mirror
+and its matching schema together before deploying dependent mission changes.
 
 This directory is a **mirror, not the source of truth.** The running text is whatever is in the
 Devin UI; these files exist so a playbook change is reviewable as a diff next to the mission that
 calls it, and so a later reader can see what the mission was written against. Change one, change
-both — and if you find a mirror that disagrees with the UI, the UI won.
+both — and a disagreement means deployment drift to reconcile, not permission to silently adopt the UI text as the intended design.
 
 | File | Macro | Playbook id | Mission / stage that runs it |
 |---|---|---|---|
@@ -30,7 +30,7 @@ so in the description.
 |---|---|---|
 | `!rate_investigation` | Proving cause from code and data; the ticket's product-level writeback | Branch, commit, open a PR, or edit a file — a diagnosis from a session that can also fix tends to stop at the first plausible cause |
 | `!rate-fix` | `output/schema/**` and `scripts/**`; opening and labelling the fix PR | Re-derive the diagnosis, touch `tests/ratevariant-cases/**`, or interpret the A/B |
-| `!ratevariant-cases` | `tests/ratevariant-cases/**`, and the fixture/eligibility discovery behind it | Grade the run it enables, or encode a rate/amount/expected outcome anywhere |
+| `!ratevariant-cases` | `tests/ratevariant-cases/**`, and the fixture/eligibility discovery behind it | Grade the run it enables, or encode expected outputs in case YAML or metadata |
 | `!bruno-regression` | V3 API regression scenarios for the settled behavior | Assert a figure with no authority behind it, or derive one from the system under test |
 | `!txc-support` | Generic support: API/app, account, configuration, explaining behavior | Fix anything that changes how tax is calculated — those route into the flow above |
 
@@ -67,38 +67,84 @@ so length is a real cost — a playbook that grew a section per incident stops b
 
 ## Structured output
 
-`schemas/<macro>.json` holds each playbook's `structured_output_schema` — the contract the
-mission's routers read. A router condition is a scalar test (`verdict == DEFECT_PROVEN`,
-`evidence_complete == true`); with no schema attached, the commander is inferring those scalars
-from prose in a transcript. Attaching the schema binds the session itself, not just the prompt.
+Start with the [worked result examples](examples/README.md) for every attached schema,
+including partial work and human blockers.
+
+`schemas/<macro>.json` holds each playbook's `structured_output_schema` — the contract for
+Devin's lane report. Squadron's commander assesses that report and submits the mission task's
+own output. Route conditions such as `verdict == DEFECT_PROVEN` are instructions for the
+commander's choice, not executable comparisons. The runtime validates the chosen target;
+it does not establish the truth of the underlying verdict. See
+[Squadron routing](https://docs.squadron.sh/missions/routing).
+
+The task's output schema already tells its commander which fields to submit, so the objective
+does not need a second field list. Keep the work and acceptance criteria in the objective or
+skills, and the field meaning and source in the output description. See the
+[mission authoring guidance](../docs/rate-ticket-orchestration.md#what-belongs-in-a-task-objective-versus-its-output).
 
 Field names line up with the mission's task `output` blocks in the mission file that owns that stage (`missions/rate-triage.hcl`, `missions/rate-fix.hcl`, `missions/rate-finalize.hcl`) —
 `verdict`, `evidence_complete`, `working_as_intended`, `disposition`, `mechanism`, `affected_roots`,
-`limitation_class`, `coverage_gaps`, and so on. When you rename or add one, change it in the
+`limitation_class`, `outcome`, `human_questions`, `production_evidence`, `coverage_gaps`, and so on.
+When you rename or add one, change it in the
 schema, in the mission's `output` block, and in the playbook prose that tells the session to return
 it — all three, in the same commit.
+
+The production-evidence fields in `rate_investigation.json` intentionally duplicate
+`docs/schemas/production-evidence.schema.json`. A Devin playbook attachment must be self-contained;
+it cannot rely on this repository being available to resolve an external `$ref`. Keep the property
+names, required fields, and enum values identical. The checkpoint schema can reference the canonical
+file because both checkpoint schemas are read together from this repository.
 
 One thing worth a 15-minute check before relying on this: whether a playbook-attached schema
 populates `structured_output` for **plugin-created** sessions. If it doesn't, the fallback is a
 required fenced-json final message using the same field names, and the schemas here become that
 block's spec rather than a UI setting.
 
-## When a run stops on a human
+## Who handles a human wait
 
-No stage waits for an answer. A session that needs something only a person has names it precisely
-and returns; the mission records what is outstanding against the ticket
-(`rate_resume_state/<TICKET>.md`) and the run ends. The **next** `/ratevariant` fire on that ticket is
-the resumption: `discover_sessions` reads that file and finds the ticket's sessions by tag, so live
-sessions are continued in place rather than restarted. What makes this work is precision — "needs
-confirmation" cannot be resumed; "need the June rate for Cook County and its published source" can.
+Devin returns a typed result and exact questions without waiting. Squadron uses
+[blocked_run](../skills/blocked_run.md) and [rate_checkpoint](../skills/rate_checkpoint.md)
+to choose a context-owning question author, confirm the Jira comment, save the next entry,
+and end the mission. On resumption, the selected session interprets the new answer and
+Squadron decides the route. Playbooks must not tell Devin to load those Squadron-only skills.
+The [orchestration plan](../docs/rate-ticket-orchestration.md) defines the bridge delivery contract assumed by the blocking instructions;
+editing a playbook does not deploy the bridge or wire its tools and event inputs.
 
-Two halves, and both are required. The **ticket** is where the questions go — all of them, in one
-comment, since nobody who can answer reads a session's structured output — and the blocking stage
-labels it `TaxRates:Needs-Info`, which is the sentinel a Jira automation fires `/ratevariant` on when
-a new comment lands. The **memory file** is for the next run, not the human, and it records *where*
-the run blocked so the resumption re-enters at that stage instead of re-running finished work —
-along with the verdict it may proceed on, the messageable sessions, the branches, the loop counters,
-and a marker of which ticket replies were already read. The
-entry stage removes the label itself before doing anything else, so an ordinary ticket discussion doesn't
-spawn a mission per message, and it reads the comments since the last run to say whether each answer
-is enough to act on. The mechanics live in the `blocked_run` skill, not in the playbooks.
+## How to avoid a second procedure
+
+A playbook is a lane adapter, not a standalone engineering manual. Keep repository mechanics
+in the owning repository skill and keep returned fields in the attached schema. A mission
+supplies the ticket, artifacts, established evidence, and the remaining task. It should not
+repeat the playbook or prescribe a calculation, fixture, or ticket paragraph.
+
+Repository instructions govern mechanics within the delegated lane. They do not implicitly
+expand the lane into implementation, deployment, or live test execution. Explicitly name any
+scoped adaptation in the playbook; an unanticipated conflict or missing skill must be reported
+before the affected work. Do not add a blanket “playbook wins” rule that hides future drift.
+
+These mirrors repeat short lane/return/registration rules because each is pasted independently
+into Devin. They do not depend on this README being available in a Devin checkout. A shared
+playbook include would only reduce runtime duplication if the publishing mechanism actually
+expanded it; no such mechanism is configured here.
+
+## Upstream follow-ups before rollout
+
+The local SQL repository skills were reviewed alongside these changes. The following differences
+still need coordinated upstream edits; they are not fixed merely by shortening the mirror:
+
+| Source | Difference and recommended change |
+| --- | --- |
+| `investigate-tax-behavior` | It lists data and procedure dispositions separately, while the output schema also accepts `both`. Add the combined remedy explicitly so neither half is lost. Its snapshot-only assumptions also need to recognize optional governed production observations without promoting local proof into current-production proof. |
+| `tax-rule-change` | It is an end-to-end workflow, including ticket posting and reference refresh work. Extract migration authoring into a reusable skill, then make both this workflow and the fix playbook call it. The current fix adapter uses only implementation conventions and retains Squadron's posting/routing ownership. |
+| `ratevariant-testing/references/process.md` | It says each step is a separate session, then gives run and audit one owner, and prohibits cases from reading results. Distinguish mechanical label/capture delegation from acceptance: Squadron can request retrieval without allowing cases to grade themselves. Keep expected-output examples out of case metadata. |
+| `writing-ticket-updates` | Its blanket exclusion of inaccessible production evidence conflicts with the plan's ticket-visible production gap. Allow concrete requests for access to a named table or kind of data, explaining the scope and decision impact, while keeping raw SQL and lengthy tool diagnostics in engineering evidence. |
+| `txc-bruno` | No dedicated regression-authoring skill was present in this checkout. The playbook retains the unique authoring procedure for now. Extract it only when the repository skill is shipped and available to Devin; a reference to a nonexistent skill would remove the instructions entirely. |
+
+These are rollout dependencies, not reasons to copy the full upstream skills into Squadron.
+Until reconciled, a Devin session encountering an unresolved conflict should return it to the
+caller rather than guessing. The repository files here have not been published to the Devin UI.
+
+Review a change by checking lane paths, authority sources, allowed side effects, human-wait
+behavior, and schema fields against the named upstream skills. Preserve the separate WAI check
+and the existing route contracts unless intentionally changing them. Verify continuations as
+well as fresh sessions: an old session can retain the previous playbook's instructions.

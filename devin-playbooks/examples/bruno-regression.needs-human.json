@@ -1,0 +1,27 @@
+{
+  "outcome": "needs_human",
+  "human_questions": [
+    {
+      "question": "What treatment applies to the qualifying item before the effective date?",
+      "context": "The SME settled the new exemption, but the required before-date boundary test lacks an authoritative expected value."
+    }
+  ],
+  "pr_url": "https://example.invalid/bruno/pull/200",
+  "branch": "DEMO-200-bruno",
+  "linked_sql_pr": "https://example.invalid/sql/pull/200",
+  "scenarios": [
+    {
+      "name": "Exempt item on the effective date",
+      "expectation": "Tax amount is 0.00 for the qualifying item.",
+      "authority": "sme_stated_in_ticket",
+      "citation": "https://example.invalid/tickets/DEMO-200#sme-treatment"
+    }
+  ],
+  "unwritten": [
+    "Before-date boundary: needs authority for the prior treatment."
+  ],
+  "authority_conflicts": [],
+  "open_questions": [
+    "Need the prior treatment and its effective period for the before-date scenario."
+  ]
+}

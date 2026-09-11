@@ -1,213 +1,61 @@
-## Overview
+# Investigate a rate ticket
 
-Orchestrate an evidence-only investigation of a TaxCloud rate, exemption, TIC,
-jurisdiction, nexus, or transaction question. Preserve the user's exact desired outcome,
-run the investigation/query skills in order, obtain missing current data without guessing,
-and produce separate engineering and support-facing deliverables.
+Establish whether the reported behavior is a defect, and identify its mechanism and viable
+remedy. Work in `FedTax/txc-sqlserver-database` without changing repository files, opening a
+branch, or implementing a fix. A separate fix session uses your evidence, so the diagnosis
+must stand on its own.
 
-This playbook coordinates the work; reusable investigation mechanics belong in:
+## Load the procedure where it is maintained
 
-1. `investigate-tax-behavior`
-2. `write-taxcloud-sql-query`
-3. `query-staging-snapshot`
+Read the repository instructions and `investigate-tax-behavior`. That skill owns scope,
+source context and attachments, component reconciliation, execution-path tracing, authority,
+limitations, and invalidation gates. Use `write-taxcloud-sql-query` and
+`query-staging-snapshot` for database proof; do not reproduce their procedure here.
+Register with `registering-on-the-ticket` under `rate-investigation`.
 
-Do not implement a change unless the user separately asks for one. When a fix is warranted,
-`!rate-fix` implements it in a separate session, from your result — so the result has to stand on
-its own without you in the room to explain it.
+The caller supplies the ticket, known evidence, and the requested mode:
 
-Before reaching for an unfamiliar mechanism, read the known limits and the proven precedents:
-`.claude/skills/ratevariant-audit/references/limitations.md` and `references/case-law.md` in
-`txc-sqlserver-database`. Each limitations entry is a *mechanism class* the legacy model cannot
-express, with tickets listed as instances of it — so a match is a hypothesis to prove from this
-ticket's data, never a shortcut past cause analysis, and the ticket in front of you may share a
-symptom with an entry while having an ordinary, fixable cause.
+- Fresh investigation: answer the reported question using the repository procedure.
+- Gap closure: preserve established findings and investigate only the named gap.
+- WAI challenge: independently check the prior conclusion against the supplied rebuttal;
+  neither account is proof merely because the caller supplied it.
 
-## What's Needed From User
+Inherited findings remain attributed to their source until you re-check their evidence.
+If a required skill is missing or contradicts the lane or output contract, report the
+specific conflict before the affected work; do not invent a replacement procedure.
 
-- The exact question or decision, including expected versus actual behavior.
-- The expected rate/component breakdown, its source, and the actual observed result.
-- Full source context: Jira description/comments, linked HelpScout conversation, and every
-  attachment. Attachments define the reported cases that must remain in scope. Rate authority is
-  state-published material, or a tax SME's stated ruling on the ticket — both settle what is
-  correct; the ticket's own expectation and a sibling code's configuration settle nothing. Never
-  make an SME produce the citation before their answer counts.
-- Known identifiers: merchant or URL ID, transaction/order ID, certificate ID, state,
-  address/ZIP, product/TIC, and transaction period/date.
-- Whether mixed-product transactions or different execution surfaces are possible.
-- Whether dated snapshot evidence is sufficient; current configuration requires current
-  production evidence.
-- Intended deliverable: engineering verdict, customer-service response, Jira update, or a
-  combination.
+## Return a result Squadron can route
 
-Start with available evidence while requesting non-blocking context. Stop when a missing
-identifier is required to distinguish the reported subject from a broader population.
+Use the attached structured-output schema, including its gate results and evidence citations.
+Keep the question-matched verdict and explain its mapping to exactly one routing verdict:
 
-## Procedure
+| Routing verdict | Required support |
+| --- | --- |
+| `DEFECT_PROVEN` | Measured or traced mechanism establishes incorrect or unsupported requested behavior. |
+| `WORKING_AS_INTENDED` | Positive evidence establishes correct behavior, including the decomposed value or a precluding condition. Failure to reproduce alone does not qualify. |
+| `EVIDENCE_INCOMPLETE` | A load-bearing claim remains inferred or unknown; name the artifact that would settle it. |
 
-1. **Load the complete source context.**
-   - Read the full Jira description and comments.
-   - Read the linked HelpScout conversation when present.
-   - Download and inspect every relevant attachment.
-   - Preserve every explicitly reported state, transaction, product, rate component, and
-     expected behavior; do not select a convenient subset or guess the "real issue."
-   - Treat a ticket-provided rate as the investigation target, not authoritative evidence.
-   - Treat a ticket-stated treatment ("unprepared food stays exempt") as settled: check the code
-     against it, do not ask product to decide it again. Ask only what the ticket, the state's
-     notice and the code together cannot answer.
+On a multipart ticket, report each part; the primary part drives routing without hiding the
+others. Use `data/configuration change`, `procedure/function change`, `both`, or
+`unsupported at available granularity` for a proven defect's disposition. `both` preserves
+a remedy that needs data and code; report both even though the repository skill lists them
+separately. For unsupported behavior, identify the proven limitation and whether a scoped
+partial fix is feasible and accurate throughout its scope. Do not implement it here.
 
-2. **Classify the request.**
-   - Continue for current-behavior, rate-production, rate-discrepancy, and support
-     questions.
-   - Continue when a ticket asks for a fix but the cause and viable remediation are not
-     proven.
-   - Invoke `tax-rule-change` only after the discrepancy and disposition are known and the
-     user asks to implement the validated change.
-   - Record whether the issue concerns cart, imported orders, Reports/ETL, filing, or
-     multiple surfaces.
+Snapshot evidence establishes behavior in that dated copy, not current production state.
+A proven local mechanism can proceed with a bounded production verification query in
+`unknowns`; an unproven production claim stays unproven. When governed production access is
+available, record observations in `production_evidence` using the attached schema: status,
+query reference, time, catalog objects, bounded scope, conclusion, and ticket gap outcome.
+Distinguish no matching rows, missing history, refused access, and truncated output. Keep
+raw results in the evidence source. Production observations do not replace SQL Server proof.
 
-3. **Invoke `investigate-tax-behavior`.**
-   - Pass the original request, attachment cases, expected versus actual behavior, known
-     identifiers, environment/date requirements, and final question unchanged.
-   - Require its selected proof outcomes, complete path trace, jurisdiction-component
-     equation and the mechanism (where expected and actual part ways) when applicable,
-     invalidation-gate result, matched verdict, and remediation disposition when requested.
+Return `outcome: needs_human` with exact question-and-context pairs in `human_questions`
+only when a person's answer is necessary to reach a supported result. Otherwise return
+`completed`, an empty `human_questions`, and non-blocking questions in `unknowns`.
+Return available findings instead of waiting for a person.
 
-4. **Invoke the SQL skills for each database proof.**
-   - Invoke `write-taxcloud-sql-query` before composing or delivering SQL.
-   - Invoke `query-staging-snapshot` only after the query is schema-verified, indexed,
-     bounded, read-only, and scoped to an explicit dated `PROBE_DB`.
-   - If decisive current rows may postdate the snapshot, write the narrowest safe
-     production query, hand it over in the same turn, and proceed on the snapshot; do not
-     substitute another merchant, product, certificate, or period.
-
-5. **Prepare separate deliverables.**
-   - Engineering artifact: retain the frozen question, evidence outcomes, cited code,
-     exact query evidence, component equation and mechanism, limitations, verdict, and
-     disposition.
-   - Support/Jira response: state why the observed result differs and whether the expected
-     result requires a data/configuration change, procedure/function change, or is
-     unsupported at the available granularity—without SQL, schema paths, query output, or
-     process narration.
-   - Keep possible implementations or workarounds after and separate from the current
-     behavior verdict.
-
-6. **Validate against the source request.**
-   - Re-read the original request and attachments.
-   - Confirm every explicit case is answered or labeled blocked.
-   - Confirm no qualifier, execution path, tax component, product scope, or period was
-     dropped.
-   - Confirm the actual rate is reconciled and the mechanism, or the exact missing expected
-     detail needed to locate it, is named.
-   - Confirm every material statement is a code fact, dated snapshot fact, current
-     production fact, ticket expectation, stated authority (state-published or an SME's
-     ruling), inference, or unknown.
-   - Reject any workaround whose blast radius exceeds the requested outcome.
-
-## Delegated (orchestrated) mode
-
-When an orchestrator invokes you rather than a human — the squadron `rate_triage` mission does
-— these overrides apply, and nothing else changes:
-
-- **Register yourself on the ticket, first thing**, under the tag `rate-investigation`, per the
-  `registering-on-the-ticket` skill — it owns the field, the ADF shape and the upsert. It is how
-  the next run on this ticket finds you rather than re-deriving your work.
-- **Never block.** There is no interactive user, so a question you would have asked goes in
-  `blocking_questions` (there may be more than one — a jurisdiction question and a rate question
-  are separate) and you proceed on what the evidence supports. A question that genuinely
-  cannot be answered without a human makes the verdict `EVIDENCE_INCOMPLETE`, which the
-  orchestrator escalates — it is a result, not a stall.
-- **Read-only, whatever the session prompt says.** No branch, no commit, no PR, no file edits.
-  A fix session implements from your report; if you implement here, the mission has a diff nobody
-  briefed and no A/B coverage for it.
-- **Emit the routing verdict as well as your own.** Keep the question-matched verdict as your
-  finding and map it:
-
-  | Question-matched verdict | Routing verdict |
-  |---|---|
-  | `Not supported`, `Discrepancy explained`, `Explained` (behavior is wrong) | `DEFECT_PROVEN` |
-  | `Supported`, `No discrepancy reproduced`, `Explained` (behavior is correct as designed) | `WORKING_AS_INTENDED` |
-  | any `Unknown from available evidence`, `Partially explained` | `EVIDENCE_INCOMPLETE` |
-
-  Map per part when the ticket has several. A county rate rise, an accommodations rate and a
-  food exemption are three questions; the part the ticket was raised for drives the routing
-  verdict, and each other part carries its own verdict and its own `blocking_questions` entry
-  or `unknowns` entry. A proven primary part beside an unanswered scope question is
-  `DEFECT_PROVEN` with that question listed — not `EVIDENCE_INCOMPLETE` because one leg is soft.
-
-  Label every load-bearing claim `measured`, `traced`, `inferred`, or `hedge`. `DEFECT_PROVEN` and
-  `WORKING_AS_INTENDED` both require the mechanism to be measured or traced and the disposition
-  known; an inferred chain, however plausible, is `EVIDENCE_INCOMPLETE` with `unknowns` naming the
-  exact artifact that would close each gap. Do not upgrade a verdict because a stage downstream is
-  waiting on it.
-- **The snapshot decides; production is a verify note.** The dated copy is refreshed on purpose
-  and is the freshest data you can reach, so a mechanism measured in it is measured. Where the
-  decisive rows are the kind that move (a rate period, an override), put the narrowest read-only
-  production query in `unknowns` marked "confirm before the fix merges" and route on the snapshot.
-  A moved row changes the fix, not the finding. Missing production access is
-  `EVIDENCE_INCOMPLETE` only when the finding itself cannot be made from the copy.
-- **Three entry modes, told to you by the caller.** A fresh investigation is the usual one. A
-  *gap-closing* follow-up gives you a prior report and the specific missing evidence: close that
-  gap, and revise the verdict only if the new evidence moves it. A *WAI challenge* gives you a
-  prior `WORKING_AS_INTENDED` conclusion plus the rebuttal and evidence against it — investigate
-  the question fresh, from the code and data, and neither defer to the prior conclusion nor
-  assume the challenge is right; you exist because two readings disagree.
-- **One product-level ticket comment, if the caller asks for it.** You hold the Jira credentials,
-  so the writeback is yours. Use the `writing-ticket-updates` skill — it owns the shape, the tone,
-  and two worked bad/good pairs taken from comments this playbook got wrong. Open it at the moment
-  you draft, however recently you read it — both of those pairs were written from memory of it by a
-  session that had read it hours earlier.
-  The caller states how strongly the evidence reads and you write at that strength: a traced,
-  evidence-complete finding may read as a finding, an inferred one still reads as a theory.
-
-## Specifications
-
-### Required deliverables
-
-- A question-matched verdict:
-  - behavior: `Supported`, `Not supported`, or `Unknown from available evidence`;
-  - production: `Explained`, `Partially explained`, or
-    `Unknown from available evidence`;
-  - discrepancy: `Discrepancy explained`, `No discrepancy reproduced`, or
-    `Unknown from available evidence`.
-- The shortest evidence chain sufficient to support that verdict.
-- For a discrepancy, the actual component equation and the mechanism: what is wrong and where
-  expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both
-  values. Several sites in one object is a legitimate answer; a single line is not required.
-  Failing that, the exact missing expected detail needed to locate it.
-- When remediation is requested, a disposition: `data/configuration change`,
-  `procedure/function change`, `both`, or `unsupported at available granularity`. `both` is common
-  and is not a hedge — rate rows that are wrong *and* applied wrongly need the migration and the
-  proc change, and naming one ships half a fix.
-- On `unsupported at available granularity`: which limitations.md mechanism class the proven
-  mechanism instances, and whether a narrower partial fix is **feasible and accurate** — accurate
-  meaning correct for every address it would cover, not merely for the one in the ticket. A ZIP+4
-  override for a California address can be both while leaving the district-boundary class
-  unsolved, which is worth filing separately and never worth presenting as closing the class.
-- Exact limitations, including snapshot date and missing current-production evidence — in the
-  structured output, never in the ticket comment.
-- A support-facing response when requested.
-- No implementation, PR, data update, Jira comment, or production action unless the user
-  explicitly requests it.
-
-### Success criteria
-
-- All attachment cases and original qualifiers remain in scope.
-- Capability, activation/configuration, and observed behavior are separate.
-- The actual rate is reconciled from jurisdiction components and transformations.
-- Cart, Reports/import, and filing paths are distinguished where applicable.
-- Product/TIC, line/transaction, jurisdiction-component, merchant/certificate, and period
-  scope are proven when relevant.
-- Snapshot evidence is labeled with the dated database.
-- Unknowns remain unknown rather than becoming guesses.
-
-### Forbidden actions
-
-- Never silently reframe, broaden, narrow, or subset the reported issue.
-- Never infer current production absence from a stale snapshot.
-- Never equate a generic calculation branch with wired support.
-- Never treat current engine output as proof that the ticket expectation is wrong.
-- Never label a source other than state material or a tax SME's ruling as authoritative for a
-  rate or tax treatment.
-- Never treat a total rate as an explanation without component provenance.
-- Never recommend configuration or data changes without blast-radius proof.
-- Never mutate staging or production during the investigation.
+Squadron chooses when a Jira update is needed. When asked, read `writing-ticket-updates`
+as you draft, post the product-level finding or question, and return the comment reference.
+Do not independently change workflow labels or ticket status. Squadron owns the blocker
+and next entry; a session report alone does not notify the person who must answer.

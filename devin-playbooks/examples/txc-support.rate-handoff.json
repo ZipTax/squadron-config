@@ -1,0 +1,9 @@
+{
+  "classification": "Tax calculation discrepancy",
+  "routed_to_rate_flow": true,
+  "observed_behavior": "The ticket reports a tax amount different from its stated expectation.",
+  "likely_cause": "Not established; requires the rate investigation workflow.",
+  "pr_url": "",
+  "jira_comment_posted": true,
+  "open_questions": []
+}
