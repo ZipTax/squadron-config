@@ -131,5 +131,6 @@ A lightweight mission that retrieves and structures Linear issue details for eng
 
 ## Further Reading
 
+- [Project documentation](docs/README.md)
 - [Squadron Documentation](https://docs.squadron.sh/)
 - [Squadron SDK](https://github.com/mlund01/squadron-sdk)
