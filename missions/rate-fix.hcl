@@ -65,6 +65,19 @@ mission "rate_fix" {
   # carried across does not exist.
   # ---------------------------------------------------------------------------
 
+  input "start_event_id" {
+    type = "string"
+    default = ""
+    description = "Stable bridge start identity; empty for ordinary mission starts."
+  }
+  input "blocker_id" {
+    type = "string"
+    default = ""
+  }
+  input "blocker_generation" {
+    type = "number"
+    default = 0
+  }
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."
@@ -188,6 +201,11 @@ mission "rate_fix" {
 
   task "enter_fix" {
     objective = <<-EOT
+      Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
+      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
+      events, and durably claim this event before continuing interrupted work.
+
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
 
       # Inspect the handoff

@@ -9,7 +9,7 @@ must neither expand the remedy nor manufacture its own proof.
 
 Read repository instructions and step 1 of `ratevariant-testing/references/process.md`.
 That procedure owns schema copies, migration ownership, and the `ratevariant` opt-in label.
-Use `tax-rule-change` for data/migration conventions and the SQL/query skills for read-only
+Use `author-tax-migration` for data/migration conventions and the SQL/query skills for read-only
 verification. Apply only the implementation portion of those skills: their broader testing
 or rollout guidance does not authorize this lane to author cases, run A/B, or deploy.
 Register with `registering-on-the-ticket` under `rate-fix`.

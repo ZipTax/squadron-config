@@ -129,22 +129,14 @@ expanded it; no such mechanism is configured here.
 
 ## Upstream follow-ups before rollout
 
-The local SQL repository skills were reviewed alongside these changes. The following differences
-still need coordinated upstream edits; they are not fixed merely by shortening the mirror:
+The coordinated SQL repository change adds `author-tax-migration`, permits combined data/code
+remedies and optional production observations, separates harness retrieval from audit acceptance,
+and allows actionable production-evidence requests on Jira. Merge that companion PR before
+publishing these mirrors so Devin can resolve `author-tax-migration` in its checkout.
 
-| Source | Difference and recommended change |
-| --- | --- |
-| `investigate-tax-behavior` | It lists data and procedure dispositions separately, while the output schema also accepts `both`. Add the combined remedy explicitly so neither half is lost. Its snapshot-only assumptions also need to recognize optional governed production observations without promoting local proof into current-production proof. |
-| `tax-rule-change` | It is an end-to-end workflow, including ticket posting and reference refresh work. Extract migration authoring into a reusable skill, then make both this workflow and the fix playbook call it. The current fix adapter uses only implementation conventions and retains Squadron's posting/routing ownership. |
-| `ratevariant-testing/references/process.md` | It says each step is a separate session, then gives run and audit one owner, and prohibits cases from reading results. Distinguish mechanical label/capture delegation from acceptance: Squadron can request retrieval without allowing cases to grade themselves. Keep expected-output examples out of case metadata. |
-| `writing-ticket-updates` | Its blanket exclusion of inaccessible production evidence conflicts with the plan's ticket-visible production gap. Allow concrete requests for access to a named table or kind of data, explaining the scope and decision impact, while keeping raw SQL and lengthy tool diagnostics in engineering evidence. |
-| `txc-bruno` | No dedicated regression-authoring skill was present in this checkout. The playbook retains the unique authoring procedure for now. Extract it only when the repository skill is shipped and available to Devin; a reference to a nonexistent skill would remove the instructions entirely. |
-
-These are rollout dependencies, not reasons to copy the full upstream skills into Squadron.
-Until reconciled, a Devin session encountering an unresolved conflict should return it to the
-caller rather than guessing. The repository files here have not been published to the Devin UI.
+The Bruno playbook retains its authoring procedure until a dedicated repository skill exists;
+extracting it is not a rollout requirement. Databricks integration is a separate follow-up.
 
 Review a change by checking lane paths, authority sources, allowed side effects, human-wait
 behavior, and schema fields against the named upstream skills. Preserve the separate WAI check
-and the existing route contracts unless intentionally changing them. Verify continuations as
-well as fresh sessions: an old session can retain the previous playbook's instructions.
+and the existing route contracts unless intentionally changing them. Existing sessions stay on the previous process unless explicitly adopted.

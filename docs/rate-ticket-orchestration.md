@@ -17,16 +17,15 @@ The design therefore separates active work from durable coordination:
 This is a target design. The Devin blocker contract, production-evidence contract, and checkpoint
 schema are now defined in this repository. Runtime instructions target the bridge workflow. Bridge endpoints, tools, and mission event
 inputs must be wired before deployment; this text does not establish that they are available.
-During deployment, triage converts an existing `rate_resume_state/<TICKET>.md` record only when no
-new checkpoint exists, verifies the new checkpoint with `checkpoint_revision: 1`, and then removes
-the legacy record.
-This read-once path prevents already-waiting tickets from disappearing during the format change.
+The new process applies to newly enrolled tickets. Existing sessions and their small set of
+waiting tickets can finish through the previous process; no bulk migration is required.
+If a ticket is explicitly adopted, verify its session ownership and register its current wait.
+The legacy checkpoint reader remains available for that recovery, not as a rollout prerequisite.
 
 Apply the four updated playbooks and their structured-output schemas in Devin before deploying the
 mission changes that require `outcome` and `human_questions`. The files under `devin-playbooks/` are a
 reviewable mirror, not an automatic UI sync; reversing this order would make an old-format session
-look like a failed mission stage. Existing sessions that may resume during rollout must also be
-checked for the new contract before the mission requirement is enabled.
+look like a failed mission stage. Existing sessions are outside this rollout unless explicitly adopted.
 
 ## Where instructions belong
 
@@ -200,15 +199,12 @@ event before returning success, then deliver it asynchronously. This protects th
 process restarts, Jira retries, and an unavailable Squadron instance. Because the bridge does not
 message Devin, it does not need a Devin API key.
 
-The bridge may validate webhook identity, the ready-label transition, and blocker generation, but
-it does not infer the next phase or whether the discussion answers the question. Squadron records a
-resume mission and entry stage when it registers the blocker. The bridge later invokes exactly that
-target with the Jira event ID and the active blocker generation.
-
-For example, if audit pauses while investigation obtains a human tax decision, the blocker can say
-that new Jira activity returns to `rate-fix` at `audit`. The resumed audit stage may send the answer
-to investigation, the fix session, or more than one session in sequence. The bridge does not make
-that choice.
+The bridge validates webhook identity, the ready-label transition, and the active generation.
+Squadron registers an exact MCP mission name (`rate_triage`, `rate_fix`, or `rate_finalize`),
+entry stage, and resume inputs. The bridge calls `run_mission` with that target and a stable
+start-event ID, saves the returned run ID, and checks progress with `get_run_details`.
+It never chooses the engineering lane. The [bridge skill](../skills/bridge.md) defines the
+registration and resolution payloads expected by the implementation.
 
 ## How a human answer resumes work
 
@@ -249,87 +245,46 @@ In detail:
 This means Devin neither restarts Squadron nor chooses the next phase. It only performs the work
 Squadron routes to it and reports what remains unknown.
 
-## How duplicate resumes are prevented
+## How a new human wait and a delivery retry differ
 
-Jira delivery retries and repeated human discussion are different problems. The bridge therefore
-tracks both webhook delivery and the logical blocker.
+A generation identifies one round of waiting for human input. Whenever Squadron confirms a
+Jira update and needs another human answer, it increments the blocker generation, including
+when the outstanding question is unchanged. Retrying an uncertain registration or label write
+keeps the same generation. Checkpoint revision separately counts checkpoint writes.
 
-A blocker has a stable Jira discussion and a monotonically increasing question generation:
+For example, generation 3 resumes after a person adds the ready label. If the answer is still
+insufficient, Squadron posts the remaining question and registers generation 4. Another Jira
+delivery for generation 3 cannot start generation 4. A ready signal for generation 4 can.
 
-```yaml
-blocker_id: TAX-123/start-date-treatment
-ticket: TAX-123
-generation: 3
-raised_by:
-  lane: fix
-  session_id: devin-fix
-root_comment_id: "184900"
-current_question_comment_id: "184927"
-last_processed_comment_id: "184926"
-last_dispatched_ready_event_id: "jira-event-5512"
-question_digest: sha256-of-normalized-open-questions
-state: waiting
-resume_mission: rate-fix
-resume_entry_stage: audit
-```
+Store one durable row per `(blocker_id, generation)`, with webhook identity, stable start-event
+ID, state, timestamps, run ID, and last error. Enforce unique webhook and start-event identities.
+Accept at most one logical ready dispatch per generation; transport retries retain its event
+ID. Reject superseded generations and atomically claim work during overlapping deployments.
 
-The generation advances only when Squadron approves a materially different question set. Receiving
-a Jira webhook does not advance it. When an answer exposes a missing date, scope, or other necessary
-detail, Squadron replies in the existing Jira discussion with the refined question and advances the
-generation. The root comment remains stable, while `current_question_comment_id` identifies the ask
-that the next reply must address. A net-new top-level comment would separate the clarification from
-the context that explains it.
+## How MCP delivery recovers automatically
 
-If a reply is merely irrelevant and Squadron asks nothing new, the generation does not advance. The
-same question remains current.
+Persist the ready signal before acknowledging Jira. Retry explicit capacity rejection and
+transient delivery failures with bounded backoff. After an accepted start, use the saved run
+ID to poll status. A lost response is an unknown outcome: reconcile through `list_runs` and
+`get_run_details` using the exact start-event ID, never the newest run or ticket alone.
+Only retry an uncertain start once reconciliation or an enforced idempotent claim makes it
+safe. The deployed MCP metadata and mission claim behavior must be verified before rollout.
+A failed status query does not establish that a mission failed.
 
-At minimum, storage enforces uniqueness for:
+Squadron validates and claims the event before side effects. Interrupted work continues from
+its durable checkpoint; completed events do nothing. Failed runs require classification before
+recovery: a transient interruption can continue, while an invalid payload or unsupported
+contract remains an explicit error rather than an endless retry. Terminal errors remain in
+bridge state and logs for diagnosis. Ticket watchers provide the operational fallback; Slack
+alerts and a manual-retry UI are outside this rollout.
 
-```text
-Jira webhook identifier
-(blocker_id, blocker generation)
-(blocker_id, blocker generation, ready-label transition ID)
-Squadron start event ID
-```
+## Which mission receives a continuation
 
-The bridge dispatches only a newly observed addition of the ready label for the active generation.
-It does not dispatch merely because the generation is higher than the last successful one: a person
-may add the ready label again for the same generation after supplying a better answer to an
-unchanged question. Duplicate deliveries of one label transition are ignored, while a later
-remove-and-add transition is a new request for review.
-
-The Squadron start request carries a stable event ID derived from the blocker generation and ready
-transition ID. Both the bridge and the mission deduplicate it. This covers the case where Squadron
-accepts a start but the response is lost before the bridge records success.
-
-Only one resume may be in flight for a blocker. Squadron reads all discussion after
-`last_processed_comment_id`, so comments written before it claims the ready signal are considered
-together. The ready label is an edge-trigger: Squadron removes it when the mission starts so a later
-addition can request another review. The needs-information label is durable state and remains until
-Squadron decides the blocker is resolved.
-
-## How missions remain coarse-grained
-
-Webhook support does not require one mission per task. The existing phase boundaries are suitable
-entry points:
-
-- `rate-triage` owns discovery, investigation, and the initial disposition.
-- `rate-fix` owns implementation, ratevariant case authoring, audit, and Bruno handoff.
-- `rate-finalize` owns WAI verification, learning capture, and close-out.
-
-Each phase can accept an `entry_stage` plus the checkpoint and session identifiers it needs. Internal
-tasks remain ordinary mission tasks and routes. Only the stable phase boundaries need webhook entry
-points.
-
-Squadron chooses and records `resume_mission` and `resume_entry_stage` before it exits. The bridge
-consequently makes no dynamic routing decision when Jira reports new information. An optional
-single webhook-ingress mission could validate and forward events, but it is not required if the
-bridge calls the recorded phase webhook directly.
-
-Squadron's documented `max_parallel` behavior skips a webhook-triggered run when the mission is at
-capacity rather than queueing it. The bridge outbox must therefore retain the start request until
-Squadron accepts it. The mission also deduplicates the supplied start event ID in case acceptance
-succeeds but its response is lost.
+Keep the existing phase boundaries: `rate_triage` for investigation, `rate_fix` for
+implementation/cases/audit/Bruno, and `rate_finalize` for WAI verification and close-out.
+All accept bridge event identity and generation; `entry_stage` identifies the recorded
+continuation within the phase. Additional phase webhooks are unnecessary because the bridge
+uses MCP. Internal task routes remain ordinary Squadron routes.
 
 ## What Squadron remembers
 
@@ -381,7 +336,7 @@ completed_stages:
 wai_refire_count: 0
 processed_start_event_ids: []
 next_entry:
-  mission: rate-fix
+  mission: rate_fix
   stage: audit
 ```
 
@@ -442,8 +397,8 @@ The design can be introduced without rewriting every mission at once:
    **Defined and adopted by the mission memory contract:** `rate_checkpoint/<TICKET>.yaml` is
    Squadron-owned, and `checkpoint_revision` identifies its current write.
 4. Build blocker registration, the Jira receiver, delivery deduplication, and the durable outbox.
-5. Make the three existing rate phases webhook-entry-capable and accept explicit entry stages.
+5. Wire the three existing rate phases for MCP starts with explicit entry stages and event claims.
 6. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
 
-Deploy these blocking instructions with the bridge wiring and disable the old comment-triggered
-resumption for the migrated tickets. Both triggers must not own the same ticket.
+Deploy these blocking instructions with the bridge wiring and scope the old comment-triggered
+resumption away from newly enrolled tickets. Both triggers must not own the same ticket.

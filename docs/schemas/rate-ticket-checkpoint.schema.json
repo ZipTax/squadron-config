@@ -98,9 +98,9 @@
         "mission": {
           "type": "string",
           "enum": [
-            "rate-triage",
-            "rate-fix",
-            "rate-finalize"
+            "rate_triage",
+            "rate_fix",
+            "rate_finalize"
           ]
         },
         "stage": { "type": "string", "minLength": 1 }
@@ -223,9 +223,9 @@
         "resume_mission": {
           "type": "string",
           "enum": [
-            "rate-triage",
-            "rate-fix",
-            "rate-finalize"
+            "rate_triage",
+            "rate_fix",
+            "rate_finalize"
           ]
         },
         "resume_entry_stage": { "type": "string", "minLength": 1 }

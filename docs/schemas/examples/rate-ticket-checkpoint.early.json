@@ -31,7 +31,7 @@
   "blocker": null,
   "processed_start_event_ids": [],
   "next_entry": {
-    "mission": "rate-triage",
+    "mission": "rate_triage",
     "stage": "continue_investigation"
   }
 }

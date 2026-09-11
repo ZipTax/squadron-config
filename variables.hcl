@@ -52,3 +52,16 @@ variable "ratevariant_webhook_secret" {
 variable "mcp_host_secret" {
   secret = true
 }
+
+variable "bridge_url" {
+  # HTTPS base URL without a trailing slash; may use tailnet DNS.
+  default = ""
+}
+
+variable "bridge_registration_token" {
+  secret = true
+}
+
+variable "rate_ready_label" {
+  default = "TaxRates:Ready-for-Squadron"
+}

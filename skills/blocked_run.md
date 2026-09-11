@@ -20,7 +20,7 @@ adding the ready label asks the bridge to deliver another review attempt.
 Ask an available Devin session with relevant context to read comments after
 blocker.last_processed_comment_id and assess the outstanding questions. Accept the
 supported assessment, advance the processed-comment marker, and either continue or refine
-the question. Resolve the blocker through the bridge and remove the needs-information label
+the question. Resolve the blocker using the bridge skill and remove the needs-information label
 only when its dependency is settled. Preserve unrelated labels with add/remove operations.
 
 ## Prepare a human wait
@@ -32,8 +32,9 @@ When progress requires a human answer, including access to production evidence:
    for a refinement, and confirm the comment reference before treating posting as complete.
 3. Save the blocker, questions, raising session when known, comment references, and the
    selected resume mission/stage through rate_checkpoint. Advance the blocker generation
-   only for a materially changed question set, not for a new reply or delivery retry.
-4. Register or revise that blocker through the bridge integration (`POST /blockers`) and confirm acceptance. Keep its stable
+   for every new human wait, even if the question is unchanged. A retry of the same
+   registration preserves its generation.
+4. Register or revise that blocker using the bridge skill and confirm acceptance. Keep its stable
    id and generation so retries update the same blocker instead of creating another.
 5. Add TaxRates:Needs-Info, remove any stale ready label, persist the current state, and end.
 

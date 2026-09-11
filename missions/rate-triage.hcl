@@ -31,6 +31,24 @@ mission "rate_triage" {
   # by route with the case state filled in, not by a human.
   # ---------------------------------------------------------------------------
 
+  input "start_event_id" {
+    type = "string"
+    default = ""
+    description = "Stable bridge start identity; empty for ordinary mission starts."
+  }
+  input "blocker_id" {
+    type = "string"
+    default = ""
+  }
+  input "blocker_generation" {
+    type = "number"
+    default = 0
+  }
+  input "entry_stage" {
+    type = "string"
+    default = ""
+    description = "Recorded triage continuation stage; empty uses ordinary discovery."
+  }
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."
@@ -83,6 +101,11 @@ mission "rate_triage" {
 
   task "discover_sessions" {
     objective = <<-EOT
+      Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
+      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
+      events, and durably claim this event before continuing interrupted work.
+
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
 
@@ -104,6 +127,8 @@ mission "rate_triage" {
       without recorded ownership. Record other candidates and disagreements without blending
       reports. If indexes fail, check recorded ids and label unverified checkpoint facts recorded;
       only with no usable history or checkpoint may you start blind, history_provenance none.
+
+      Honor recorded entry stage "${inputs.entry_stage}" after validating checkpoint ownership.
 
       # Finish discovery
 

@@ -65,9 +65,9 @@ blocker:
   last_processed_comment_id: "184899"
   last_dispatched_ready_event_id: ""
   question_digest: sha256:example
-  resume_mission: rate-fix
+  resume_mission: rate_fix
   resume_entry_stage: audit
 processed_start_event_ids: []
 next_entry:
-  mission: rate-fix
+  mission: rate_fix
   stage: audit

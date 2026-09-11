@@ -45,6 +45,19 @@ mission "rate_finalize" {
   # cross a mission boundary, so the close-out's material is declared here.
   # ---------------------------------------------------------------------------
 
+  input "start_event_id" {
+    type = "string"
+    default = ""
+    description = "Stable bridge start identity; empty for ordinary mission starts."
+  }
+  input "blocker_id" {
+    type = "string"
+    default = ""
+  }
+  input "blocker_generation" {
+    type = "number"
+    default = 0
+  }
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."
@@ -185,6 +198,11 @@ mission "rate_finalize" {
 
   task "enter_finalize" {
     objective = <<-EOT
+      Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
+      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
+      events, and durably claim this event before continuing interrupted work.
+
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       because ${inputs.close_reason}.
 

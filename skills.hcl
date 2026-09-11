@@ -94,3 +94,9 @@ skill "txc_staging_access" {
   description  = "Load when a stage needs TaxCloud staging data. Distinguishes dated snapshot proof from current production observations; delegates query and fixture mechanics to the repository skills."
   instructions = load("./skills/txc_staging_access.md")
 }
+
+skill "bridge" {
+  description = "Load to register or resolve a rate-ticket human wait through the bridge."
+  instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nReady label: ${vars.rate_ready_label}"
+  tools = [tools.save_rate_blocker]
+}
