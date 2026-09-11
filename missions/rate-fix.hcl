@@ -205,6 +205,7 @@ mission "rate_fix" {
       have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
+      If that check rejects the event, end this run without selecting a downstream route.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
 

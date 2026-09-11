@@ -105,6 +105,7 @@ mission "rate_triage" {
       have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
+      If that check rejects the event, end this run without selecting a downstream route.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.

@@ -90,7 +90,7 @@
     "processed_start_event_ids": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Stable bridge start IDs Squadron has already accepted. Retaining them makes a lost response safe to retry."
+      "description": "Stable bridge start IDs Squadron has accepted. Combine with blocker state and run ownership to distinguish interrupted work from completed or concurrent delivery."
     },
     "next_entry": {
       "type": "object",

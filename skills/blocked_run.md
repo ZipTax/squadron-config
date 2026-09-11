@@ -8,14 +8,17 @@ repeating completed stages. These instructions assume the bridge delivery contra
 
 ## Resume from the bridge
 
-Read the checkpoint and supplied start event. Ignore an already processed event or a stale
-blocker generation. For an accepted event, record its id and resume-in-flight state through
-rate_checkpoint before side effects. A retry of interrupted work continues from that state;
-an already completed event must not repeat its effects.
+Load the bridge skill for the configured ready label. Match the supplied blocker ID and
+generation against the current checkpoint before side effects. A mismatch or a completed
+event ends this run without routing. An accepted event still marked resume_in_flight is
+interrupted work: reconcile its recorded progress rather than discarding it or repeating
+finished operations. Record a new event ID and resume_in_flight state through rate_checkpoint
+before continuing. A live owner of the same event must not run concurrently; leave it in charge.
+The bridge must reconcile run status before starting recovery.
 
 Remove the configured ready-for-Squadron label using a label remove operation. Keep
 TaxRates:Needs-Info until the answer is accepted. Ordinary comments do not trigger a run;
-adding the ready label asks the bridge to deliver another review attempt.
+adding the ready label asks the bridge to dispatch the active waiting generation once.
 
 Ask an available Devin session with relevant context to read comments after
 blocker.last_processed_comment_id and assess the outstanding questions. Accept the

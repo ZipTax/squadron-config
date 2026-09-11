@@ -131,7 +131,7 @@ expanded it; no such mechanism is configured here.
 
 The coordinated SQL repository change adds `author-tax-migration`, permits combined data/code
 remedies and optional production observations, separates harness retrieval from audit acceptance,
-and allows actionable production-evidence requests on Jira. Merge that companion PR before
+and allows actionable production-evidence requests on Jira. Merge [SQL PR #240](https://github.com/FedTax/txc-sqlserver-database/pull/240) before
 publishing these mirrors so Devin can resolve `author-tax-migration` in its checkout.
 
 The Bruno playbook retains its authoring procedure until a dedicated repository skill exists;
