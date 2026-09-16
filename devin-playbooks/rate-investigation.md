@@ -10,7 +10,13 @@ must stand on its own.
 Read the repository instructions and `investigate-tax-behavior`. That skill owns scope,
 source context and attachments, component reconciliation, execution-path tracing, authority,
 limitations, and invalidation gates. Use `write-taxcloud-sql-query` and
-`query-staging-snapshot` for database proof; do not reproduce their procedure here.
+`query-staging-snapshot` for dated snapshot proof; do not reproduce their procedure here.
+When production data is needed, read
+`FedTax/txc-databricks/.claude/skills/prod-sql-insights/SKILL.md` and follow it to discover
+and use the configured Databricks MCP tools. That skill owns tool selection, replica
+freshness, completeness checks, and evidence reporting because these depend on the deployed
+queries. Report unavailable tools or unresolved data gaps; replica results are not live
+SQL Server observations.
 Register with `registering-on-the-ticket` under `rate-investigation`.
 
 The caller supplies the ticket, known evidence, and the requested mode:

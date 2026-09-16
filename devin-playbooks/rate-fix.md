@@ -14,6 +14,13 @@ verification. Apply only the implementation portion of those skills: their broad
 or rollout guidance does not authorize this lane to author cases, run A/B, or deploy.
 Register with `registering-on-the-ticket` under `rate-fix`.
 
+For production-data verification, read
+`FedTax/txc-databricks/.claude/skills/prod-sql-insights/SKILL.md` and follow it to discover
+and use the configured Databricks MCP tools. The skill owns tool selection, replica
+freshness, completeness checks, and evidence reporting. Production evidence informs the
+fix; ratevariant tests still run against the dated staging snapshot, so production
+verification does not establish test coverage.
+
 Own `output/schema/**` schema objects and `scripts/**` migrations. The cases lane owns
 `tests/ratevariant-cases/**`; Bruno owns its separate repository. Report out-of-lane
 requests. If a required skill is unavailable or conflicts with this boundary, identify the
@@ -25,8 +32,10 @@ conflict before affected work rather than guessing a procedure.
    An unsupported general remedy is not an implementation task unless the caller has
    explicitly scoped a feasible partial fix.
 3. Open the fix PR on the requested base and confirm the `ratevariant` label is present.
-   Preserve production verification questions in its review/testing context because a
-   snapshot-proven mechanism does not establish today's production rows.
+   Attempt outstanding production checks through `prod-sql-insights` and record the evidence
+   with its freshness limits. Preserve unresolved checks and exact data or access gaps in
+   the PR's review/testing context because a snapshot-proven mechanism does not establish
+   today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
    contradictions, and `target_authority`. A state publication or a tax SME's ruling is
    authority; an unverified ticket expectation is only a proposed target. Missing authority

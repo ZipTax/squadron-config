@@ -3,7 +3,8 @@
 ## Your responsibility
 
 You supply the data question and scope, then judge whether the returned evidence supports
-the claim.
+the claim. Production-data access and interpretation belong to the Devin investigation or
+fix session through its playbook; Squadron does not need a production connection or tool catalog.
 
 ## Work with Devin
 
@@ -14,6 +15,9 @@ credentials, connection settings, SQL templates, or copied query procedures in i
 For case data gaps, ask the Devin session authoring cases to use ratevariant-case-data
 and find an eligible situation or explain the coverage limit. Let Devin select substitute
 merchants and investigate fixture requirements. A substitute must not be presented as the reported production transaction.
+
+Tests run against the dated staging snapshot. Production observations can inform a diagnosis
+or fix, but they do not establish that the snapshot contains the records a test needs.
 
 ## Interpret the evidence
 
