@@ -1,0 +1,53 @@
+{
+  "outcome": "needs_human",
+  "human_questions": [
+    {
+      "question": "Can you provide the order identifier and transaction date for the reported duplicate request?",
+      "context": "The ticket describes two submissions but does not identify the affected order. We need the original request to distinguish replay behavior from a new order."
+    }
+  ],
+  "verdict": "EVIDENCE_INCOMPLETE",
+  "question_matched_verdict": "Unknown from available evidence: the reported order cannot be identified.",
+  "evidence_complete": false,
+  "working_as_intended": false,
+  "disposition": "",
+  "disposition_detail": "",
+  "mechanism": "",
+  "gates": {
+    "question_match": "fail",
+    "basis": "fail",
+    "mechanism_located": "fail",
+    "alternative_killed": "fail",
+    "scope_stated": "pass"
+  },
+  "affected_roots": [],
+  "paths": [],
+  "evidence": [],
+  "production_evidence": [
+    {
+      "status": "unavailable",
+      "ticket_gap_outcome": "needs_human",
+      "claim": "The production order was inserted twice for one request identifier.",
+      "observed_at": "2026-09-11T18:00:00Z",
+      "catalog_objects": [],
+      "query_reference": "https://example.invalid/evidence/DEMO-100/missing-order-scope",
+      "scope": {
+        "identifiers": [
+          "ticket:DEMO-100"
+        ],
+        "date_from": "",
+        "date_to": ""
+      },
+      "conclusion": "No production conclusion is supported; the order and period are not identified.",
+      "limitations": [
+        "No production query was executed because the required scope is unknown."
+      ],
+      "ticket_gap_reason": "A person can provide the order identifier and date."
+    }
+  ],
+  "limitation_class": "none",
+  "unknowns": [
+    "Affected order identifier and date are missing."
+  ],
+  "investigation_summary": "The reported duplicate cannot be traced without the order identifier and date. Please supply them so the two submissions can be compared."
+}

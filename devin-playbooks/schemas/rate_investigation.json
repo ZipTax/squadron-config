@@ -1,6 +1,30 @@
 {
   "type": "object",
   "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "needs_human"
+      ],
+      "description": "Whether this lane completed its bounded work. Use needs_human only when the lane cannot reach a supported result without information or a decision that only a person can provide; non-blocking follow-up questions do not change a completed outcome."
+    },
+    "human_questions": {
+      "type": "array",
+      "description": "Questions that prevent this lane from completing. Empty when outcome is completed. Squadron decides who receives them and where work resumes.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": { "type": "string" },
+          "context": {
+            "type": "string",
+            "description": "Facts the session already knows that the person needs in order to answer the question."
+          }
+        },
+        "required": ["question", "context"],
+        "additionalProperties": false
+      }
+    },
     "verdict": {
       "type": "string",
       "enum": [
@@ -121,6 +145,74 @@
         "additionalProperties": false
       }
     },
+    "production_evidence": {
+      "type": "array",
+      "description": "Ticket-scoped observations from governed production data. Empty when production was not queried; snapshot evidence belongs in evidence instead.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "sufficient",
+              "insufficient",
+              "unavailable"
+            ]
+          },
+          "ticket_gap_outcome": {
+            "type": "string",
+            "enum": [
+              "none",
+              "needs_human",
+              "insufficient_production_evidence"
+            ]
+          },
+          "claim": { "type": "string" },
+          "observed_at": { "type": "string" },
+          "catalog_objects": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "query_reference": { "type": "string" },
+          "scope": {
+            "type": "object",
+            "properties": {
+              "identifiers": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "date_from": { "type": "string" },
+              "date_to": { "type": "string" }
+            },
+            "required": [
+              "identifiers",
+              "date_from",
+              "date_to"
+            ],
+            "additionalProperties": false
+          },
+          "conclusion": { "type": "string" },
+          "limitations": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "ticket_gap_reason": { "type": "string" }
+        },
+        "required": [
+          "status",
+          "ticket_gap_outcome",
+          "claim",
+          "observed_at",
+          "catalog_objects",
+          "query_reference",
+          "scope",
+          "conclusion",
+          "limitations",
+          "ticket_gap_reason"
+        ],
+        "additionalProperties": false
+      }
+    },
     "limitation_class": {
       "type": "string",
       "description": "The limitations.md entry (a ticket carrying the new-rate-engine label) this matches and the data proving the match, or 'none'. A match is a hypothesis proven from data, never a shortcut past cause analysis. Mirrors the mission's `limitation_class` field."
@@ -132,19 +224,14 @@
       },
       "description": "What remains unknown, and what would resolve it."
     },
-    "blocking_questions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Every question a human must answer, one per entry — often none, sometimes several (the jurisdiction and the rate are separate questions). State them here rather than waiting on a reply; no interactive user may be present."
-    },
     "investigation_summary": {
       "type": "string",
       "description": "At most 150 words, product-level."
     }
   },
   "required": [
+    "outcome",
+    "human_questions",
     "verdict",
     "question_matched_verdict",
     "evidence_complete",
@@ -155,6 +242,7 @@
     "affected_roots",
     "paths",
     "evidence",
+    "production_evidence",
     "unknowns",
     "investigation_summary"
   ],

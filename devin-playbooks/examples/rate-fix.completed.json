@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "human_questions": [],
+  "implemented": true,
+  "adopted_existing_pr": false,
+  "pr_url": "https://example.invalid/sql/pull/100",
+  "branch": "DEMO-100-replay",
+  "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "change_type": "proc_or_function",
+  "files_changed": [
+    "output/schema/fedtax-prod/dbo/StoredProcedures/ExampleReplayRequest.sql",
+    "output/schema/fedtax-staging/dbo/StoredProcedures/ExampleReplayRequest.sql"
+  ],
+  "roots_touched": [
+    "dbo.ExampleReplayRequest"
+  ],
+  "mirrored_paths_checked": true,
+  "diagnosis_disagreement": "",
+  "fix_summary": "Check the existing request identifier before inserting. Replaying the same request now returns the existing record; new identifiers still create records."
+}

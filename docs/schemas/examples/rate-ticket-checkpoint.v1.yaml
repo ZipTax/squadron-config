@@ -1,0 +1,73 @@
+schema_version: 1
+ticket: TAX-123
+checkpoint_revision: 4
+updated_at: "2026-09-10T19:20:00Z"
+stage: audit
+verdict: DEFECT_PROVEN
+mechanism: District rate selected from an obsolete effective row.
+lanes:
+  investigation:
+    session_id: 8e72920a57d04c5592603de7085cb45e
+    messageable: true
+    output_revision: 4
+  fix:
+    session_id: 93b2501d2bf94cc7a81208134c8c1ca2
+    messageable: true
+    output_revision: 2
+  ratevariant-cases:
+    session_id: ab854fca652b46bf98e98c55c862f1a8
+    messageable: true
+    output_revision: 2
+  bruno-tests: null
+production_evidence:
+  - status: insufficient
+    ticket_gap_outcome: needs_human
+    claim: The obsolete row was active for the reported transaction.
+    observed_at: "2026-09-10T18:55:00Z"
+    catalog_objects:
+      - governed.tax.transaction_rates
+    query_reference: databricks-query-5512
+    scope:
+      identifiers:
+        - transaction=98765
+      date_from: "2026-06-01"
+      date_to: "2026-06-30"
+    conclusion: No production conclusion is supported because the governed view retains only 30 days.
+    limitations:
+      - The requested transaction predates the view retention window.
+    ticket_gap_reason: Support can supply the archived transaction record needed to establish the applied row.
+artifacts:
+  fix_pr:
+    url: https://github.com/FedTax/txc-sqlserver-database/pull/123
+    branch: TAX-123-fix
+    head_sha: abc123
+  bruno_pr: null
+completed_stages:
+  - develop
+  - author_tests
+wai_refire_count: 0
+audit:
+  iteration: 2
+  last_result: changes_requested
+  stall_count: 0
+blocker:
+  blocker_id: TAX-123/production-row
+  generation: 1
+  state: waiting
+  raised_by:
+    lane: investigation
+    session_id: 8e72920a57d04c5592603de7085cb45e
+  questions:
+    - question: Which rate row was recorded for transaction 98765 in June 2026?
+      context: The governed production view retains only 30 days, so it does not contain this June transaction.
+  root_comment_id: "184900"
+  current_question_comment_id: "184900"
+  last_processed_comment_id: "184899"
+  last_dispatched_ready_event_id: ""
+  question_digest: sha256:example
+  resume_mission: rate_fix
+  resume_entry_stage: audit
+processed_start_event_ids: []
+next_entry:
+  mission: rate_fix
+  stage: audit

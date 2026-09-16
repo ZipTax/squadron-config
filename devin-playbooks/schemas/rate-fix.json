@@ -1,6 +1,27 @@
 {
   "type": "object",
   "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "needs_human"
+      ],
+      "description": "Whether this lane completed its bounded work. Use needs_human only when implementation cannot safely finish without information or a decision that only a person can provide; a question that can travel to audit does not change a completed outcome."
+    },
+    "human_questions": {
+      "type": "array",
+      "description": "Questions that prevent this lane from completing. Empty when outcome is completed. Squadron decides who receives them and where work resumes.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": { "type": "string" },
+          "context": { "type": "string" }
+        },
+        "required": ["question", "context"],
+        "additionalProperties": false
+      }
+    },
     "implemented": {
       "type": "boolean",
       "description": "Whether a change was implemented. False when the disposition is unsupported, when a blocking question stopped the work, or when adopting an existing PR rather than writing one."
@@ -53,19 +74,14 @@
       "type": "string",
       "description": "If implementing contradicted the investigation's diagnosis, what the code showed. Empty otherwise. Do not silently re-diagnose."
     },
-    "blocking_questions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Every question a human must answer, one per entry; empty array when none."
-    },
     "fix_summary": {
       "type": "string",
       "description": "At most 150 words: what changed and the behavior it produces."
     }
   },
   "required": [
+    "outcome",
+    "human_questions",
     "implemented",
     "pr_url",
     "branch",

@@ -1,0 +1,32 @@
+{
+  "outcome": "completed",
+  "human_questions": [],
+  "files_authored": [
+    "tests/ratevariant-cases/imports/demo-replay.yaml",
+    "tests/ratevariant-cases/imports/demo-new-request.yaml"
+  ],
+  "root_coverage": [
+    {
+      "root": "dbo.ExampleReplayRequest",
+      "case_count": 1,
+      "kind": "primary_positive"
+    },
+    {
+      "root": "dbo.ExampleReplayRequest",
+      "case_count": 1,
+      "kind": "guardrail"
+    }
+  ],
+  "coverage_gaps": [],
+  "fixtures": [
+    "A synthetic eligible account supports both cases; the fixture does not change request lookup behavior."
+  ],
+  "alteration_used": false,
+  "offline_validation_passed": true,
+  "pushed": true,
+  "branch": "DEMO-100-replay",
+  "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "run_label_added": false,
+  "suspected_dead_branches": [],
+  "open_questions": []
+}

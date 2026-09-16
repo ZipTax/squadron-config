@@ -1,0 +1,11 @@
+{
+  "classification": "Account configuration",
+  "routed_to_rate_flow": false,
+  "observed_behavior": "The connection is disabled and rejects new requests.",
+  "likely_cause": "The configured disabled state accounts for the observed rejection.",
+  "pr_url": "",
+  "jira_comment_posted": true,
+  "open_questions": [
+    "Should this connection be re-enabled?"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "outcome": "needs_human",
+  "human_questions": [
+    {
+      "question": "Can you provide an anonymized example of a replay payload with the original request identifier?",
+      "context": "The attachment containing the payload is unreadable. Its identifier format determines whether the case reaches the reported import path."
+    }
+  ],
+  "files_authored": [],
+  "root_coverage": [
+    {
+      "root": "dbo.ExampleReplayRequest",
+      "case_count": 0,
+      "kind": "uncovered"
+    }
+  ],
+  "coverage_gaps": [
+    {
+      "root": "dbo.ExampleReplayRequest",
+      "reason": "The required payload format is unavailable; inventing one could exercise a different path."
+    }
+  ],
+  "fixtures": [],
+  "alteration_used": false,
+  "offline_validation_passed": false,
+  "pushed": false,
+  "branch": "DEMO-100-replay",
+  "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "run_label_added": false,
+  "suspected_dead_branches": [],
+  "open_questions": [
+    "Need an anonymized replay payload retaining the identifier format."
+  ]
+}

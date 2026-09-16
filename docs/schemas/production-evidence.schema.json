@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "production-evidence.schema.json",
+  "title": "Rate-ticket production evidence",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "sufficient",
+        "insufficient",
+        "unavailable"
+      ],
+      "description": "Whether the governed production observation supports the production claim it was gathered for."
+    },
+    "ticket_gap_outcome": {
+      "type": "string",
+      "enum": [
+        "none",
+        "needs_human",
+        "insufficient_production_evidence"
+      ],
+      "description": "How Squadron exposes a production-evidence gap. needs_human means a person can supply the missing evidence; insufficient_production_evidence records that no supported production conclusion is available."
+    },
+    "claim": {
+      "type": "string",
+      "description": "The narrow production fact this observation was intended to establish."
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "catalog_objects": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "The governed catalog views or tables queried."
+    },
+    "query_reference": {
+      "type": "string",
+      "description": "A stable identifier or location for the bounded read-only query. The checkpoint does not contain raw query output."
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "identifiers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "date_from": { "type": "string", "format": "date" },
+        "date_to": { "type": "string", "format": "date" }
+      },
+      "required": [
+        "identifiers",
+        "date_from",
+        "date_to"
+      ],
+      "additionalProperties": false
+    },
+    "conclusion": {
+      "type": "string",
+      "description": "The domain fact supported by the observation. When no conclusion is supported, state whether no rows matched, access failed, history was incomplete, or the result was truncated."
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "ticket_gap_reason": {
+      "type": "string",
+      "description": "What evidence is missing, why it matters, and whether local investigation can continue. Empty when ticket_gap_outcome is none."
+    }
+  },
+  "required": [
+    "status",
+    "ticket_gap_outcome",
+    "claim",
+    "observed_at",
+    "catalog_objects",
+    "query_reference",
+    "scope",
+    "conclusion",
+    "limitations",
+    "ticket_gap_reason"
+  ],
+  "additionalProperties": false
+}

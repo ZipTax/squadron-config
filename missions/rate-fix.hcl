@@ -27,8 +27,8 @@ mission "rate_fix" {
   #                      \--> author_tests (a live fix PR only lacks A/B coverage)
   #                      \--> audit        (fix and cases both exist; resume the judgment)
   #                      \--> bruno_tests  (the A/B is settled; only API coverage was outstanding)
-  #   develop     --send_to--> author_tests
-  #   author_tests --send_to--> audit
+  #   develop     --router--> author_tests (completed; needs_human checkpoints and ends)
+  #   author_tests --router--> audit       (completed; needs_human checkpoints and ends)
   #   audit       --router--> bruno_tests            (SATISFACTORY: lock the settled fix in)
   #                      \--> missions.rate_finalize (FIX_IS_NO_OP: the fix changes nothing)
   #   bruno_tests --router--> missions.rate_finalize
@@ -46,18 +46,17 @@ mission "rate_fix" {
   # All credentialed I/O (gh, PR/Jira comments, staging queries) is Devin's.
   #
   # Blocking on a human: the blocked_run skill, both ends. A stage that hits a
-  # wall ends the run, writes rate_resume_state/<TICKET>.md naming this lane's
+  # wall ends the run, writes rate_checkpoint/<TICKET>.yaml naming this lane's
   # stage, and puts the questions on the ticket; the Jira automation fires
   # /ratevariant when the answer lands, and rate_triage's discovery routes the
   # case back here at that stage.
-  memories = [memories.rate_resume_state]
+  memories = [memories.rate_checkpoint]
 
   agents = [
     agents.session_scout,
-    agents.rate_fix_engineer,
-    agents.ratevariant_case_author,
-    agents.ratevariant_auditor,
-    agents.bruno_author
+    agents.taxcloud_legacy_sql_implementer,
+    agents.test_authoring_coordinator,
+    agents.taxcloud_legacy_sql_reviewer
   ]
 
   # ---------------------------------------------------------------------------
@@ -66,6 +65,19 @@ mission "rate_fix" {
   # carried across does not exist.
   # ---------------------------------------------------------------------------
 
+  input "start_event_id" {
+    type = "string"
+    default = ""
+    description = "Stable bridge start identity; empty for ordinary mission starts."
+  }
+  input "blocker_id" {
+    type = "string"
+    default = ""
+  }
+  input "blocker_generation" {
+    type = "number"
+    default = 0
+  }
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."
@@ -110,6 +122,12 @@ mission "rate_fix" {
     type        = "string"
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
     default     = ""
+  }
+
+  input "production_evidence" {
+    type        = "string"
+    description = "The investigation's typed governed-production observations, including sufficient | insufficient | unavailable status and any ticket-visible gap outcome. Preserve this in every checkpoint; an empty list means production was not queried, not that production showed nothing."
+    default     = "[]"
   }
 
   input "investigation_session_id" {
@@ -166,9 +184,9 @@ mission "rate_fix" {
     default     = ""
   }
 
-  input "resume_state" {
+  input "checkpoint" {
     type        = "string"
-    description = "What rate_resume_state/<TICKET>.md said this case was waiting on, which stages finished, and the run marker a resumption needs to tell new ticket replies from ones already read. Blank on a first pass through this lane, in which case the entry stage owes no blocked_run entry steps."
+    description = "The validated rate_checkpoint/<TICKET>.yaml record. Blank on a first pass through this lane, in which case the entry stage owes no blocked_run entry steps."
     default     = ""
   }
 
@@ -183,48 +201,34 @@ mission "rate_fix" {
 
   task "enter_fix" {
     objective = <<-EOT
-      This run of the rate-fix lane for ${inputs.issue} starts at `${inputs.entry_stage}`. Confirm
-      the state it is starting from is real, then route it. You read only: no session is created,
-      messaged, or briefed here.
+      Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
+      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
+      events, and durably claim this event before continuing interrupted work.
+      If that check rejects the event, end this run without selecting a downstream route.
 
-      # You do
+      Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
 
-      check_session on every session id the handoff carried — fix_session_id
-      ("${inputs.fix_session_id}"), cases_session_id ("${inputs.cases_session_id}"),
-      investigation_session_id ("${inputs.investigation_session_id}") — and compare what you find
-      to what was claimed. rate_triage read them at assessment time; a session can terminate
-      between missions, and a stage that finds out later finds out at the point it needs to send.
+      # Inspect the handoff
 
-      Route on `${inputs.entry_stage}`, with two corrections you are allowed and expected to make.
-      Both exist for the same reason: audit routes its findings to the session that owns the lane
-      they belong to and never opens one itself, so a lane whose session died strands every finding
-      that lands in it — and it strands them at the moment audit has a judgment, which is the worst
-      time to discover it.
-
-      - The fix lane. If the entry is author_tests, audit or bruno_tests but fix_session_id can no
-        longer be messaged, route to develop instead, which adopts the PR and becomes its owner.
-      - The cases lane. If the entry is audit or bruno_tests but cases_session_id can no longer be
-        messaged, route to author_tests instead, which adopts the cases already on the branch. Do
-        not route a dead cases lane to audit on the argument that the cases exist: CASES_INADEQUATE
-        is the most common finding there is, and it has nowhere to go.
-
-      Where both lanes are dead, develop wins — it is the earlier stage, and author_tests reads the
-      fix PR's diff, so a lane the fix session must first re-own cannot be covered before it is.
-      Say in lane_state which correction you made and why.
-
-      %{ if inputs.resume_state != "" ~}
-      This run is a resumption. Prior state:
-
-      ${inputs.resume_state}
-
-      Clear the `TaxRates:Needs-Info` label with `editJiraIssue` before you route — the blocked_run
-      entry step, add/remove on labels and nothing else on the ticket. The stage you route to owes
-      the other half, judging whatever came back on the ticket, since the questions were its.
+      Have the session_scout agent check the supplied Devin ids: fix ${inputs.fix_session_id},
+      cases ${inputs.cases_session_id}, and investigation ${inputs.investigation_session_id}.
+      Compare reported ownership and resumability with the handoff. Do not create or message
+      Devin sessions here.
+      %{ if inputs.checkpoint != "" ~}
+      This is a resumption. Use blocked_run's trigger-label entry step before routing; the work
+      stage assesses new answers. Prior state:
+      ${inputs.checkpoint}
       %{ endif ~}
 
-      Return the entry you settled on, the state of each session, and one line on anything the
-      handoff got wrong — a discrepancy is a learning about the routing rule, and rate_finalize can
-      only record it if it is on the record.
+      # Select the entry
+
+      Use the requested entry unless a writing lane needs an owner: a dead fix owner changes
+      an author_tests/audit/bruno_tests entry to develop; a dead cases owner changes an
+      audit/bruno_tests entry to author_tests. When both are dead, develop comes first because
+      cases must cover the adopted fix. These stages adopt existing artifacts rather than recreate
+      them. A missing investigation session alone does not prevent audit from asking other
+      available Devin sessions for evidence.
     EOT
     agents = [agents.session_scout]
 
@@ -269,88 +273,46 @@ mission "rate_fix" {
   # ---------------------------------------------------------------------------
   # Task — develop. Implementation only. The mission is only entered on a proven
   # defect, so it never has to decide whether there IS a defect. Dynamic target
-  # (no depends_on); pushes into author_tests via send_to.
+  # (no depends_on); routes into author_tests only when the lane reports completed.
   # ---------------------------------------------------------------------------
 
   task "develop" {
     objective = <<-EOT
-      A defect has been proven for ${inputs.issue} in ${inputs.repo_url}. Implement the fix —
-      step 1 of the ratevariant process (ratevariant-testing skill, references/process.md).
+      Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
-      # Two ways you get here
+      # Delegate to Devin
 
-      Usually no fix exists and this stage writes it. But when fix_pr_url is set
-      ("${inputs.fix_pr_url}") and its owning session cannot be messaged, the fix exists and its
-      session is gone, and this stage exists to give that PR a living owner — audit routes corrections to the
-      fix session and cannot create one, so an unowned PR strands every finding it reaches.
+      Use delegated_session to resume the registered owner. When a new owner is needed, have the
+      stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
+      and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
+      PR ${inputs.fix_pr_url}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
+      disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
+      and relevant unanswered questions. An existing PR is an adoption task, not a rewrite.
 
-      In that adopt case the session's job is to take over, not to redo: have it read the PR diff
-      and the branch, confirm the change matches the briefed mechanism, and say what it found —
-      then stop and hold the lane. It must not re-implement, revert, or widen what is there, and it
-      must not open a second PR. If the existing change contradicts the diagnosis, that goes in
-      diagnosis_contradicted; correcting it is audit's call, routed back here, not a silent rewrite
-      before anyone has run the A/B.
+      # Assess the result
 
-      # You do
+      Collect Devin's result with check_session. Require a PR for completed work and investigate
+      any reported contradiction with the diagnosis. Missing target authority may accompany a
+      reviewable proposal; implementation alone does not settle the tax treatment.
 
-      Start a code_develop session on ${inputs.repo_url} running the !rate-fix playbook.
+      # Finish or pause
 
-      - title: "${inputs.issue} — fix <short description of what is being corrected>" — the actual
-        subject, which is often jurisdictions, dates, or a sourcing quirk rather than a rate.
-      - tags: `${inputs.issue}`, `rate-fix`
-      - prompt_mode: `raw` — the playbook owns the branch/commit/PR sequence, and the default
-        prompt would also tell the session to add tests, which is step 2's lane.
-
-      # Brief the session
-
-      Give it the investigation's result, which rate_triage established and passed in — so it
-      implements against a settled diagnosis instead of re-deriving one:
-
-      - mechanism: ${inputs.mechanism}
-      - disposition: ${inputs.disposition}
-      - affected roots: ${inputs.affected_roots}
-      - evidence: ${inputs.evidence}
-
-      Then, in the task text:
-
-      - You own step 1 only: the procedure/function change under output/schema and/or the data
-        migration under scripts/. Do NOT add anything under tests/ — case authoring is step 2
-        and needs extensive fixture discovery that has no bearing on this fix.
-      - Implement the briefed disposition, including both halves when it is both a data and a
-        proc change. Nothing wider.
-      - Edit every copy of a changed object (prod and staging, both databases where the logic
-        is duplicated); `ratevariant plan` only watches the -prod copies.
-      - Open the PR, add the `ratevariant` label so plan runs, and confirm it landed:
-          gh pr edit <pr> --add-label ratevariant
-          gh pr view <pr> --json number,url,headRefName,labels
-        Adopting an existing PR: check out its head branch, do not open a PR, and check the label
-        rather than assuming — a prior run may or may not have applied it, and plan never ran if it
-        did not.
-
-      # Hold the session to
-
-      If the reported fix does not line up with what the ticket asks for and the session gives
-      no sound reason for the difference, push back: ask it to confirm the change actually
-      addresses the ticket's ask, and cite the mismatch you see. Take its reasoning if it has
-      one — it is reading the code and you are not — and record the disagreement in
-      diagnosis_contradicted either way.
-
-      Ask what establishes the value the change now produces, and take the answer as it comes:
-      state-published material or an SME's stated figure on the ticket is an authority, and the
-      ticket's own expectation or a sibling code's configuration is not one. A missing authority does
-      not stop this stage — the change is a proposal, and building it is what makes the question
-      concrete — but it travels, per `evidence_gate`, because nothing downstream can rediscover it
-      and an A/B pass will otherwise read as the case being settled.
-
-      Fail the stage if no PR exists at the end. Do not report success without one.
-
-      Return the PR URL, number, head branch, develop_session_id, what authority the corrected value
-      rests on, and a one-line summary of what changed — or, when adopting, what the existing change does and that the lane is now
-      owned.
+      Completed work proceeds to case authoring. For needs_human, use blocked_run and
+      rate_checkpoint with next entry develop.
     EOT
-    agents  = [agents.rate_fix_engineer]
+    agents  = [agents.taxcloud_legacy_sql_implementer]
 
     output {
+      field "outcome" {
+        type        = "string"
+        description = "completed | needs_human — the fix lane's typed completion state."
+        required    = true
+      }
+      field "human_questions" {
+        type        = "string"
+        description = "The session's question-and-context pairs. Empty when outcome is completed."
+        required    = true
+      }
       field "pr_url" {
         type        = "string"
         description = "Full URL of the PR carrying the fix."
@@ -393,84 +355,62 @@ mission "rate_fix" {
       }
     }
 
-    send_to = [tasks.author_tests]
+    router {
+      route {
+        target    = tasks.author_tests
+        condition = "outcome == completed"
+      }
+      # `needs_human` has no route because develop records the blocker before returning.
+    }
   }
 
   # ---------------------------------------------------------------------------
   # Task — author_tests. Reached only on the applies path, so it always has real
   # work (no self-skip). Authors the ratevariant cases/alteration, then hands off
-  # to audit. Dynamic target (no depends_on); pushes into audit via send_to.
+  # to audit. Dynamic target (no depends_on); routes into audit only when the lane reports
+  # completed.
   # ---------------------------------------------------------------------------
 
   task "author_tests" {
     objective = <<-EOT
-      Author the ratevariant cases on the EXISTING branch of the fix PR — step 2 of the
-      ratevariant process (ratevariant-testing skill, references/process.md). The PR is
-      develop's, or the one carried in as fix_pr_url ("${inputs.fix_pr_url}", branch
-      "${inputs.fix_branch}") when a prior run had already opened it and its session is still live;
-      in that case read the PR diff for the change under test, since no develop stage in this run
-      described it.
+      Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
-      Pass the fix lane's session id through to audit either way — develop_session_id when develop
-      ran, otherwise the fix_session_id input ("${inputs.fix_session_id}"). Audit routes corrections
-      to whichever it is and cannot open a session of its own, so a lane id that stops here strands
-      them.
+      # Delegate to Devin
 
-      %{ if inputs.cases_session_id != "" ~}
-      This run may be adopting cases rather than writing them: cases_session_id
-      ("${inputs.cases_session_id}") already authored cases on this branch, and enter_fix routed
-      here because that session can no longer be messaged. Then the session you start owns the
-      cases lane from now on — have it read what is already committed under
-      tests/ratevariant-cases/** and the `<!-- ratevariant-plan -->` comment before adding
-      anything, and complete the coverage rather than re-authoring it. Existing cases the prior
-      session justified are not yours to delete on taste; a case you believe is wrong is a finding
-      to return, the same as any other.
-      %{ endif ~}
+      Use develop's PR and branch when it ran; otherwise use ${inputs.fix_pr_url} and
+      ${inputs.fix_branch}. Resume the cases owner ${inputs.cases_session_id} or the checkpoint's
+      owner through delegated_session. If a replacement is needed, have the stage agent call
+      plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
+      `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
-      # You do
+      Supply the PR, mechanism ${inputs.mechanism}, disposition ${inputs.disposition}, prior
+      coverage, and outstanding questions. Devin selects situations and investigates fixtures
+      using the playbook. Case YAML describes inputs, not expected outputs.
 
-      Start a code_develop session running the !ratevariant-cases playbook.
+      # Assess the result
 
-      - title: "${inputs.issue} / PR #<n> — cases for <short description>"
-      - tags: `${inputs.issue}`, `rate-cases`
-      - prompt_mode: `raw` — the default prompt would cut a second branch and open a second PR.
+      Collect the result with check_session. Require offline validation and coverage or an
+      evidenced gap for each affected root. Ask Devin to investigate missing support rather than
+      inventing a fixture yourself. Case authoring does not establish target authority.
 
-      Capture cases_session_id for the audit phase.
+      # Finish or pause
 
-      # Brief the session
-
-      The playbook owns which cases to write, and reading the `<!-- ratevariant-plan -->`
-      comment at the current head SHA is its own first step. Give it what only this run knows:
-
-      - the mechanism (${inputs.mechanism}) and disposition (${inputs.disposition}) rate_triage
-        established, so it knows what the change was meant to do;
-      - choose paths, boundaries, and inputs from the function code, the ticket, and staging
-        data — never from the PR's prose, which is sometimes wrong about its own change;
-      - step 2 ends at pushing to the existing branch: do NOT add `ratevariant:run`, run the
-        harness, or read results — steps 3 and 4 are the auditor's, so the session that wrote
-        the fixtures is never the one grading them;
-      - lane is tests/ratevariant-cases/** only; a PR comment asking for a proc or migration
-        change is out of lane, so report it instead of acting on it.
-
-      # Hold the session to
-
-      Two things you actually route on — the rest (what it pushed, per-root coverage, its own
-      session link on the PR) is visible in git and on the PR, so trust it and don't ask for it
-      back:
-
-      - Empty roots under "### Proc changes" while the PR changed dbo procs/functions means
-        callgraph generation failed (permissions or another DB/infra failure). That is a stage
-        failure to report, not something to author around. Empty roots on a data-only PR is
-        expected and fine.
-      - A root left uncovered needs a stated reason, and the reason has to survive the obvious
-        objection: fixtures can supply a connection, a merchant/location config, an eligibility
-        row, so "the snapshot lacks the data" is only valid where the missing data is something
-        a fixture cannot stand in for. Genuinely unconstructable cases happen, rarely; that is
-        a coverage finding to return, and a silent omission is a stage failure.
+      Completed coverage proceeds to audit, including justified limits for the auditor to assess.
+      For needs_human, use blocked_run and rate_checkpoint with next entry author_tests.
     EOT
-    agents  = [agents.ratevariant_case_author]
+    agents  = [agents.test_authoring_coordinator]
 
     output {
+      field "outcome" {
+        type        = "string"
+        description = "completed | needs_human — the case-authoring lane's typed completion state."
+        required    = true
+      }
+      field "human_questions" {
+        type        = "string"
+        description = "The session's question-and-context pairs. Empty when outcome is completed."
+        required    = true
+      }
       field "mode" {
         type        = "string"
         description = "proc | data | both"
@@ -493,12 +433,18 @@ mission "rate_fix" {
       }
       field "target_authority" {
         type        = "string"
-        description = "develop's target_authority, passed through unchanged (blank when develop did not run). This stage authors nothing that could establish it; it is here so audit sees it."
+        description = "Copy target_authority unchanged from develop, or from the checkpoint on resumption. Blank only when neither establishes authority; case authoring does not supply it."
         required    = false
       }
     }
 
-    send_to = [tasks.audit]
+    router {
+      route {
+        target    = tasks.audit
+        condition = "outcome == completed"
+      }
+      # `needs_human` has no route because author_tests records the blocker before returning.
+    }
   }
 
   # ---------------------------------------------------------------------------
@@ -512,116 +458,48 @@ mission "rate_fix" {
 
   task "audit" {
     objective = <<-EOT
-      Own the A/B verdict for the PR (branch, number, mode from prior outputs) — steps 3 and 4
-      of the ratevariant process, which are one owner's on purpose so the session that wrote
-      the fixtures is never the one grading them. Skip if nothing was pushed since the last run.
+      Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
-      # You do
+      # Work with Devin
 
-      Three sessions are open and each owns a lane: investigation_session_id (the evidence),
-      fix_session_id (the fix — develop's session, or the live one that already owned the PR),
-      cases_session_id (the cases). On a run that entered at this stage rather than reaching it
-      through author_tests, they are the mission's inputs — investigation "${inputs.investigation_session_id}",
-      fix "${inputs.fix_session_id}", cases "${inputs.cases_session_id}", mode "${inputs.cases_mode}",
-      PR "${inputs.fix_pr_url}" — and enter_fix's read of them is the current picture. Do ALL Devin work through
-      them via send_message and check_session — the run, your staging queries, and every routed
-      fix. When session_messageable is false on the first, the delegated_session rules for an
-      unmessageable session apply: don't send, and take an evidence question you would have asked
-      it to the cases session, which has the snapshot. Never open a
-      new session and never run a code_qa review: your judgment stays
-      independent, but the work runs in the session that owns it.
+      Use upstream results or the direct-entry context: PR ${inputs.fix_pr_url}, mode
+      ${inputs.cases_mode}, investigation ${inputs.investigation_session_id}, fix
+      ${inputs.fix_session_id}, and cases ${inputs.cases_session_id}. Have the stage agent check
+      available sessions and use send_message/check_session for bounded evidence requests.
+      Do not use code_qa. A missing investigation owner is not a reason to stop: ask an available
+      Devin session with relevant context to investigate. Evidence gathering does not change its
+      file ownership, and you retain acceptance of the result.
 
-      Anchor your predictions in the investigation's mechanism and required outcome plus your
-      own map of the actual PR diff — have a session read out the changed proc/fn bodies. Not
-      the PR description, which is sometimes wrong about its own change.
+      Use txc_rate_audit to request predictions, captures, and technical analysis. Explicitly ask
+      Devin to apply the run label when needed. Route code corrections to the fix owner and case
+      corrections to the cases owner. If a migration changes, have the cases owner update its
+      alteration too. Use session_lane when a request includes editing shared PR content.
 
-      When you need data — a decomposed rate, a merchant's configuration, whether a row exists
-      — you have no database access; ask cases_session_id, which did the fixture discovery and
-      has the deepest picture of the snapshot. State the question and the values you need back,
-      not the query.
+      # Assess the evidence
 
-      Loop until SATISFACTORY or FIX_IS_NO_OP, up to 10 iterations. The cap is a runaway
-      guard, not a budget to spend: what actually ends the loop is progress. Keep going while each
-      pass closes a specific named gap — a case gained coverage, a wrong value became right, a
-      no-diff got diagnosed.
+      Apply evidence_gate, ab_audit, and txc_rate_audit. Obtain predictions before examining results.
+      Only accept captures for the current PR head and required modes; reuse a complete applicable
+      run on an unchanged head, and request fresh evidence after changes. A successful plan, a
+      diff, an absent diff, or an author's assurance is not enough to pass.
 
-      Two things end it before the cap, and neither is a failure to keep trying. A terminal
-      judgment: the evidence settles the question against a further pass — the case genuinely
-      cannot be constructed, the fix is wrong in a way another run will only re-demonstrate, the
-      ticket asked for behavior that is already correct. And a stall: two consecutive passes change
-      nothing you can name, which is a stuck loop, and a fifth identical re-run will not unstick
-      it; say what it is stuck on. Either way you exit on the verdict the evidence supports.
+      CASES_INADEQUATE calls for an evidenced coverage correction; FIX_OR_TICKET_WRONG calls for
+      an implementation correction. Keep expected-output analysis outside case YAML. A
+      SATISFACTORY result demonstrates implementation against the target, but any missing target
+      authority remains open. FIX_IS_NO_OP requires positive evidence of correct prior behavior
+      or a dead changed branch, not just failure to reproduce.
 
-      The iteration count is yours for the cap and the summary — the sessions have no use for it,
-      so don't relay it:
+      # Finish or pause
 
-      1. RUN — step 3, per the ratevariant-testing skill: have a session fire it and return the
-         result comment for the current head SHA (PROC → `<!-- ratevariant-result -->`, DATA →
-         `<!-- ratevariant-alter-result -->`). Plan passing proves NOTHING about behavior; only
-         the per-case captures validate.
+      Use verdict_loop: stop at a supported result, two iterations without a named improvement,
+      or 10 iterations. Never upgrade a verdict to exit. On FIX_IS_NO_OP, ask Devin to verify
+      read-only, post the product-level finding using writing-ticket-updates, and add a PR note;
+      do not close or revert the PR. Stop further case work.
 
-      2. AUDIT — step 4, per the ab_audit and txc_rate_audit skills. Classify every case as
-         primary positive or guardrail before you look, prove each value is RIGHT rather than
-         merely present, and diagnose every unexpected no-diff (shadowed / unreachable /
-         not-exercised / masked) with data before concluding anything.
-
-      # Outcomes
-
-      The repo's CLAUDE.md tells a session the PR description is shared state and must be
-      read-then-appended; restate it in any message where the session will touch the description
-      anyway, per session_lane. This is where descriptions get clobbered, and the earlier stages'
-      findings are what disappears.
-
-      SATISFACTORY is a statement about the change, not about the treatment: it says the fix
-      produces the value it was built to produce, on every path it reaches. Whether that value is
-      the right one is the target_authority question the fix lane carried in — blank means nobody
-      has authorized it, and no case result can close that, so it exits in open_questions naming
-      what would — the state's own published material, or a figure an SME states — and
-      rate_finalize asks it.
-
-      Exit on exactly one verdict:
-      - SATISFACTORY — intended diffs present, each to the correct value, guardrails flat, all
-        paths the change spans in agreement, and every path it actually reaches covered by a
-        case that ran. A path counts as not needing coverage only when you have PROVEN the
-        change cannot reach it.
-      - CASES_INADEQUATE — missing branch/path coverage, an ineffective probe, a guardrail
-        gap, or a reachable path left uncovered on a hedge → send_message(cases_session_id)
-        with the specific case(s)/probe(s) to add or fix, including the inputs and the values
-        they must assert. Loop. Rarely this is terminal instead: where the case genuinely cannot
-        be constructed — not "the snapshot lacks it" where a fixture would do — exit on this
-        verdict with the uncoverable paths and what a case would need, so a human decides
-        whether the fix ships uncovered.
-      - FIX_OR_TICKET_WRONG — dead/shadowed branch, wrong resulting value, cart-vs-reports or
-        import inconsistency, over-broad blast radius, or an ineffective fix → have Devin post
-        a PR comment citing the file plus the case result that proves it, then
-        send_message(fix_session_id) with ONLY that fix and its supporting data. If the
-        fix changes a scripts/*.sql migration, the mirroring alteration is now stale — also
-        send_message(cases_session_id) to re-sync it. Loop.
-      - FIX_IS_NO_OP — the A/B, grounded in data, shows the fix changes nothing: the
-        pre-change behavior was already correct, or the changed branch is provably dead. This
-        requires POSITIVE data (the decomposed correct value, or the precluding condition),
-        never an absent diff or an inability to construct one. One intended diff rules it out:
-        a run whose cases diverged as predicted is SATISFACTORY, and reporting that as
-        "working as designed" says the opposite of what the evidence shows. The fix session made the change
-        and is best placed to confirm it: send_message(fix_session_id) with the
-        data-grounded finding and have it verify in-situ, then post ONE product-level Jira
-        comment routing to the SMEs, plus a brief PR note so the reviewer knows it is a no-op.
-        It must NOT push code, close the PR, or remove labels. Return the comment URL. Tell
-        the cases session to stand down. Don't loop; exit.
-
-      However you exit — terminal judgment, stall, or the cap — exit on the verdict the evidence
-      supports; never upgrade to SATISFACTORY to close out the run. Summarize what changed and why,
-      and on a stall what the loop could not move.
-
-      A terminal CASES_INADEQUATE, a stall, or the cap ends the chain here — rate_finalize does not
-      run after it, so nothing else will close the case out — so close it out yourself per blocked_run (slot `rate_resume_state`, path
-      `${inputs.issue}.md`, blocked at audit, the fix session posting the comment and you setting the
-      label). What this stage owes the file: the uncoverable paths and why, the fix PR, and what a
-      human has to decide. Skip the
-      ticket comment only when the open item is a coverage limit for a reviewer rather than a
-      question for a person.
+      Terminal CASES_INADEQUATE or FIX_OR_TICKET_WRONG does not proceed. Use blocked_run and
+      rate_checkpoint when a human answer is needed. A coverage limit for a reviewer does not
+      require inventing a Jira question.
     EOT
-    agents = [agents.ratevariant_auditor]
+    agents = [agents.taxcloud_legacy_sql_reviewer]
 
     output {
       field "verdict" {
@@ -636,12 +514,12 @@ mission "rate_fix" {
       }
       field "working_as_designed" {
         type        = "boolean"
-        description = "Whether the A/B concluded the fix was unnecessary (pre-change behavior already correct, revert)"
+        description = "True only when the accepted verdict is FIX_IS_NO_OP. This describes the finding; it does not authorize reverting code."
         required    = true
       }
       field "confirmed_findings" {
         type        = "string"
-        description = "Confirmed bugs, dead/shadowed branches, wrong-value diffs, blast-radius/teardown issues, and path inconsistencies, each with the case result that demonstrates it"
+        description = "Accepted findings with supporting case captures, PR head, and plan/run references. Include bugs, reachability, value discrepancies, blast radius, teardown, and path inconsistencies where applicable."
         required    = true
       }
       field "open_questions" {
@@ -651,7 +529,7 @@ mission "rate_fix" {
       }
       field "final_summary" {
         type        = "string"
-        description = "End-to-end summary in at most 150 words; ends with the PR URL for human review"
+        description = "At most 150 words: accepted result, what changed during audit, and any stall or unresolved gap. Include a no-op Jira comment reference when posted; end with the fix PR URL."
         required    = true
       }
     }
@@ -663,7 +541,7 @@ mission "rate_fix" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "verdict == FIX_IS_NO_OP — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno. Pass entry_stage = record_learnings, close_reason = 'audit FIX_IS_NO_OP', the audit verdict and confirmed findings, and every session id still open — rate_finalize asks each of them for its own learnings and cannot find them itself."
+        condition = "verdict == FIX_IS_NO_OP — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno. Pass entry_stage = record_learnings, close_reason = 'audit FIX_IS_NO_OP', the audit verdict, confirmed findings, production_evidence, and every session id still open — rate_finalize asks each of them for its own learnings and cannot find them itself."
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
       # route; on the rare terminal CASES_INADEQUATE the chain exits here with the uncoverable
@@ -681,50 +559,43 @@ mission "rate_fix" {
 
   task "bruno_tests" {
     objective = <<-EOT
-      The fix is settled (audit returned SATISFACTORY). Author Bruno API regression tests that
-      lock it in, in FedTax/txc-bruno.
+      Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
-      # You do
+      # Delegate to Devin
 
-      Start a FRESH code_develop session on https://github.com/FedTax/txc-bruno running the
-      !bruno-regression playbook for ${inputs.issue} against the fix PR (number/branch from
-      develop, or the fix_pr_url/fix_branch inputs — "${inputs.fix_pr_url}",
-      "${inputs.fix_branch}" — on a run that entered at this stage).
+      Use the fix PR from develop or ${inputs.fix_pr_url}, branch ${inputs.fix_branch}.
+      Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
+      have the stage agent call plugins.devin.code_develop with repo_url
+      https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
+      and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
-      - title: "${inputs.issue} — bruno regression"
-      - tags: `${inputs.issue}`, `bruno`
+      Supply the ticket, PR, accepted audit findings, target authority, and open questions.
+      Devin selects portable API scenarios and authors tests without making live API calls.
 
-      # Brief the session
+      # Assess the result
 
-      The playbook owns how the suite is authored. Give it the ticket, the fix PR, and the
-      audit's confirmed findings — which scenarios changed and which guardrails stayed flat —
-      as the premises to draw from. The ratevariant cases are premises too, not templates: they
-      run against a snapshot with fixtures, and Bruno runs against real staging without them,
-      so which of them are portable is the session's call, not yours.
+      Collect Devin's result with check_session. Require cited authority for assertions and an
+      explicit reason for unwritten scenarios. Changed scenarios may fail before deployment;
+      guardrails can already pass. Do not assume every snapshot case is portable to the API.
 
-      # Hold the session to
+      # Finish or pause
 
-      - These are red-green tests. They will fail until the fix is deployed to staging, and that
-        is the intended state — a failing suite here is not a defect to fix, skip, or delete.
-      - Every expected value traces to an authority (the SME's stated correct figure, or
-        state-published material), never to current staging behavior. A scenario with no
-        authoritative value is left unwritten and reported, not guessed and not weakened.
-      - Two harness limits will block some scenarios outright, and neither is a reason to weaken
-        a test: the suite runs against a fixed merchant (20), so a case that depends on a
-        different merchant's configuration needs that configuration added there first; and only
-        v3 is covered, so behavior that only exists on the v1 surface — meal tax among it — cannot
-        be expressed at all. Either one is a finding: it goes in unwritten_scenarios with what it
-        would take, and the session states it in the PR body's testing section so a reviewer does
-        not read the gap as coverage.
-      - Say how to edit that PR body, per session_lane: fetch the current description, add, put
-        the whole thing back.
-
-      Return bruno_session_id, the PR URL, the scenarios the suite locks in with the authority
-      each expected value rests on, and any scenario left unwritten for want of one.
+      Completed work proceeds to finalization. For needs_human, use blocked_run and
+      rate_checkpoint with next entry bruno_tests.
     EOT
-    agents  = [agents.bruno_author]
+    agents  = [agents.test_authoring_coordinator]
 
     output {
+      field "outcome" {
+        type        = "string"
+        description = "completed | needs_human — the Bruno lane's typed completion state."
+        required    = true
+      }
+      field "human_questions" {
+        type        = "string"
+        description = "The session's question-and-context pairs. Empty when outcome is completed."
+        required    = true
+      }
       field "bruno_session_id" {
         type        = "string"
         description = "Devin session id from the Bruno authoring run"
@@ -750,8 +621,9 @@ mission "rate_fix" {
     router {
       route {
         target    = missions.rate_finalize
-        condition = "Always — the lane is finished, so the case closes out. Pass entry_stage = record_learnings, close_reason = 'fix audited SATISFACTORY and bruno regression authored', the fix and bruno PR URLs, the audit's confirmed findings and open questions, any scenario left unwritten for want of an authoritative value, and every session id still open, since rate_finalize asks each session for its own learnings and cannot find them itself."
+        condition = "outcome == completed. Enter record_learnings; carry the fix and Bruno PRs, audit findings, unresolved questions, production_evidence, and registered session ids from this task, its ancestors, or the checkpoint."
       }
+      # `needs_human` has no route because bruno_tests records the blocker before returning.
     }
   }
 }
