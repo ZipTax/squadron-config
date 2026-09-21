@@ -175,7 +175,14 @@ Common data issues live in these FedTax tables (check schema definitions and ref
 - `dbo.TICs` — TIC definitions, ParentTIC, isSSUTA flags
 - `dbo.TDSDataNonSsuta` — non-SSUTA jurisdiction boundary data
 
-To inspect the ACTUAL configured rows (not just the schema), query read-only staging with ratebench's `cmd/sqlprobe` — `FedTax/ratebench` is available and the `RATEBENCH_DB_*` connection env vars are loaded. `PROBE_DB` declares the scope, so the query itself is two-part.
+When production data is needed, read
+`FedTax/txc-databricks/.claude/skills/prod-sql-insights/SKILL.md` and follow it to discover
+and use the configured Databricks MCP tools. That skill owns tool selection and evidence
+interpretation because the available queries and their limits depend on what is deployed.
+Report unavailable skills, tools, or unresolved data gaps explicitly; replica results must
+retain their freshness and completeness limits rather than being presented as live SQL Server data.
+
+To inspect configured rows in the dated snapshot (not just the schema), query read-only staging with ratebench's `cmd/sqlprobe` — `FedTax/ratebench` is available and the `RATEBENCH_DB_*` connection env vars are loaded. `PROBE_DB` declares the scope, so the query itself is two-part.
 
 ```bash
 PROBE_DB=FedTax-20260521 go run ./cmd/sqlprobe \
@@ -283,7 +290,7 @@ On an incremental re-run of this playbook against the same ticket, post one shor
 - **Ask questions** via a non-blocking message if additional context is needed, but keep investigating in parallel.
 - **Logic drift is the #1 non-SSUTA bug source** — always check both the cart SP and Reports function for consistency when touching non-SSUTA states.
 - **Read code and structure from prod schema files** — proc/function bodies, table definitions, and column names come from `output/schema/fedtax-prod/` and `output/schema/reports-prod/`, never by querying.
-    - For the actual configured DATA a row holds (rates, exemptions, overrides), query read-only staging via ratebench's `cmd/sqlprobe` (see Step 2E).
+    - For configured data (rates, exemptions, overrides), follow Step 2E: use `prod-sql-insights` for production evidence, or ratebench's `cmd/sqlprobe` for the dated staging snapshot.
 - If the fix requires no code changes (e.g., it's a data-only issue that needs a manual DB update), still open a PR containing the script someone will run — `USE [<database>]; GO` header, two-part `[dbo].[Object]` names, one database per script — and link it from the ticket. Never paste SQL into a Jira comment.
 - **The PR carries the depth, the ticket carries the direction.** Root cause reasoning, verification queries, scope analysis, and risk notes go in the PR description where engineering reads them. Resist the urge to duplicate any of it on the ticket.
 - You may receive subsequent requests to run this playbook on a Jira ticket where this playbook was already run. In that case, treat the update as incremental. Make incremental comments, use the original branch and use the existing PR if it has not been merged.
