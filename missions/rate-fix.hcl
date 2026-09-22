@@ -91,7 +91,7 @@ mission "rate_fix" {
 
   input "base_branch" {
     type        = "string"
-    description = "Base branch the PR targets. Defaults to main regardless of repo_url; override when targeting another branch."
+    description = "Base branch the PR targets."
     default     = "main"
   }
 
