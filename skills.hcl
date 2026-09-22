@@ -97,6 +97,6 @@ skill "txc_staging_access" {
 
 skill "bridge" {
   description = "Load to register or resolve a human wait through the bridge."
-  instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nWaiting label: TaxRates:Needs-Info\nReady label: ${vars.rate_ready_label}"
+  instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nReady label: ${vars.rate_ready_label}"
   tools = [tools.save_rate_blocker]
 }

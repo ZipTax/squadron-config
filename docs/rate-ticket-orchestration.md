@@ -106,26 +106,13 @@ no-op selecting `record_learnings`, with the route rather than repeating the des
 Route conditions are natural-language choices evaluated by the commander, not executable scalar
 expressions. See [Routing](https://docs.squadron.sh/missions/routing).
 
-Every cross-mission route must populate `task_complete.mission_inputs`. `submit_output` stores
-the task result but does not populate the next mission's inputs. Inputs with defaults are
-optional to the routing tool, so an omitted result can become empty strings even after successful
-work. Routes must therefore carry accepted evidence, current artifacts, outstanding questions,
-and session ownership from task outputs or resumed state, with explicit mappings where names differ.
-
-Required inputs express what the destination always needs. Fix requires `mechanism`,
-`disposition`, `affected_roots`, and `evidence`. Finalization requires `verdict`, `close_reason`,
-and `evidence` on both the working-as-intended and implementation paths. Its PRs and audit findings
-remain optional because some valid paths have neither. After implementation, the handoff includes
-the accepted audit evidence as well as the original investigation; otherwise finalization would
-record the initial diagnosis without knowing what implementation demonstrated. A WAI refutation
-passes a cited challenge and the incremented retry count back to triage.
-
-Bridge resumption uses the same destination input contract. Registration builds `resume_inputs`
-from the latest accepted state so a new instance can continue without querying its predecessor's
-outputs. Triaged checkpoint recovery reads the recorded reports to reconstruct that context.
-An existing PR travels as `existing_pr` into fix and `fix_pr_url` into finalization; checkpoint
-recovery obtains it from `artifacts.fix_pr.url`. A blocked `develop` stage may have no PR yet.
-Unknown ownership does not invalidate a known PR link; the resumed stage can adopt the artifact.
+The destination mission declares what context it requires; the sending commander supplies it
+through `task_complete.mission_inputs`. A submitted output or completion summary does not
+populate that payload. Inputs with defaults are optional to the routing tool, so essential
+context needs a required input rather than an empty default. Squadron applies the same contract
+when preparing a bridge resume from the latest accepted state. The bridge forwards that payload;
+mission-specific fields and mappings belong in the missions, while reusable registration rules
+belong in the bridge skill.
 
 Devin's attached schema and Squadron's task output remain separate contracts. The former reports
 lane work; the latter records the commander's accepted result and orchestration metadata. Removing

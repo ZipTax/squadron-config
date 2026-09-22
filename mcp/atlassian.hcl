@@ -3,7 +3,7 @@
 # tools by name rather than `.all` and give a stage only what it should be
 # able to do.
 #
-# `editJiraIssue` is granted where a stage owns the `TaxRates:Needs-Info` label
+# `editJiraIssue` is granted where a stage clears the configured ready label
 # and nothing else on the ticket: the same tool would edit any field, so the
 # limit lives in the role text and in `blocked_run`. The comment stays a
 # session's to write even though this server could post it — the rules for
