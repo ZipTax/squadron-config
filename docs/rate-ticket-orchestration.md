@@ -106,6 +106,21 @@ no-op selecting `record_learnings`, with the route rather than repeating the des
 Route conditions are natural-language choices evaluated by the commander, not executable scalar
 expressions. See [Routing](https://docs.squadron.sh/missions/routing).
 
+The triage-to-fix route must copy the accepted diagnosis into `task_complete.mission_inputs`.
+`submit_output` stores the assessment but does not populate the next mission's inputs. Inputs
+with defaults are optional to the routing tool, so an omitted diagnosis can become empty strings
+even after a successful assessment. The route names the fields to carry, including `existing_pr`,
+so implementation receives the established evidence and can adopt a known PR. On checkpoint
+resumption, `artifacts.fix_pr.url` supplies that same `existing_pr` input. Unknown session ownership
+does not invalidate a known PR link; Devin can resolve missing branch details from the PR.
+
+`mechanism`, `disposition`, `affected_roots`, and `evidence` have no defaults in `rate_fix`, so
+Squadron rejects a route that omits the accepted diagnosis. The same inputs are needed on
+resumption: bridge registration preserves them in `resume_inputs`, while triage recovery reads
+the checkpoint and its recorded investigation report. A blocked `develop` stage may have no PR
+yet, so `existing_pr` remains optional. Later stages carry their existing artifacts and owners
+forward, allowing `enter_fix` to check whether those owners can continue at the saved stage.
+
 Devin's attached schema and Squadron's task output remain separate contracts. The former reports
 lane work; the latter records the commander's accepted result and orchestration metadata. Removing
 an objective's field list does not remove the need to collect and assess the Devin result.

@@ -14,6 +14,15 @@ After confirming the Jira question, call save_rate_blocker with a blocker object
 - `resume_mission`: `rate_triage`, `rate_fix`, or `rate_finalize`;
 - `resume_entry_stage` and `resume_inputs`: the mission inputs needed for that entry.
 
+For `rate_fix`, retain the accepted `mechanism`, `disposition`, `affected_roots`, and cited
+`evidence` in `resume_inputs`, alongside `issue` and the actual `entry_stage`. They are required
+even when resuming halfway through implementation because the new mission cannot read the
+previous mission's outputs. Carry the repository, base branch, production evidence, and
+investigation session details too. Use the latest completed stage outputs and checkpoint to
+refresh `existing_pr`, PR number, branch, fix/cases owners, cases mode, and the checkpoint input;
+the original mission inputs may predate that work. Before a PR exists, `existing_pr` can be empty.
+The bridge can then start `enter_fix` directly at the recorded stage without another investigation.
+
 Every new human wait increments generation, even when the question remains unchanged.
 An uncertain registration or label update retries the same generation and payload.
 The bridge must enforce one automatic ready dispatch per generation and reject stale writes.
