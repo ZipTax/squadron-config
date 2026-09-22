@@ -538,7 +538,16 @@ mission "rate_fix" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "verdict == FIX_IS_NO_OP — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno. Pass entry_stage = record_learnings, close_reason = 'audit FIX_IS_NO_OP', the audit verdict, confirmed findings, production_evidence, and every session id still open — rate_finalize asks each of them for its own learnings and cannot find them itself."
+        condition = <<-EOT
+          verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
+          In task_complete.mission_inputs, set close_reason = 'audit FIX_IS_NO_OP' and verdict
+          from this audit. Map confirmed_findings to audit_findings; include its citations in
+          evidence alongside the investigation evidence, with each conclusion attributed.
+          Carry issue, repo_url, base_branch, mechanism, disposition, and production_evidence
+          from mission inputs. Carry open_questions and the latest checkpoint. Resolve fix_pr_url
+          and fix/cases session ids from completed task outputs or resumed state; carry the
+          investigation id and messageability too. Finalization cannot query this mission's outputs.
+        EOT
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
       # route; on the rare terminal CASES_INADEQUATE the chain exits here with the uncoverable
@@ -618,7 +627,18 @@ mission "rate_fix" {
     router {
       route {
         target    = missions.rate_finalize
-        condition = "outcome == completed. Enter record_learnings; carry the fix and Bruno PRs, audit findings, unresolved questions, production_evidence, and registered session ids from this task, its ancestors, or the checkpoint."
+        condition = <<-EOT
+          outcome == completed — enter record_learnings with close_reason = 'fix audited
+          SATISFACTORY and Bruno authoring completed' and verdict = SATISFACTORY.
+          Populate task_complete.mission_inputs from the latest accepted outputs or resumed state:
+          map audit.confirmed_findings to audit_findings and include its citations in evidence
+          alongside the investigation evidence. Combine audit.open_questions and this task's
+          unwritten_scenarios into open_questions without treating a coverage limit as a human
+          blocker. Carry fix_pr_url, bruno_pr_url, all known lane session ids, investigation
+          messageability, and the latest checkpoint. Carry issue, repo_url, base_branch, mechanism,
+          disposition, and production_evidence from mission inputs. Finalization cannot query
+          this mission's outputs.
+        EOT
       }
       # `needs_human` has no route because bruno_tests records the blocker before returning.
     }

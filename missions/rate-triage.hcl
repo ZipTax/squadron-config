@@ -216,7 +216,7 @@ mission "rate_triage" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — every stage finished and only the close-out was outstanding. Pass entry_stage = record_learnings, close_reason naming the prior run's outcome, and the session ids and PRs the close-out asks its sessions about."
+        condition = "resume_stage == record_learnings — resume close-out. Populate task_complete.mission_inputs with entry_stage = record_learnings, the accepted verdict, close_reason, and cited evidence recovered from the checkpoint and recorded reports. Carry mechanism, disposition, limitation_class, production_evidence, audit_findings, open_questions, PR links, lane session ids, investigation messageability, wai_refire_count, and the checkpoint when known. Carry issue, repo_url, and base_branch from this mission's inputs."
       }
       route {
         target    = tasks.confirm_wai
@@ -537,7 +537,16 @@ mission "rate_triage" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN AND disposition == 'unsupported at available granularity')) — enter verify_wai to independently check correct behavior, or record_learnings to preserve a proven unsupported result."
+        condition = <<-EOT
+          outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
+          AND disposition == 'unsupported at available granularity')) — enter verify_wai for
+          WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
+          naming that decision. In task_complete.mission_inputs, copy verdict, mechanism,
+          disposition, evidence, production_evidence, limitation_class, and investigation_session_id
+          from this task's output. Map session_messageable to investigation_messageable,
+          existing_pr to fix_pr_url, and unknowns to open_questions. Carry fix_session_id when
+          known, plus issue, repo_url, base_branch, and wai_refire_count from mission inputs.
+        EOT
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.
     }
