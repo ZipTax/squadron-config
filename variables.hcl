@@ -63,5 +63,5 @@ variable "bridge_registration_token" {
 }
 
 variable "rate_ready_label" {
-  default = "TaxRates:Ready-for-Squadron"
+  default = "ReadyForSquadron"
 }

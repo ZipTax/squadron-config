@@ -83,13 +83,11 @@ mission "rate_finalize" {
   input "close_reason" {
     type        = "string"
     description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. record_learnings routes on it — the unsupported entry is the one where recording is not discretionary."
-    default     = ""
   }
 
   input "verdict" {
     type        = "string"
     description = "The verdict this case ends on, in the vocabulary of whichever mission sent it: DEFECT_PROVEN, WORKING_AS_INTENDED (rate_triage), SATISFACTORY, FIX_IS_NO_OP (rate_fix's audit)."
-    default     = ""
   }
 
   input "mechanism" {
@@ -113,7 +111,6 @@ mission "rate_finalize" {
   input "evidence" {
     type        = "string"
     description = "The evidence chain behind the verdict — each load-bearing claim with its basis and citation. What makes a recorded learning citable; an uncitable one is worse than none."
-    default     = ""
   }
 
   input "production_evidence" {
@@ -130,7 +127,7 @@ mission "rate_finalize" {
 
   input "open_questions" {
     type        = "string"
-    description = "Anything left outstanding by the fix lane: tax-law questions for the SMEs, coverage gaps, bruno scenarios unwritten for want of an authoritative figure. Non-blank means the case is not really closed and the checkpoint retains an active blocker rather than being deleted."
+    description = "Outstanding questions and coverage limits from the upstream work. Finalization distinguishes a closure-blocking human question from a non-blocking follow-up or an intentionally unwritten scenario before deciding whether to retain a blocker."
     default     = ""
   }
 
@@ -310,7 +307,7 @@ mission "rate_finalize" {
     router {
       route {
         target    = missions.rate_triage
-        condition = "verdict == WAI_REFUTED (a real defect exists) AND wai_refire_count < 1 — the case goes back to triage with the challenge, which routes it to confirm_wai for an independent re-investigation. Pass wai_challenge (the prior reasoning, your rebuttal with its data, and the instruction to re-validate skeptically), wip_investigation_session_id = investigation_session_id, and wai_refire_count + 1. If wai_refire_count >= 1, do NOT take this route — escalate to the SMEs and exit."
+        condition = "verdict == WAI_REFUTED AND wai_refire_count < 1 — return to triage for an independent re-investigation. In task_complete.mission_inputs, carry issue, repo_url, and base_branch; set wai_challenge to the prior reasoning and cited rebuttal, and increment wai_refire_count. Set wip_investigation_session_id only for a messageable owner; otherwise carry its id as stale_investigation_session_id. If wai_refire_count >= 1, escalate to the SMEs and exit."
       }
       route {
         target    = tasks.record_learnings

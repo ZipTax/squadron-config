@@ -91,8 +91,8 @@ mission "rate_fix" {
 
   input "base_branch" {
     type        = "string"
-    description = "Base branch the PR targets. Blank lets Devin use the repo default."
-    default     = ""
+    description = "Base branch the PR targets."
+    default     = "main"
   }
 
   input "entry_stage" {
@@ -103,25 +103,21 @@ mission "rate_fix" {
   input "mechanism" {
     type        = "string"
     description = "The proven mechanism from rate_triage: what is wrong and where expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both values. Briefing material for the fix and the cases; not to be re-derived here."
-    default     = ""
   }
 
   input "disposition" {
     type        = "string"
     description = "The remediation disposition rate_triage established: data/configuration change | procedure/function change | both. develop implements this and nothing wider."
-    default     = ""
   }
 
   input "affected_roots" {
     type        = "string"
     description = "Procedures/functions the defect implicates, and for a data defect the tables/rows. A briefing hint and a cross-check on coverage — NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
-    default     = ""
   }
 
   input "evidence" {
     type        = "string"
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
-    default     = ""
   }
 
   input "production_evidence" {
@@ -142,15 +138,15 @@ mission "rate_fix" {
     default     = false
   }
 
-  input "fix_pr_url" {
+  input "existing_pr" {
     type        = "string"
-    description = "A fix PR already open for this ticket, when one is. Blank means develop opens it."
+    description = "Existing fix PR URL carried from triage's existing_pr output or the checkpoint's artifacts.fix_pr.url. A known PR is adopted even if its branch or owner is not yet known. Blank means no existing PR was supplied."
     default     = ""
   }
 
   input "fix_pr_number" {
     type        = "number"
-    description = "That PR's number, when fix_pr_url is set. 0 otherwise."
+    description = "That PR's number, when existing_pr is set. 0 when unknown."
     default     = 0
   }
 
@@ -285,9 +281,10 @@ mission "rate_fix" {
       Use delegated_session to resume the registered owner. When a new owner is needed, have the
       stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
-      PR ${inputs.fix_pr_url}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
+      PR ${inputs.existing_pr}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
       disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
       and relevant unanswered questions. An existing PR is an adoption task, not a rewrite.
+      If its branch is unknown, have Devin resolve it from that PR before making changes.
 
       # Assess the result
 
@@ -377,7 +374,7 @@ mission "rate_fix" {
 
       # Delegate to Devin
 
-      Use develop's PR and branch when it ran; otherwise use ${inputs.fix_pr_url} and
+      Use develop's PR and branch when it ran; otherwise use ${inputs.existing_pr} and
       ${inputs.fix_branch}. Resume the cases owner ${inputs.cases_session_id} or the checkpoint's
       owner through delegated_session. If a replacement is needed, have the stage agent call
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
@@ -462,7 +459,7 @@ mission "rate_fix" {
 
       # Work with Devin
 
-      Use upstream results or the direct-entry context: PR ${inputs.fix_pr_url}, mode
+      Use upstream results or the direct-entry context: PR ${inputs.existing_pr}, mode
       ${inputs.cases_mode}, investigation ${inputs.investigation_session_id}, fix
       ${inputs.fix_session_id}, and cases ${inputs.cases_session_id}. Have the stage agent check
       available sessions and use send_message/check_session for bounded evidence requests.
@@ -541,7 +538,16 @@ mission "rate_fix" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "verdict == FIX_IS_NO_OP — no fix to lock in, but a no-op fix on a proven defect is exactly the kind of trap worth recording. Skip Bruno. Pass entry_stage = record_learnings, close_reason = 'audit FIX_IS_NO_OP', the audit verdict, confirmed findings, production_evidence, and every session id still open — rate_finalize asks each of them for its own learnings and cannot find them itself."
+        condition = <<-EOT
+          verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
+          In task_complete.mission_inputs, set close_reason = 'audit FIX_IS_NO_OP' and verdict
+          from this audit. Map confirmed_findings to audit_findings; include its citations in
+          evidence alongside the investigation evidence, with each conclusion attributed.
+          Carry issue, repo_url, base_branch, mechanism, disposition, and production_evidence
+          from mission inputs. Carry open_questions and the latest checkpoint. Resolve fix_pr_url
+          and fix/cases session ids from completed task outputs or resumed state; carry the
+          investigation id and messageability too. Finalization cannot query this mission's outputs.
+        EOT
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
       # route; on the rare terminal CASES_INADEQUATE the chain exits here with the uncoverable
@@ -563,7 +569,7 @@ mission "rate_fix" {
 
       # Delegate to Devin
 
-      Use the fix PR from develop or ${inputs.fix_pr_url}, branch ${inputs.fix_branch}.
+      Use the fix PR from develop or ${inputs.existing_pr}, branch ${inputs.fix_branch}.
       Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
       have the stage agent call plugins.devin.code_develop with repo_url
       https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
@@ -621,7 +627,18 @@ mission "rate_fix" {
     router {
       route {
         target    = missions.rate_finalize
-        condition = "outcome == completed. Enter record_learnings; carry the fix and Bruno PRs, audit findings, unresolved questions, production_evidence, and registered session ids from this task, its ancestors, or the checkpoint."
+        condition = <<-EOT
+          outcome == completed — enter record_learnings with close_reason = 'fix audited
+          SATISFACTORY and Bruno authoring completed' and verdict = SATISFACTORY.
+          Populate task_complete.mission_inputs from the latest accepted outputs or resumed state:
+          map audit.confirmed_findings to audit_findings and include its citations in evidence
+          alongside the investigation evidence. Combine audit.open_questions and this task's
+          unwritten_scenarios into open_questions without treating a coverage limit as a human
+          blocker. Carry fix_pr_url, bruno_pr_url, all known lane session ids, investigation
+          messageability, and the latest checkpoint. Carry issue, repo_url, base_branch, mechanism,
+          disposition, and production_evidence from mission inputs. Finalization cannot query
+          this mission's outputs.
+        EOT
       }
       # `needs_human` has no route because bruno_tests records the blocker before returning.
     }

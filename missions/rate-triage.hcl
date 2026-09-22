@@ -62,8 +62,8 @@ mission "rate_triage" {
 
   input "base_branch" {
     type        = "string"
-    description = "Base branch the PR targets. Blank lets Devin use the repo default."
-    default     = ""
+    description = "Base branch the PR targets."
+    default     = "main"
   }
 
   input "wip_investigation_session_id" {
@@ -130,6 +130,9 @@ mission "rate_triage" {
       only with no usable history or checkpoint may you start blind, history_provenance none.
 
       Honor recorded entry stage "${inputs.entry_stage}" after validating checkpoint ownership.
+      For a fix-lane resumption, recover mechanism, disposition, affected_roots, and cited evidence
+      from the checkpoint and its recorded investigation report. Reading that accepted report
+      restores the handoff; it does not require a fresh investigation or a messageable author.
 
       # Finish discovery
 
@@ -137,7 +140,7 @@ mission "rate_triage" {
       The selected work stage delegates interpretation of new answers; discovery does not decide
       whether a tax or product question is settled.
 
-      Prefer the checkpoint's downstream resume stage (author_tests, audit, bruno_tests, or
+      Prefer the checkpoint's downstream resume stage (develop, author_tests, audit, bruno_tests, or
       record_learnings) when its verdict and required artifacts remain valid. Carry its state
       and selected entry forward. If contradictory or incomplete, leave resume_stage blank and
       explain why investigation must reconsider the premise. Otherwise select one entry mode:
@@ -161,7 +164,7 @@ mission "rate_triage" {
       }
       field "resume_stage" {
         type        = "string"
-        description = "author_tests | audit | bruno_tests | record_learnings, when the checkpoint says the last run blocked at that stage AND the verdict and fix PR it records are intact — the flow re-enters there instead of investigating again. Blank otherwise, which is the default: a doubt about the recorded state is a reason to leave it blank."
+        description = "develop | author_tests | audit | bruno_tests | record_learnings, when the checkpoint's accepted result and the selected stage's required artifacts remain usable. develop can resume before a PR exists. Blank when the recorded state cannot support resumption."
         required    = false
       }
       field "investigation_session_id" {
@@ -179,7 +182,7 @@ mission "rate_triage" {
         description = "A verdict the read already found in that session, if it reached one, so the assessing stage can take it rather than re-running an investigation that is already done. Blank when none."
         required    = false
       }
-      field "existing_fix_pr_url" {
+      field "existing_pr" {
         type        = "string"
         description = "A fix PR for THIS ticket that some prior session already opened. State, not a mode: the fix exists and its A/B coverage may not. Blank when there is none."
         required    = false
@@ -209,11 +212,11 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is author_tests, audit or bruno_tests — a prior run proved the defect and shipped the fix PR, and blocked somewhere in the implementation/A-B lane. The investigation is done; re-running it risks contradicting the verdict this fix was built on. Pass entry_stage = that stage, and fill every fix-lane input from the checkpoint and the sessions you found: the PR, the branch, the fix and cases session ids and whether each is messageable. rate_fix cannot query this ticket's history — what you do not carry across, it does not have."
+        condition = "resume_stage is develop, author_tests, audit or bruno_tests — resume the recorded fix stage. In task_complete.mission_inputs, pass entry_stage = that stage and existing_pr = checkpoint.artifacts.fix_pr.url, or blank if develop has no PR yet. Carry mechanism, disposition, affected_roots, and evidence recovered from the checkpoint and recorded investigation report, plus the checkpoint, production evidence, branch, session ids, cases mode, and resumability. Carry issue, repo_url, and base_branch from this mission's inputs. rate_fix cannot read this mission's outputs."
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — every stage finished and only the close-out was outstanding. Pass entry_stage = record_learnings, close_reason naming the prior run's outcome, and the session ids and PRs the close-out asks its sessions about."
+        condition = "resume_stage == record_learnings — resume close-out. Populate task_complete.mission_inputs with entry_stage = record_learnings, the accepted verdict, close_reason, and cited evidence recovered from the checkpoint and recorded reports. Carry mechanism, disposition, limitation_class, production_evidence, audit_findings, open_questions, PR links, lane session ids, investigation messageability, wai_refire_count, and the checkpoint when known. Carry issue, repo_url, and base_branch from this mission's inputs."
       }
       route {
         target    = tasks.confirm_wai
@@ -418,7 +421,9 @@ mission "rate_triage" {
       answer; do not infer a verdict from a summary.
 
       For an existing fix PR, also check its owner's resumability so implementation can adopt the
-      PR if needed. Preserve the strength of the findings and all outstanding questions.
+      PR if needed. Query discovery's structured output and the investigation result to preserve
+      the known PR even when its owner is unavailable. Preserve the strength of the findings and
+      all outstanding questions.
 
       # Finish or pause
 
@@ -493,9 +498,9 @@ mission "rate_triage" {
         description = "On the unsupported disposition only: which limitations.md entry (a ticket carrying the new-rate-engine label) the proven mechanism matched, so record_learnings files this ticket as an instance under it. Blank otherwise."
         required    = false
       }
-      field "existing_fix_pr_url" {
+      field "existing_pr" {
         type        = "string"
-        description = "A fix PR a prior session already opened for this ticket. With a live owning session the mission continues at case authoring instead of develop — the fix exists, the A/B coverage does not; with a dead one it goes through develop to adopt the PR. Blank when there is no such PR."
+        description = "Existing fix PR URL from discovery or the investigation result, carried unchanged into rate_fix.existing_pr. Preserve the link even if its session or branch is unknown. Blank only when no existing PR is known."
         required    = false
       }
       field "fix_session_id" {
@@ -528,11 +533,20 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true AND disposition != 'unsupported at available granularity' — proceed with a supported, implementable defect, entering author_tests if the existing fix PR has a messageable owner or develop otherwise."
+        condition = "outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true AND disposition != 'unsupported at available granularity' — enter author_tests if the existing PR has a messageable owner or develop otherwise. In task_complete.mission_inputs, copy mechanism, disposition, affected_roots, evidence, production_evidence, existing_pr, investigation_session_id, fix_session_id, and fix_session_messageable from this task's submitted output; map session_messageable to investigation_messageable. Carry issue, repo_url, and base_branch from this mission's inputs. submit_output alone does not pass these values to the next mission."
       }
       route {
         target    = missions.rate_finalize
-        condition = "outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN AND disposition == 'unsupported at available granularity')) — enter verify_wai to independently check correct behavior, or record_learnings to preserve a proven unsupported result."
+        condition = <<-EOT
+          outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
+          AND disposition == 'unsupported at available granularity')) — enter verify_wai for
+          WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
+          naming that decision. In task_complete.mission_inputs, copy verdict, mechanism,
+          disposition, evidence, production_evidence, limitation_class, and investigation_session_id
+          from this task's output. Map session_messageable to investigation_messageable,
+          existing_pr to fix_pr_url, and unknowns to open_questions. Carry fix_session_id when
+          known, plus issue, repo_url, base_branch, and wai_refire_count from mission inputs.
+        EOT
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.
     }

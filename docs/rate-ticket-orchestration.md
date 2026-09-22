@@ -106,6 +106,14 @@ no-op selecting `record_learnings`, with the route rather than repeating the des
 Route conditions are natural-language choices evaluated by the commander, not executable scalar
 expressions. See [Routing](https://docs.squadron.sh/missions/routing).
 
+The destination mission declares what context it requires; the sending commander supplies it
+through `task_complete.mission_inputs`. A submitted output or completion summary does not
+populate that payload. Inputs with defaults are optional to the routing tool, so essential
+context needs a required input rather than an empty default. Squadron applies the same contract
+when preparing a bridge resume from the latest accepted state. The bridge forwards that payload;
+mission-specific fields and mappings belong in the missions, while reusable registration rules
+belong in the bridge skill.
+
 Devin's attached schema and Squadron's task output remain separate contracts. The former reports
 lane work; the latter records the commander's accepted result and orchestration metadata. Removing
 an objective's field list does not remove the need to collect and assess the Devin result.
