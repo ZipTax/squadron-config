@@ -71,7 +71,7 @@ it is noise each run, and remember the underlying no-diff may be hiding a no-op 
 - Every path the change spans must be checked and must **agree**. A change corrected on one
   surface and missed on a parallel one is a worse state than before.
 - Data changes must have a blast radius matching the migration exactly: the targeted entity
-  diverges, its neighbours do not, and teardown reverts cleanly.
+  diverges and its neighbours do not.
 - Correct aggregate, wrong attribution is still a bug. Require evidence for the identifying/classifying
   fields, not only the headline number.
 

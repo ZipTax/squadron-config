@@ -32,15 +32,17 @@ metadata; describe that prediction separately as an audit finding.
 2. Build the coverage checklist from plan roots plus every root consuming a table changed
    by a migration. Empty roots with changed procedures/functions is a plan failure;
    an empty procedure list on a data-only change is expected.
-3. For a migration, author a matching alteration with reversible apply/teardown per the
-   cases README. The alteration represents the change under test; a fixture supplies
-   realistic prerequisites to both arms. Document which effect each supplies when a
-   combined data/procedure fix needs separate probes.
+3. For a migration, author a matching alteration (apply-only; the harness runs every case
+   in a transaction it rolls back) per the cases README. The alteration represents the
+   change under test; a fixture supplies realistic prerequisites to both arms. Document
+   which effect each supplies when a combined data/procedure fix needs separate probes.
 4. Author at least one case per affected root and relevant guardrails for the changed
    geography, effective date, merchant eligibility, and TIC. Let the repository's case-data
    skill choose suitable data. State why each case needs a fixture or can run without one.
    Report unreachable paths and unconstructable cases with evidence rather than silently
-   dropping coverage or manufacturing eligibility.
+   dropping coverage or manufacturing eligibility. A guardrail whose input the procedure
+   must reject in both arms sets `expects_failure: true` so the rejection is the capture
+   under comparison instead of an unexplained failed case.
 5. Validate with the repository's offline loader procedure, push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.

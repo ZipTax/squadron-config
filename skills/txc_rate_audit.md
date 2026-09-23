@@ -25,8 +25,8 @@ Require a compact report that establishes:
   including jurisdiction/filing codes when relevant; a correct total can still file wrongly.
 - Primary positives, guardrails, and an evidenced explanation for unexpected matches or
   differences. Missing coverage is not proof that a path is unreachable.
-- For data changes, migration/alteration agreement, fixture prerequisites, affected rows,
-  and teardown scope, so a probe cannot hide an overbroad change.
+- For data changes, migration/alteration agreement, fixture prerequisites, and affected
+  rows, so a probe cannot hide an overbroad change.
 - Unexplained execution failures, unavailable evidence, and unresolved target authority.
 
 For a limitation, require evidence of the mechanism and the scope the system cannot express.
