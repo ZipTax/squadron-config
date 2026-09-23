@@ -30,6 +30,35 @@ claims remain attributed until verified. Preserve multipart findings and their u
 the primary part drives routing. Distinguish dated snapshot proof from current-production
 observations, and carry `production_evidence` without upgrading either kind of claim.
 
+## Require proof before deferring to a new engine
+
+An unsupported disposition stops fix work and marks the ticket `new-rate-engine`/Blocked,
+so proving the observed failure is insufficient. Require cited evidence that the current
+model cannot express the required distinction, even through an applicable data/configuration
+change, procedure/function change, or combination of both.
+
+For each plausible remedy raised by the ticket, code, precedents, or investigation, require
+the proposed scope, the input and execution path it needs, and the measured or traced reason
+it cannot work. Include narrower partial fixes and whether they are accurate for every
+address or transaction they would cover. A feasible partial remedy must remain visible as
+an option with its coverage and remaining gap; it cannot be silently discarded because the
+general case remains unsupported. A limitation-class match is context, not this proof.
+
+Missing vendor rows establish a data gap, and a missing input establishes why that request
+did not reach a branch. Neither alone proves an engine limitation. For example, an order
+submitted with ZIP 80442 and no distinguishing vendor row does not rule out a ZIP+4 override.
+The report must establish whether this merchant's path can obtain and use ZIP+4, whether the
+override is consumed, and whether its full coverage has the same treatment. Unknown answers
+leave that remedy unresolved; do not presume either feasibility or impossibility.
+
+If a plausible remedy remains untested or its rejection lacks evidence, fail the
+`alternative_killed` gate, set `evidence_complete: false`, and use `EVIDENCE_INCOMPLETE`
+with an empty disposition. Preserve the proven defect separately. Ask Devin to investigate
+the specific remaining alternative using available code and read-only evidence; name the
+missing artifact if it cannot be settled. Use `needs_human` only for a necessary human
+answer. Do not accept an unsupported disposition with remedy feasibility hidden in
+`unknowns`, or request limitation labels or writeback while this gate fails.
+
 ## Finish or pause
 
 You are done when the result supports a disposition or explains what prevents one.

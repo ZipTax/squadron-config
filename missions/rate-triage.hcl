@@ -465,7 +465,7 @@ mission "rate_triage" {
       }
       field "disposition" {
         type        = "string"
-        description = "Remediation disposition when a defect is proven: data/configuration change | procedure/function change | both | unsupported at available granularity. 'Both' is common — wrong rates that are also applied wrongly need a migration AND a proc change. The last is terminal: the proven mechanism is one this engine cannot express, so no fix follows and the ticket is labelled new-rate-engine and blocked. Blank otherwise."
+        description = "Remediation disposition when a defect is proven: data/configuration change | procedure/function change | both | unsupported at available granularity. 'Both' covers a migration and a procedure change. Unsupported is terminal only after rate_investigation's remedy checks pass with cited rejections; an unresolved alternative means EVIDENCE_INCOMPLETE and a blank disposition. An accepted unsupported result stops fix work and marks the ticket new-rate-engine and Blocked."
         required    = false
       }
       field "mechanism" {
@@ -538,7 +538,7 @@ mission "rate_triage" {
       route {
         target    = missions.rate_finalize
         condition = <<-EOT
-          outcome == completed AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
+          outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
           AND disposition == 'unsupported at available granularity')) — enter verify_wai for
           WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
           naming that decision. In task_complete.mission_inputs, copy verdict, mechanism,
