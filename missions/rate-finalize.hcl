@@ -254,6 +254,7 @@ mission "rate_finalize" {
   task "verify_wai" {
     objective = <<-EOT
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
 
       # Delegate to Devin
 
@@ -307,8 +308,9 @@ mission "rate_finalize" {
     router {
       route {
         target    = missions.rate_triage
-        condition = "verdict == WAI_REFUTED AND wai_refire_count < 1 — return to triage for an independent re-investigation. In task_complete.mission_inputs, carry issue, repo_url, and base_branch; set wai_challenge to the prior reasoning and cited rebuttal, and increment wai_refire_count. Set wip_investigation_session_id only for a messageable owner; otherwise carry its id as stale_investigation_session_id. If wai_refire_count >= 1, escalate to the SMEs and exit."
+        condition = "verdict == WAI_REFUTED AND wai_refire_count < 1 — return to triage for an independent re-investigation. Set wai_challenge to the prior reasoning and cited rebuttal, and increment wai_refire_count. Map the investigation owner to wip_investigation_session_id if messageable, or stale_investigation_session_id otherwise."
       }
+      # A repeated WAI refutation ends in the human-wait workflow described above.
       route {
         target    = tasks.record_learnings
         condition = "verdict == WAI_CONFIRMED — the ticket was a misunderstanding; a recurring misunderstanding is worth recording."

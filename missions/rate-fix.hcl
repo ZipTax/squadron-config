@@ -204,6 +204,15 @@ mission "rate_fix" {
       If that check rejects the event, end this run without selecting a downstream route.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
+
+      # Accepted investigation
+
+      Mechanism: ${inputs.mechanism}
+      Disposition: ${inputs.disposition}
+      Affected roots: ${inputs.affected_roots}
+      Evidence: ${inputs.evidence}
+      Production observations: ${inputs.production_evidence}
 
       # Inspect the handoff
 
@@ -540,13 +549,11 @@ mission "rate_fix" {
         target    = missions.rate_finalize
         condition = <<-EOT
           verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
-          In task_complete.mission_inputs, set close_reason = 'audit FIX_IS_NO_OP' and verdict
-          from this audit. Map confirmed_findings to audit_findings; include its citations in
-          evidence alongside the investigation evidence, with each conclusion attributed.
-          Carry issue, repo_url, base_branch, mechanism, disposition, and production_evidence
-          from mission inputs. Carry open_questions and the latest checkpoint. Resolve fix_pr_url
-          and fix/cases session ids from completed task outputs or resumed state; carry the
-          investigation id and messageability too. Finalization cannot query this mission's outputs.
+          Set close_reason = 'audit FIX_IS_NO_OP' and use this audit's verdict. Map
+          confirmed_findings to audit_findings; include its citations alongside the investigation
+          evidence, with each conclusion attributed. Use the latest artifacts, lane owners, and
+          open questions from completed work or resumed state; map existing_pr to fix_pr_url
+          when develop did not run.
         EOT
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
@@ -630,14 +637,12 @@ mission "rate_fix" {
         condition = <<-EOT
           outcome == completed — enter record_learnings with close_reason = 'fix audited
           SATISFACTORY and Bruno authoring completed' and verdict = SATISFACTORY.
-          Populate task_complete.mission_inputs from the latest accepted outputs or resumed state:
-          map audit.confirmed_findings to audit_findings and include its citations in evidence
-          alongside the investigation evidence. Combine audit.open_questions and this task's
-          unwritten_scenarios into open_questions without treating a coverage limit as a human
-          blocker. Carry fix_pr_url, bruno_pr_url, all known lane session ids, investigation
-          messageability, and the latest checkpoint. Carry issue, repo_url, base_branch, mechanism,
-          disposition, and production_evidence from mission inputs. Finalization cannot query
-          this mission's outputs.
+          Use the latest accepted outputs or resumed state. Map audit.confirmed_findings to
+          audit_findings and include its citations alongside the investigation evidence.
+          Combine audit.open_questions and this task's unwritten_scenarios into open_questions
+          without treating a coverage limit as a human blocker. Preserve the current PRs and
+          lane owners; map existing_pr to fix_pr_url
+          when develop did not run.
         EOT
       }
       # `needs_human` has no route because bruno_tests records the blocker before returning.

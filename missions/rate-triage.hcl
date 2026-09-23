@@ -109,6 +109,8 @@ mission "rate_triage" {
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}; WAI refire count:
+      ${inputs.wai_refire_count}.
 
       # Inspect existing work
 
@@ -212,11 +214,11 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is develop, author_tests, audit or bruno_tests — resume the recorded fix stage. In task_complete.mission_inputs, pass entry_stage = that stage and existing_pr = checkpoint.artifacts.fix_pr.url, or blank if develop has no PR yet. Carry mechanism, disposition, affected_roots, and evidence recovered from the checkpoint and recorded investigation report, plus the checkpoint, production evidence, branch, session ids, cases mode, and resumability. Carry issue, repo_url, and base_branch from this mission's inputs. rate_fix cannot read this mission's outputs."
+        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use the checkpoint and recorded reports for the accepted diagnosis, evidence, artifacts, and lane owners. Map artifacts.fix_pr.url to existing_pr; develop may resume before a PR exists."
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — resume close-out. Populate task_complete.mission_inputs with entry_stage = record_learnings, the accepted verdict, close_reason, and cited evidence recovered from the checkpoint and recorded reports. Carry mechanism, disposition, limitation_class, production_evidence, audit_findings, open_questions, PR links, lane session ids, investigation messageability, wai_refire_count, and the checkpoint when known. Carry issue, repo_url, and base_branch from this mission's inputs."
+        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Recover the accepted verdict, close_reason, evidence, outstanding questions, artifacts, and lane owners from the checkpoint and recorded reports. Map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url when present."
       }
       route {
         target    = tasks.confirm_wai
@@ -411,6 +413,8 @@ mission "rate_triage" {
   task "assess_investigation" {
     objective = <<-EOT
       Decide whether the investigation of ${inputs.issue} supports a disposition.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}; WAI refire count:
+      ${inputs.wai_refire_count}.
 
       # Obtain and assess evidence
 
@@ -533,7 +537,13 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true AND disposition != 'unsupported at available granularity' — enter author_tests if the existing PR has a messageable owner or develop otherwise. In task_complete.mission_inputs, copy mechanism, disposition, affected_roots, evidence, production_evidence, existing_pr, investigation_session_id, fix_session_id, and fix_session_messageable from this task's submitted output; map session_messageable to investigation_messageable. Carry issue, repo_url, and base_branch from this mission's inputs. submit_output alone does not pass these values to the next mission."
+        condition = <<-EOT
+          outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
+          AND disposition != 'unsupported at available granularity' — enter author_tests if
+          existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
+          including production evidence and existing work; map session_messageable to
+          investigation_messageable.
+        EOT
       }
       route {
         target    = missions.rate_finalize
@@ -541,11 +551,8 @@ mission "rate_triage" {
           outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
           AND disposition == 'unsupported at available granularity')) — enter verify_wai for
           WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
-          naming that decision. In task_complete.mission_inputs, copy verdict, mechanism,
-          disposition, evidence, production_evidence, limitation_class, and investigation_session_id
-          from this task's output. Map session_messageable to investigation_messageable,
-          existing_pr to fix_pr_url, and unknowns to open_questions. Carry fix_session_id when
-          known, plus issue, repo_url, base_branch, and wai_refire_count from mission inputs.
+          naming that decision. Use the accepted assessment; map session_messageable to
+          investigation_messageable, existing_pr to fix_pr_url, and unknowns to open_questions.
         EOT
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.
