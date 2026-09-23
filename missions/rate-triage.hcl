@@ -465,7 +465,7 @@ mission "rate_triage" {
       }
       field "disposition" {
         type        = "string"
-        description = "Remediation disposition when a defect is proven: data/configuration change | procedure/function change | both | unsupported at available granularity. 'Both' covers a migration and a procedure change. Unsupported is terminal only after rate_investigation's remedy checks pass with cited rejections; an unresolved alternative means EVIDENCE_INCOMPLETE and a blank disposition. An accepted unsupported result stops fix work and marks the ticket new-rate-engine and Blocked."
+        description = "Remediation disposition when a defect is proven: data/configuration change | procedure/function change | both | unsupported at available granularity. 'Both' covers a migration and a procedure change. Unsupported is terminal only when Devin's remediation proof passes rate_investigation's report acceptance criteria; an unresolved alternative means EVIDENCE_INCOMPLETE and a blank disposition. An accepted unsupported result stops fix work and marks the ticket new-rate-engine and Blocked."
         required    = false
       }
       field "mechanism" {
