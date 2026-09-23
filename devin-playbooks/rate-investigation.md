@@ -45,19 +45,11 @@ On a multipart ticket, report each part; the primary part drives routing without
 others. Use `data/configuration change`, `procedure/function change`, `both`, or
 `unsupported at available granularity` for a proven defect's disposition. `both` preserves
 a remedy that needs data and code; report both even though the repository skill lists them
-separately. An unsupported disposition stops fix work, so it requires more than proof of
-the observed failure: cite the required distinction the model cannot express and the
-measured or traced rejection of each plausible data, code, combined, or scoped partial
-remedy. In `disposition_detail`, name each candidate's scope, required input and path, and
-decisive evidence; include whether a partial fix is accurate throughout its coverage.
-Missing vendor rows or a five-digit ZIP on the reported request do not rule out a ZIP+4
-override: establish whether the merchant's path can obtain and consume that input and
-whether the override's full coverage is accurate. A known limitation entry is not a
-substitute for this proof. If a remedy remains unresolved, fail `alternative_killed`,
-return `evidence_complete: false`, `EVIDENCE_INCOMPLETE`, and an empty disposition, and
-name the next check while preserving the proven defect. Report feasible partial remedies
-with their coverage and remaining gap rather than discarding them because the general
-case is unsupported. Do not implement them here.
+separately. For unsupported behavior, apply `investigate-tax-behavior`'s remediation proof
+and invalidation gates. Return its candidate-remedy assessment and citations in
+`disposition_detail`. Unresolved feasibility fails `alternative_killed`: return
+`evidence_complete: false`, `EVIDENCE_INCOMPLETE`, and an empty disposition while preserving
+the proven findings and named gap. Do not implement remedies here.
 
 Snapshot evidence establishes behavior in that dated copy, not current production state.
 A proven local mechanism can proceed with a bounded production verification query in

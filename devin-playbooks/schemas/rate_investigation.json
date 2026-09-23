@@ -55,11 +55,11 @@
         "unsupported at available granularity",
         ""
       ],
-      "description": "The remedy the evidence supports, empty when the verdict is not DEFECT_PROVEN. 'both' is common and not a hedge: rate rows that are wrong AND applied wrongly need the migration and the proc change. 'unsupported at available granularity' requires cited proof that the model cannot express the required distinction and rejection of each plausible data, code, combined, or scoped partial remedy. Missing rows or inputs alone are insufficient; unresolved remedy feasibility forces evidence_complete=false, EVIDENCE_INCOMPLETE, and an empty disposition."
+      "description": "The remedy the evidence supports, empty when the verdict is not DEFECT_PROVEN. 'both' is common and not a hedge: rate rows that are wrong AND applied wrongly need the migration and the proc change. 'unsupported at available granularity' requires the completed remediation proof from investigate-tax-behavior. Unresolved remedy feasibility forces evidence_complete=false, EVIDENCE_INCOMPLETE, and an empty disposition."
     },
     "disposition_detail": {
       "type": "string",
-      "description": "The remedy in specifics: the object to change, the table and rows, or the required distinction the model cannot express. For unsupported, record each plausible remedy's scope, required input and execution path, and cited measured or traced reason for rejection. Include narrower partial fixes and accuracy across their entire coverage. A feasible partial remedy must be reported with its coverage and remaining gap; unresolved feasibility cannot support unsupported."
+      "description": "The remedy in specifics: the object to change, the table and rows, or the required distinction the model cannot express. For unsupported, carry the candidate-remedy assessment and citations produced under investigate-tax-behavior, including partial remedies and unresolved feasibility."
     },
     "gates": {
       "type": "object",
