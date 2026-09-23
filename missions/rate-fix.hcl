@@ -525,7 +525,7 @@ mission "rate_fix" {
       }
       field "confirmed_findings" {
         type        = "string"
-        description = "Accepted findings with supporting case captures, PR head, and plan/run references. Include bugs, reachability, value discrepancies, blast radius, teardown, and path inconsistencies where applicable."
+        description = "Accepted findings with supporting case captures, PR head, and plan/run references. Include bugs, reachability, value discrepancies, blast radius, and path inconsistencies where applicable."
         required    = true
       }
       field "open_questions" {
