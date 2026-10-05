@@ -56,6 +56,7 @@ mechanical delegation, not permission to judge the fix.
 
 Return `outcome: needs_human` and exact question-and-context pairs in `human_questions`
 only if implementation cannot safely finish without a person's answer. Otherwise return
-`completed` with an empty list and preserve non-blocking questions in the report. Do not
-wait. Post a Jira comment only when requested, using `writing-ticket-updates`; Squadron
+`completed` with an empty list and preserve non-blocking questions in the report. Raise
+blockers rather than wait for answers; waiting on machine work (CI, slow requests) is fine.
+Post a Jira comment only when requested, using `writing-ticket-updates`; Squadron
 owns workflow labels, checkpointing, and the next stage.
