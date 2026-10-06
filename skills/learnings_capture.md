@@ -36,6 +36,29 @@ when no deferral has been decided; do not invent a new-rate-engine decision to f
 limitations reference. For an existing limitation, add useful new evidence or the new case
 rather than restating the rule.
 
+## Write the lesson a future maintainer needs
+
+State what was learned, explain why, and retain only enough evidence to support it. Organize
+around the outcome and the decision it changes, because a future maintainer needs to know
+when and why to apply the lesson without reconstructing the investigation. Use headings that
+name the finding rather than numbered attempts or fix cycles. Choose the structure to fit
+the lesson; do not copy a neighboring entry's format just for consistency.
+
+Keep chronology only when the order explains the result. Link to the supporting PR or commit
+instead of repeating run logs, status, or session history. Preserve the conditions and limits
+of the evidence: a changed result can establish that a branch was exercised without proving
+that its output was correct. Apply these principles when briefing Devin and reviewing its
+writeback.
+
+**Bad:** “Cycle 1: All six replay cases matched. Cycle 2: We replaced the transactions and
+reran the audit. Four cases differed. The audit was satisfactory.”
+
+**Good:** “Matching replays did not establish coverage because an earlier zero-rate condition
+bypassed the changed exemption logic. Replaying transactions with non-zero stored rates
+produced differences in four of six cases. Before trusting a match, verify that the case
+reaches the changed branch. See [PR #282](https://github.com/FedTax/txc-sqlserver-database/pull/282),
+commit `f8cab41`.”
+
 ## Finish
 
 Accept a concise rule with its supporting case in a reviewable PR, or state why nothing
