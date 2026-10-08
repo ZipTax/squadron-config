@@ -40,11 +40,9 @@ If unresolved, leave that field empty and record what was checked and the precis
 `unknowns`. Do not ask a person to repeat an answer already on the ticket.
 
 A question must identify the decision it changes, the sources checked, and why those
-sources cannot settle it. Return genuine human decisions to Squadron; do not post them
-independently. An unresolved choice of effective date goes through Squadron's ask-human
-path, while a date established by the ticket or applicable authority needs no question.
+sources cannot settle it.
 
-## Return a result Squadron can route
+## Return the supported result
 
 Use the attached structured-output schema, including its gate results and evidence citations.
 Keep the question-matched verdict and explain its mapping to exactly one routing verdict:
@@ -78,7 +76,6 @@ only when a person's answer is necessary to reach a supported result. Otherwise 
 `completed`, an empty `human_questions`, and non-blocking questions in `unknowns`.
 Return available findings instead of waiting for a person.
 
-Squadron chooses when a Jira update is needed. When asked, read `writing-ticket-updates`
-as you draft, post the product-level finding or question, and return the comment reference.
-Do not independently change workflow labels or ticket status. Squadron owns the blocker
-and next entry; a session report alone does not notify the person who must answer.
+Post a Jira update only when requested. Read `writing-ticket-updates` as you draft, post
+the product-level finding or question, and return the comment reference. Do not independently
+change workflow labels or ticket status.

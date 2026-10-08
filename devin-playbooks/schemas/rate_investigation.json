@@ -15,7 +15,7 @@
     },
     "human_questions": {
       "type": "array",
-      "description": "Blocking questions remaining after checking the full ticket and available evidence. Context identifies the decision affected, sources checked, and why they cannot settle it. Empty when completed. Squadron selects the channel; unresolved effective-date choices use native ask-human, not Devin Jira comments.",
+      "description": "Blocking questions remaining after checking the full ticket and available evidence. Context identifies the decision affected, sources checked, and why they cannot settle it. Empty when completed.",
       "items": {
         "type": "object",
         "properties": {
