@@ -13,7 +13,9 @@ An earlier question may already be answered or superseded. If nothing remains to
 explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
-of the decision. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.
+of the decision. Test each question before supplying it: if the ticket's description or
+attachments answer it, if a short search of the state's published rules answers it, or if the
+code or data you hold answer it, it is not unanswered — state the answer as a fact instead. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.
 Do not supply a comment body or ask for verbatim publication; the repository skill owns the
 wording, and a ready-made body bypasses it. Use delegated_session for the tool interaction.
 
@@ -27,6 +29,9 @@ tool diagnostics in the Devin report.
 - Ask only what remains unanswered. A tax SME's stated ruling counts without requiring
   them to retrieve a statute or bulletin; cite the ruling already present.
 - Preserve every blocking question, but remove requests to reconfirm settled facts.
+- Never ask whether to correct rows already recorded or filed; data correction is out of scope
+  for a rate fix. Never ask whether a checkout/import/filing mismatch the fix leaves behind is
+  acceptable; send it back to the fix lane as a defect.
 - Include the effective period and broader treatment scope when they change the decision.
 - Keep implementation choices, speculative scope expansion, and unrelated new-engine behavior
   out of the question. If evidence shows the disputed result came from the new engine,

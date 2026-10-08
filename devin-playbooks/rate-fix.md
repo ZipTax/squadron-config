@@ -38,8 +38,14 @@ conflict before affected work rather than guessing a procedure.
    today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
    contradictions, and `target_authority`. A state publication or a tax SME's ruling is
-   authority; an unverified ticket expectation is only a proposed target. Missing authority
-   may travel to audit and does not itself prevent producing a reviewable proposal.
+   authority; an unverified ticket expectation is only a proposed target. Before leaving
+   `target_authority` blank, search the state's published rules and bulletins for the
+   ticket's treatment and record what you searched. Missing authority may travel to audit
+   and does not itself prevent producing a reviewable proposal.
+5. Close gaps your change leaves between checkout, imported orders and filing data for the
+   behavior the ticket is about; such a mismatch is part of the fix, not a question. Never
+   propose or ask about correcting rows already recorded or filed: data correction is out of
+   scope for a rate fix.
 
 ## Continue or adopt existing work
 

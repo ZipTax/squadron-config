@@ -25,7 +25,7 @@ gate — do not treat an unmapped label as a pass:
 | dated snapshot fact (a query against `FedTax-<yyyymmdd>` / `Reports-<yyyymmdd>`) | `measured`, for behavior **in that dated copy** — see `txc_staging_access` |
 | current-production fact | `measured` |
 | stated authority — a DOR rate table or bulletin, or a tax SME's ruling on the ticket | `traced`, for what is *correct*, never for what the system *does*. An SME who knows the treatment need not cite it for this to hold |
-| ticket-provided expectation | `hedge` for correctness until an SME confirms it; it is the target, not the proof |
+| ticket-provided expectation | `hedge` for correctness until an SME confirms it or state-published material states it; it is the target, not the proof. Ticket-stated treatment is still what the code is checked against, not a question to reopen |
 | inference | `inferred` |
 | unknown | `hedge` |
 
@@ -65,8 +65,14 @@ the two come apart constantly: a mechanism traced out of a proc is `traced`, whi
 it should have produced is a `hedge` until published material or an SME says so. Implementing
 against a hedged target is allowed — a proposed change is how you get a reviewable artifact and a
 question worth answering — but the run cannot then close as settled, and no amount of A/B evidence
-converts it, because a passing case only proves the change does what it was built to do. Carry the
-missing authority as an open question, in those words, to whoever writes the ticket back.
+converts it, because a passing case only proves the change does what it was built to do.
+
+Look before you call it missing. A state's administrative code, DOR rules and bulletins are public,
+and a session that has not searched them has not found authority missing — it has not looked. Search
+for the ticket's treatment, record what you searched, and when a published rule states the ticket's
+conditions, that rule is the authority (`traced`). Carry the missing authority as an open question,
+in those words, to whoever writes the ticket back only when that search came up empty or does not
+reach the ticket's facts, and say what was searched.
 
 Once an SME has said so, the target is settled and the citation is bookkeeping: record who said it
 and where, and treat a statute or bulletin you cannot read — auth-gated, or an attachment no tool

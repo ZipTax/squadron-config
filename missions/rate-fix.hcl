@@ -356,7 +356,7 @@ mission "rate_fix" {
       }
       field "target_authority" {
         type        = "string"
-        description = "What establishes the value the change now produces — the state-published material or the SME's stated figure. Blank when nothing does, which makes the fix a proposal on a hedged target: author_tests passes it through and audit carries it as an open question, since a SATISFACTORY A/B does not authorize a treatment."
+        description = "What establishes the value the change now produces — the state-published material or the SME's stated figure. Blank only when a recorded search of the state's published rules and bulletins found nothing that settles it, which makes the fix a proposal on a hedged target: author_tests passes it through and audit carries it as an open question, since a SATISFACTORY A/B does not authorize a treatment."
         required    = false
       }
     }
@@ -530,7 +530,7 @@ mission "rate_fix" {
       }
       field "open_questions" {
         type        = "string"
-        description = "Tax-law/eligibility questions for the ticket SMEs and coverage gaps left open. A blank target_authority from the fix lane is one of these however clean the A/B came back — name the authority that would settle the treatment."
+        description = "Tax-law/eligibility questions for the ticket SMEs and coverage gaps left open. A blank target_authority from the fix lane is one of these however clean the A/B came back — name what was searched and the authority that would settle the treatment. Never include whether to correct already-recorded rows, or whether a checkout/import/filing mismatch the fix leaves is acceptable; the first is out of scope and the second goes back to the fix lane."
         required    = false
       }
       field "final_summary" {
