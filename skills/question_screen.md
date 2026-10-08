@@ -16,10 +16,10 @@ than assume the earlier assessment still applies. Require source references, whe
 freshness check was made, and the remaining gap, not a bare assurance that the ticket
 was checked.
 
-Attachment retrieval requires token-authenticated Jira API access that the Jira MCP read
-tool does not provide. Keep that work in Devin's session rather than duplicating ticket
-and attachment review here. An unread attachment is an access or evidence gap, not proof
-that the ticket lacks an answer.
+Devin has the Jira API access needed to retrieve and interpret attachments and ticket
+updates. The Jira MCP read tool does not provide attachment contents, so a ticket read
+through MCP alone cannot establish whether an attachment answers the question. An unread
+attachment is an access or evidence gap, not proof that the ticket lacks an answer.
 
 Have Devin also identify any relevant code, available data, or published authority that
 can settle the question. A missing report field does not establish a human dependency.
