@@ -6,10 +6,15 @@ answer changes necessary work and cannot be established from available evidence.
 ## Check the evidence before asking
 
 Use `delegated_session` to ask Devin whether each proposed question is answered by the
-full ticket, including its description, latest comments, and attachment contents. Reuse
-an available assessment when it already establishes those checks; request only missing
-or stale evidence. Require source references and the remaining gap, not a bare assurance
-that the ticket was checked.
+full ticket, including its description, latest comments, and attachment contents. Before
+reusing an assessment or escalating its questions, have Devin check the current ticket
+against the version assessed: description edits, newer or edited comments, and added,
+replaced, or updated attachments. Reuse prior findings only for unchanged sources; have
+Devin read changed material and reassess which questions remain unanswered. If it cannot
+establish whether an attachment changed, have it retrieve the current contents rather
+than assume the earlier assessment still applies. Require source references, when the
+freshness check was made, and the remaining gap, not a bare assurance that the ticket
+was checked.
 
 Attachment retrieval requires token-authenticated Jira API access that the Jira MCP read
 tool does not provide. Keep that work in Devin's session rather than duplicating ticket

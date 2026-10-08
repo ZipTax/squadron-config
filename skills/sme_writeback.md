@@ -9,8 +9,8 @@ reported issue, and preserve the strength of the supporting evidence.
 ## Work with Devin
 
 Apply `question_screen` before supplying questions for a ticket update. Reuse Devin's
-assessment of the ticket and attachments; before drafting, have it check for newer comments
-or attachments that could settle the remaining questions. If nothing remains to ask or
+assessment only after the freshness check required by `question_screen`. Before posting,
+have Devin check for changes since that assessment and revise or omit questions they settle. If nothing remains to ask or
 explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
