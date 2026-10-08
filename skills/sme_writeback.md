@@ -8,8 +8,9 @@ reported issue, and preserve the strength of the supporting evidence.
 
 ## Work with Devin
 
-Ask a Devin session with relevant context to read the latest ticket comments before drafting.
-An earlier question may already be answered or superseded. If nothing remains to ask or
+Apply `question_screen` before supplying questions for a ticket update. Reuse Devin's
+assessment only after the freshness check required by `question_screen`. Before posting,
+have Devin check for changes since that assessment and revise or omit questions they settle. If nothing remains to ask or
 explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
@@ -26,7 +27,13 @@ tool diagnostics in the Devin report.
 
 - Ask only what remains unanswered. A tax SME's stated ruling counts without requiring
   them to retrieve a statute or bulletin; cite the ruling already present.
-- Preserve every blocking question, but remove requests to reconfirm settled facts.
+- Apply `blocked_run` before publishing a question. Unresolved effective-date choices go
+  through Squadron's `builtins.human.ask`, not Devin's Jira comments.
+- Remove requests to reconfirm settled facts, perform an available lookup, or approve an
+  implementation defect. A missed checkout/import/filing path within the agreed scope needs
+  correction, while contradictory scope evidence needs analysis before the remedy changes.
+- Do not propose or ask about correcting recorded transactions or filing data. Historical
+  data correction is outside the rate fix, so its omission is not an unresolved decision.
 - Include the effective period and broader treatment scope when they change the decision.
 - Keep implementation choices, speculative scope expansion, and unrelated new-engine behavior
   out of the question. If evidence shows the disputed result came from the new engine,
@@ -38,8 +45,8 @@ tool diagnostics in the Devin report.
 
 Have Devin post the update and confirm its comment reference. If it revises a prior
 conclusion, ask Devin to annotate that earlier comment so readers see the changed status.
-For a blocking human dependency, use blocked_run to confirm the comment, save state, and
-apply the trigger label. Missing production evidence may need a real ticket question. Ask for the data, access, or
+For a blocking Jira evidence request, use blocked_run to confirm the comment, save state,
+and register the bridge wait. Missing production evidence may need a real ticket question. Ask for the data, access, or
 decision that would settle it. If the evidence gap ends the work with no actionable request,
 have Devin post a finding explaining what remains unproven and why work stopped, and confirm
 the comment reference. Do not invent an answerer or present the missing evidence as proof

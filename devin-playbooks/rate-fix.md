@@ -37,16 +37,26 @@ conflict before affected work rather than guessing a procedure.
    the PR's review/testing context because a snapshot-proven mechanism does not establish
    today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
-   contradictions, and `target_authority`. A state publication or a tax SME's ruling is
-   authority; an unverified ticket expectation is only a proposed target. Missing authority
-   may travel to audit and does not itself prevent producing a reviewable proposal.
+   contradictions, and `target_authority` from the accepted investigation. The fix does not
+   own authority research. Report missing or contradictory support with the relevant
+   evidence; do not turn it into a ticket question. A proposal against an
+   explicitly unresolved target must retain that uncertainty through audit.
+5. Cover every applicable checkout, import, and filing path in the supplied diagnosis so
+   the same transaction receives consistent treatment. A missed path within that scope is
+   implementation work, not a question about whether inconsistency is acceptable. If the
+   evidence changes the required scope, return the contradiction to investigation.
+
+Correcting recorded transactions, backfilling calculated amounts, and rewriting filing
+data are outside the rate-fix lane. A change to future calculation behavior does not
+authorize changing historical records. Do not implement, propose, or ask whether to do
+those corrections; describe observed historical impact only when it matters to the finding.
 
 ## Continue or adopt existing work
 
 On adoption, check out the existing PR branch, inspect the diff against the diagnosis, and
 report ownership and discrepancies. Do not rewrite, revert, or open another PR. On a later
 correction, change only the evidenced finding and push to that same branch without force.
-Report migration changes so Squadron can ask the cases owner to update the alteration.
+Report migration changes and the affected artifacts.
 Read the current PR description before editing it and preserve other authors' content.
 Session registration belongs on the ticket; do not add process history to the PR body.
 
@@ -58,5 +68,5 @@ Return `outcome: needs_human` and exact question-and-context pairs in `human_que
 only if implementation cannot safely finish without a person's answer. Otherwise return
 `completed` with an empty list and preserve non-blocking questions in the report. Raise
 blockers rather than wait for answers; waiting on machine work (CI, slow requests) is fine.
-Post a Jira comment only when requested, using `writing-ticket-updates`; Squadron
-owns workflow labels, checkpointing, and the next stage.
+Post a Jira comment only when requested, using `writing-ticket-updates`.
+Do not change workflow labels or ticket status, or write coordination checkpoints.

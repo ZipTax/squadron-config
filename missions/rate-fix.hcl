@@ -46,10 +46,9 @@ mission "rate_fix" {
   # All credentialed I/O (gh, PR/Jira comments, staging queries) is Devin's.
   #
   # Blocking on a human: the blocked_run skill, both ends. A stage that hits a
-  # wall ends the run, writes rate_checkpoint/<TICKET>.yaml naming this lane's
-  # stage, and puts the questions on the ticket; the Jira automation fires
-  # /ratevariant when the answer lands, and rate_triage's discovery routes the
-  # case back here at that stage.
+  # dependency first screens it and selects native ask-human for operator
+  # decisions or a Jira bridge wait for ticket evidence. A Jira wait records this
+  # lane's next stage so rate_triage can resume without repeating finished work.
   memories = [memories.rate_checkpoint]
 
   agents = [
@@ -118,6 +117,12 @@ mission "rate_fix" {
   input "evidence" {
     type        = "string"
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
+  }
+
+  input "target_authority" {
+    type        = "string"
+    description = "Authority and effective period established by investigation. Recover from its accepted report on resume; missing research belongs to investigation, not implementation."
+    default     = ""
   }
 
   input "production_evidence" {
@@ -212,6 +217,7 @@ mission "rate_fix" {
       Disposition: ${inputs.disposition}
       Affected roots: ${inputs.affected_roots}
       Evidence: ${inputs.evidence}
+      Target authority: ${inputs.target_authority}
       Production observations: ${inputs.production_evidence}
 
       # Inspect the handoff
@@ -292,14 +298,18 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
       PR ${inputs.existing_pr}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
       disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
-      and relevant unanswered questions. An existing PR is an adoption task, not a rewrite.
+      target authority ${inputs.target_authority}, and relevant unresolved gaps.
+      An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
 
       # Assess the result
 
       Collect Devin's result with check_session. Require a PR for completed work and investigate
-      any reported contradiction with the diagnosis. Missing target authority may accompany a
-      reviewable proposal; implementation alone does not settle the tax treatment.
+      any reported contradiction with the diagnosis. Return missing authority research to the
+      investigation owner through delegated_session. An explicitly unresolved target may
+      accompany a reviewable proposal; implementation alone does not settle tax treatment.
+      A missed applicable path within the diagnosis goes back to the fix owner, not to a human
+      asked whether inconsistent checkout, import, or filing behavior is acceptable.
 
       # Finish or pause
 
@@ -356,7 +366,7 @@ mission "rate_fix" {
       }
       field "target_authority" {
         type        = "string"
-        description = "What establishes the value the change now produces — the state-published material or the SME's stated figure. Blank when nothing does, which makes the fix a proposal on a hedged target: author_tests passes it through and audit carries it as an open question, since a SATISFACTORY A/B does not authorize a treatment."
+        description = "Authority and effective period carried from the accepted investigation. Missing research returns to investigation. An explicitly unresolved target remains a proposal through audit; a SATISFACTORY A/B does not authorize treatment or automatically justify a ticket question."
         required    = false
       }
     }
@@ -530,7 +540,7 @@ mission "rate_fix" {
       }
       field "open_questions" {
         type        = "string"
-        description = "Tax-law/eligibility questions for the ticket SMEs and coverage gaps left open. A blank target_authority from the fix lane is one of these however clean the A/B came back — name the authority that would settle the treatment."
+        description = "Unresolved authority and coverage gaps, with evidence checked and the artifact or decision needed. Missing research returns to investigation; a missed in-scope path returns to implementation. Apply blocked_run before asking a human, and use Squadron ask-human for unresolved effective-date choices. An A/B pass cannot settle authority."
         required    = false
       }
       field "final_summary" {

@@ -132,7 +132,7 @@ mission "rate_triage" {
       only with no usable history or checkpoint may you start blind, history_provenance none.
 
       Honor recorded entry stage "${inputs.entry_stage}" after validating checkpoint ownership.
-      For a fix-lane resumption, recover mechanism, disposition, affected_roots, and cited evidence
+      For a fix-lane resumption, recover mechanism, disposition, affected_roots, target authority, and cited evidence
       from the checkpoint and its recorded investigation report. Reading that accepted report
       restores the handoff; it does not require a fresh investigation or a messageable author.
 
@@ -419,6 +419,8 @@ mission "rate_triage" {
       # Obtain and assess evidence
 
       Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
+      The investigation owns establishing target authority and effective period. Return missing
+      research to that session before handing the requirement to implementation or asking a person.
       Confirm the selected session actually investigated: a comment-only session is a discovery
       error, not evidence that an investigation found nothing. Ask Devin bounded questions for
       missing or contradictory support. Use delegated_session when the original session cannot
@@ -492,6 +494,11 @@ mission "rate_triage" {
         description = "The typed production observations: status, ticket gap outcome, bounded scope/query, result summary, and limitations. Empty list when production was not queried."
         required    = true
       }
+      field "target_authority" {
+        type        = "string"
+        description = "Authority and effective period established by investigation, with citations. Blank only when the report records the sources checked and the remaining gap; absence alone is not a ticket question."
+        required    = false
+      }
       field "unknowns" {
         type        = "string"
         description = "What remains unproven, and for EVIDENCE_INCOMPLETE the exact artifacts that would close each gap."
@@ -541,7 +548,7 @@ mission "rate_triage" {
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
           AND disposition != 'unsupported at available granularity' — enter author_tests if
           existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
-          including production evidence and existing work; map session_messageable to
+          including target_authority, production evidence, and existing work; map session_messageable to
           investigation_messageable.
         EOT
       }
