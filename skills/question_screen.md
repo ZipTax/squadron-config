@@ -5,8 +5,11 @@ answer changes necessary work and cannot be established from available evidence.
 
 ## Check the evidence before asking
 
-Read the full ticket, including its description, attachments, and latest comments.
-Check relevant code, available data, and applicable published authority. A missing field
+Use the full ticket, including its description, attachments, and latest comments.
+Use content already retrieved for the work when it is complete and current; do not repeat
+reads or attachment processing solely to screen a question. Read the ticket directly when
+context is missing, stale, or contradictory, and identify any attachment evidence still
+needed. Check relevant code, available data, and applicable published authority. A missing field
 in a report does not establish that a person must supply it. Complete focused research
 before calling the answer unavailable, and cite an answer already found instead of
 requesting confirmation.
