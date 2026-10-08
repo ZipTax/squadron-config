@@ -56,7 +56,7 @@ skill "verdict_loop" {
 }
 
 skill "question_screen" {
-  description  = "Load before asking a human question or accepting one for publication. Check the full ticket and available evidence, exclude settled or out-of-scope decisions, and identify the precise remaining dependency."
+  description  = "Load before asking a human question or accepting one for publication. Verify with Devin that the ticket, attachments, and available evidence do not answer the question; exclude settled or out-of-scope decisions and identify the precise remaining dependency."
   instructions = load("./skills/question_screen.md")
 }
 

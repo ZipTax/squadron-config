@@ -8,10 +8,10 @@ reported issue, and preserve the strength of the supporting evidence.
 
 ## Work with Devin
 
-Apply `question_screen` before supplying questions for a ticket update. Ask a Devin session
-with relevant context to read the full ticket through the latest comment before drafting,
-because an answer may have arrived after the proposed question was screened. If nothing
-remains to ask or explain, do not request another comment.
+Apply `question_screen` before supplying questions for a ticket update. Reuse Devin's
+assessment of the ticket and attachments; before drafting, have it check for newer comments
+or attachments that could settle the remaining questions. If nothing remains to ask or
+explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
 of the decision. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.

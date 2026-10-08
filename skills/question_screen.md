@@ -5,14 +5,21 @@ answer changes necessary work and cannot be established from available evidence.
 
 ## Check the evidence before asking
 
-Use the full ticket, including its description, attachments, and latest comments.
-Use content already retrieved for the work when it is complete and current; do not repeat
-reads or attachment processing solely to screen a question. Read the ticket directly when
-context is missing, stale, or contradictory, and identify any attachment evidence still
-needed. Check relevant code, available data, and applicable published authority. A missing field
-in a report does not establish that a person must supply it. Complete focused research
-before calling the answer unavailable, and cite an answer already found instead of
-requesting confirmation.
+Use `delegated_session` to ask Devin whether each proposed question is answered by the
+full ticket, including its description, latest comments, and attachment contents. Reuse
+an available assessment when it already establishes those checks; request only missing
+or stale evidence. Require source references and the remaining gap, not a bare assurance
+that the ticket was checked.
+
+Attachment retrieval requires token-authenticated Jira API access that the Jira MCP read
+tool does not provide. Keep that work in Devin's session rather than duplicating ticket
+and attachment review here. An unread attachment is an access or evidence gap, not proof
+that the ticket lacks an answer.
+
+Have Devin also identify any relevant code, available data, or published authority that
+can settle the question. A missing report field does not establish a human dependency.
+Request the missing research before escalating, and use an answer already found instead
+of asking a person to confirm it.
 
 For each proposed question, establish:
 
