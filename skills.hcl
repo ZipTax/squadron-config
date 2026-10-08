@@ -55,6 +55,11 @@ skill "verdict_loop" {
   instructions = load("./skills/verdict_loop.md")
 }
 
+skill "question_screen" {
+  description  = "Load before asking a human question or accepting one for publication. Check the full ticket and available evidence, exclude settled or out-of-scope decisions, and identify the precise remaining dependency."
+  instructions = load("./skills/question_screen.md")
+}
+
 skill "blocked_run" {
   description  = "Load when a rate mission resumes from, or ends on, a question that only a person can answer. Screens human dependencies, uses native ask-human for operator decisions, and keeps Jira evidence waits separate from Squadron's routing state."
   instructions = load("./skills/blocked_run.md")

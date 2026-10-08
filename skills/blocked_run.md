@@ -6,19 +6,10 @@ Screen a proposed question before interrupting a person, then choose the channel
 owns the decision. Squadron's native ask-human tool handles operator decisions. Jira and
 the bridge handle ticket evidence requests that must survive an ended run.
 
-## Decide whether a person is needed
+## Check the question before choosing a channel
 
-Require Devin to identify what decision depends on the answer, what the full ticket
-(description, attachments, and latest comments) already says, and which relevant code,
-data, or published authority it checked. Send answerable gaps back for investigation.
-A missing field in a session report is not evidence that a person must supply it.
-Do not ask for reconfirmation, a routine engineering choice, or permission to leave a
-proven in-scope defect unfixed. Preserve non-blocking uncertainty without turning it
-into a question merely because it appears in `unknowns` or `open_questions`.
-
-Historical data correction is outside the rate-fix lane. Do not turn observed impact on
-recorded transactions or filing data into a backfill proposal or a question about whether
-to perform one; fixing calculation behavior does not authorize rewriting past results.
+Apply `question_screen` before arranging a human wait. A `needs_human` result alone does
+not prove that evidence was exhausted or that the remaining decision blocks progress.
 
 ## Ask the operator for a decision
 

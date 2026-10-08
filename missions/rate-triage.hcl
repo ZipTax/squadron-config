@@ -419,6 +419,8 @@ mission "rate_triage" {
       # Obtain and assess evidence
 
       Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
+      The investigation owns establishing target authority and effective period. Return missing
+      research to that session before handing the requirement to implementation or asking a person.
       Confirm the selected session actually investigated: a comment-only session is a discovery
       error, not evidence that an investigation found nothing. Ask Devin bounded questions for
       missing or contradictory support. Use delegated_session when the original session cannot

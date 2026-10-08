@@ -66,12 +66,11 @@ it should have produced is a `hedge` until published material or an SME says so.
 against a hedged target is allowed — a proposed change is how you get a reviewable artifact and a
 question worth answering — but the run cannot then close as settled, and no amount of A/B evidence
 converts it, because a passing case only proves the change does what it was built to do.
-Investigation owns establishing authority: read the ticket, attachments, and latest comments,
-then check applicable state publications if those sources do not settle it. An unresolved report
-must name what was checked and why it does not cover the treatment, jurisdiction, or period.
-An absent search is unfinished investigation, not a human dependency. Downstream lanes preserve
-that evidence and return gaps for investigation; `blocked_run` determines whether a remaining
-question warrants a human and which channel should carry it.
+Establish authority from the ticket, attachments, and latest comments, then check applicable
+state publications if those sources do not settle it. An unresolved claim must name what was
+checked and why it does not cover the treatment, jurisdiction, or period. An unperformed search
+is missing evidence, not a human dependency. Preserve the source and its scope when relaying
+the claim so a handoff does not turn uncertainty into an unsupported fact.
 
 Once an SME has said so, the target is settled and the citation is bookkeeping: record who said it
 and where, and treat a statute or bulletin you cannot read — auth-gated, or an attachment no tool

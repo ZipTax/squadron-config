@@ -25,10 +25,10 @@ inferring a result from its summary.
   is insufficient.
 - `EVIDENCE_INCOMPLETE` identifies the evidence needed to reach a supported conclusion.
 
-Require the investigation to establish target authority and effective period, or document
-its searches and the specific unresolved gap. Missing research goes back to investigation,
-not to the fix owner or ticket readers. Preserve `target_authority` and its citations in the
-handoff, including when recovering an accepted report from a terminated session.
+Require cited support for the target treatment and effective period, or a record of the
+sources checked and the specific unresolved gap. Complete missing research before treating
+it as a question for ticket readers. Preserve `target_authority` and its citations when
+passing on or recovering an accepted report so later decisions use the same requirement.
 
 Check that the reported scope is answered, material claims have citations, and inherited
 claims remain attributed until verified. Preserve multipart findings and their unknowns;

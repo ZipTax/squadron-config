@@ -8,11 +8,10 @@ reported issue, and preserve the strength of the supporting evidence.
 
 ## Work with Devin
 
-Ask a Devin session with relevant context to read the description, attachments, and every
-comment through the latest before drafting. Require each proposed question to name the
-decision it changes, the evidence already checked, and why the answer cannot be obtained
-from that evidence. Send missing research to the investigation owner before requesting
-writeback. If nothing remains to ask or explain, do not request another comment.
+Apply `question_screen` before supplying questions for a ticket update. Ask a Devin session
+with relevant context to read the full ticket through the latest comment before drafting,
+because an answer may have arrived after the proposed question was screened. If nothing
+remains to ask or explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
 of the decision. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.
@@ -31,8 +30,8 @@ tool diagnostics in the Devin report.
 - Apply `blocked_run` before publishing a question. Unresolved effective-date choices go
   through Squadron's `builtins.human.ask`, not Devin's Jira comments.
 - Remove requests to reconfirm settled facts, perform an available lookup, or approve an
-  implementation defect. A missed checkout/import/filing path within the agreed scope goes
-  back to the fix owner; a contradiction in the scope goes back to investigation.
+  implementation defect. A missed checkout/import/filing path within the agreed scope needs
+  correction, while contradictory scope evidence needs analysis before the remedy changes.
 - Do not propose or ask about correcting recorded transactions or filing data. Historical
   data correction is outside the rate fix, so its omission is not an unresolved decision.
 - Include the effective period and broader treatment scope when they change the decision.

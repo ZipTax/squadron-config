@@ -33,9 +33,9 @@ specific conflict before the affected work; do not invent a replacement procedur
 ## Establish the expected treatment before handing off
 
 Investigation owns the target authority and effective period because implementation and
-independent tests need the same supported requirement. Follow `investigate-tax-behavior`
-to read the full ticket and research applicable state material before declaring authority
-missing. Return the source and its scope in `target_authority`, with the evidence chain.
+independent tests need the same supported requirement. Use the repository's
+`establish-tax-authority` skill to assess the supplied sources and research any remaining
+authority gap. Return the source and its scope in `target_authority`, with the evidence chain.
 If unresolved, leave that field empty and record what was checked and the precise gap in
 `unknowns`. Do not ask a person to repeat an answer already on the ticket.
 
