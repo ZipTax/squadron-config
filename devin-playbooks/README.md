@@ -104,8 +104,9 @@ block's spec rather than a UI setting.
 
 Devin returns a typed result and exact questions without waiting. Squadron uses
 [blocked_run](../skills/blocked_run.md) and [rate_checkpoint](../skills/rate_checkpoint.md)
-to choose a context-owning question author, confirm the Jira comment, save the next entry,
-and end the mission. On resumption, the selected session interprets the new answer and
+to screen questions and choose their channel. Operator decisions, including unresolved
+effective-date choices, use Squadron's native ask-human tool. Ticket evidence requests use
+a context-owning question author, a confirmed Jira comment, and a saved bridge resume entry. On resumption, the selected session interprets the new answer and
 Squadron decides the route. Playbooks must not tell Devin to load those Squadron-only skills.
 The [orchestration plan](../docs/rate-ticket-orchestration.md) defines the bridge delivery contract assumed by the blocking instructions;
 editing a playbook does not deploy the bridge or wire its tools and event inputs.

@@ -31,10 +31,9 @@ result identifies the existing branch and changed files, without claiming test e
 changed payload is undecided, so no implementation or PR exists. Empty artifact fields and
 `change_type: none` describe that state without inventing a deliverable.
 
-The current fix schema has no `target_authority` field. This example does not add one;
-any mission requiring that value must collect it separately or extend the schema in a
-coordinated change. Likewise, schema fields are not a guarantee that every playbook prose
-request has a corresponding structured field.
+For a tax-treatment change, `target_authority` carries the investigation's cited treatment
+and effective period through implementation. These replay examples do not assert a tax
+value, so they omit that optional field.
 
 ## Ratevariant: coverage delivered or an input missing
 

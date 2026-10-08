@@ -56,7 +56,7 @@ skill "verdict_loop" {
 }
 
 skill "blocked_run" {
-  description  = "Load when a rate mission resumes from, or ends on, a question that only a person can answer. Keeps the Jira discussion separate from Squadron's routing state."
+  description  = "Load when a rate mission resumes from, or ends on, a question that only a person can answer. Screens human dependencies, uses native ask-human for operator decisions, and keeps Jira evidence waits separate from Squadron's routing state."
   instructions = load("./skills/blocked_run.md")
 }
 
@@ -66,7 +66,7 @@ skill "rate_checkpoint" {
 }
 
 skill "sme_writeback" {
-  description  = "Load when writing back to a ticket read by support, product, or subject-matter experts. One product-level comment, domain points framed as questions, engineering detail left on the PR and in the session."
+  description  = "Load when writing back to a ticket read by support, product, or subject-matter experts. Screens proposed questions against available evidence, routes operator decisions through ask-human, and keeps engineering detail on the PR and in the session."
   instructions = load("./skills/sme_writeback.md")
 }
 

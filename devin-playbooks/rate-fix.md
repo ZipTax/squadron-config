@@ -37,15 +37,19 @@ conflict before affected work rather than guessing a procedure.
    the PR's review/testing context because a snapshot-proven mechanism does not establish
    today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
-   contradictions, and `target_authority`. A state publication or a tax SME's ruling is
-   authority; an unverified ticket expectation is only a proposed target. Before leaving
-   `target_authority` blank, search the state's published rules and bulletins for the
-   ticket's treatment and record what you searched. Missing authority may travel to audit
-   and does not itself prevent producing a reviewable proposal.
-5. Close gaps your change leaves between checkout, imported orders and filing data for the
-   behavior the ticket is about; such a mismatch is part of the fix, not a question. Never
-   propose or ask about correcting rows already recorded or filed: data correction is out of
-   scope for a rate fix.
+   contradictions, and `target_authority` from the accepted investigation. The fix does not
+   own authority research. Report missing or contradictory support to Squadron for bounded
+   investigation follow-up; do not turn it into a ticket question. A proposal against an
+   explicitly unresolved target must retain that uncertainty through audit.
+5. Cover every applicable checkout, import, and filing path in the supplied diagnosis so
+   the same transaction receives consistent treatment. A missed path within that scope is
+   implementation work, not a question about whether inconsistency is acceptable. If the
+   evidence changes the required scope, return the contradiction to investigation.
+
+Correcting recorded transactions, backfilling calculated amounts, and rewriting filing
+data are outside the rate-fix lane. A change to future calculation behavior does not
+authorize changing historical records. Do not implement, propose, or ask whether to do
+those corrections; describe observed historical impact only when it matters to the finding.
 
 ## Continue or adopt existing work
 

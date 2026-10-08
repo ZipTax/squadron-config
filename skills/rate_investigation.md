@@ -25,6 +25,11 @@ inferring a result from its summary.
   is insufficient.
 - `EVIDENCE_INCOMPLETE` identifies the evidence needed to reach a supported conclusion.
 
+Require the investigation to establish target authority and effective period, or document
+its searches and the specific unresolved gap. Missing research goes back to investigation,
+not to the fix owner or ticket readers. Preserve `target_authority` and its citations in the
+handoff, including when recovering an accepted report from a terminated session.
+
 Check that the reported scope is answered, material claims have citations, and inherited
 claims remain attributed until verified. Preserve multipart findings and their unknowns;
 the primary part drives routing. Distinguish dated snapshot proof from current-production
@@ -40,7 +45,8 @@ identifying, tracing, and testing candidate remedies in the SQL repository.
 
 You are done when the result supports a disposition or explains what prevents one.
 A non-blocking confirmation can accompany `completed`; `needs_human` means a person's
-answer is necessary to finish. Use `blocked_run` and `rate_checkpoint` for that pause.
+answer is necessary to finish. Apply `blocked_run` to screen the question and select
+Squadron ask-human or a Jira evidence request before arranging a pause.
 
 Use `sme_writeback` to decide whether a ticket update is due. When it is, ask Devin to
 write from the established facts using `writing-ticket-updates`. For a proven unsupported

@@ -2,9 +2,38 @@
 
 ## Your responsibility
 
-End the run when progress needs a person's answer. Keep the question on Jira and the
-continuation state in the checkpoint so the bridge can restart the recorded work without
-repeating completed stages. These instructions assume the bridge delivery contract.
+Screen a proposed question before interrupting a person, then choose the channel that
+owns the decision. Squadron's native ask-human tool handles operator decisions. Jira and
+the bridge handle ticket evidence requests that must survive an ended run.
+
+## Decide whether a person is needed
+
+Require Devin to identify what decision depends on the answer, what the full ticket
+(description, attachments, and latest comments) already says, and which relevant code,
+data, or published authority it checked. Send answerable gaps back for investigation.
+A missing field in a session report is not evidence that a person must supply it.
+Do not ask for reconfirmation, a routine engineering choice, or permission to leave a
+proven in-scope defect unfixed. Preserve non-blocking uncertainty without turning it
+into a question merely because it appears in `unknowns` or `open_questions`.
+
+Historical data correction is outside the rate-fix lane. Do not turn observed impact on
+recorded transactions or filing data into a backfill proposal or a question about whether
+to perform one; fixing calculation behavior does not authorize rewriting past results.
+
+## Ask the operator for a decision
+
+Use `builtins.human.ask` for an unresolved effective-date choice or other operator decision.
+First distinguish a date established by the ticket or applicable authority from a date
+that requires a choice; ask only for the latter. Include the ticket, the decision's effect,
+the evidence checked, and supported options. Do not delegate this question to Devin for
+Jira publication or register a duplicate Jira bridge wait.
+
+Pass the answer to the owning session and preserve its source in that session's report
+so later stages do not ask again. An operator's scheduling choice does not establish tax
+law. If the tool times out, is cancelled, or returns `[no human available]`, keep the
+choice unresolved and report the blocked operator decision; do not invent an answer or
+silently move it to Jira. Preserve the session and next entry through `rate_checkpoint`
+without claiming a registered Jira blocker.
 
 ## Resume from the bridge
 
@@ -25,9 +54,9 @@ supported assessment, advance the processed-comment marker, and either continue 
 the question. Resolve the blocker using the bridge skill only when its dependency is settled.
 Preserve unrelated labels with add/remove operations.
 
-## Prepare a human wait
+## Prepare a Jira evidence wait
 
-When progress requires a human answer, including access to production evidence:
+After screening, when progress requires evidence or access from ticket participants:
 
 1. Establish the exact questions and context with Devin. Do not invent an answerer.
 2. Use sme_writeback to have Devin post the question on Jira. Reuse the existing discussion

@@ -8,14 +8,14 @@ reported issue, and preserve the strength of the supporting evidence.
 
 ## Work with Devin
 
-Ask a Devin session with relevant context to read the latest ticket comments before drafting.
-An earlier question may already be answered or superseded. If nothing remains to ask or
-explain, do not request another comment.
+Ask a Devin session with relevant context to read the description, attachments, and every
+comment through the latest before drafting. Require each proposed question to name the
+decision it changes, the evidence already checked, and why the answer cannot be obtained
+from that evidence. Send missing research to the investigation owner before requesting
+writeback. If nothing remains to ask or explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
-of the decision. Test each question before supplying it: if the ticket's description or
-attachments answer it, if a short search of the state's published rules answers it, or if the
-code or data you hold answer it, it is not unanswered — state the answer as a fact instead. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.
+of the decision. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.
 Do not supply a comment body or ask for verbatim publication; the repository skill owns the
 wording, and a ready-made body bypasses it. Use delegated_session for the tool interaction.
 
@@ -28,10 +28,13 @@ tool diagnostics in the Devin report.
 
 - Ask only what remains unanswered. A tax SME's stated ruling counts without requiring
   them to retrieve a statute or bulletin; cite the ruling already present.
-- Preserve every blocking question, but remove requests to reconfirm settled facts.
-- Never ask whether to correct rows already recorded or filed; data correction is out of scope
-  for a rate fix. Never ask whether a checkout/import/filing mismatch the fix leaves behind is
-  acceptable; send it back to the fix lane as a defect.
+- Apply `blocked_run` before publishing a question. Unresolved effective-date choices go
+  through Squadron's `builtins.human.ask`, not Devin's Jira comments.
+- Remove requests to reconfirm settled facts, perform an available lookup, or approve an
+  implementation defect. A missed checkout/import/filing path within the agreed scope goes
+  back to the fix owner; a contradiction in the scope goes back to investigation.
+- Do not propose or ask about correcting recorded transactions or filing data. Historical
+  data correction is outside the rate fix, so its omission is not an unresolved decision.
 - Include the effective period and broader treatment scope when they change the decision.
 - Keep implementation choices, speculative scope expansion, and unrelated new-engine behavior
   out of the question. If evidence shows the disputed result came from the new engine,
@@ -43,8 +46,8 @@ tool diagnostics in the Devin report.
 
 Have Devin post the update and confirm its comment reference. If it revises a prior
 conclusion, ask Devin to annotate that earlier comment so readers see the changed status.
-For a blocking human dependency, use blocked_run to confirm the comment, save state, and
-apply the trigger label. Missing production evidence may need a real ticket question. Ask for the data, access, or
+For a blocking Jira evidence request, use blocked_run to confirm the comment, save state,
+and register the bridge wait. Missing production evidence may need a real ticket question. Ask for the data, access, or
 decision that would settle it. If the evidence gap ends the work with no actionable request,
 have Devin post a finding explaining what remains unproven and why work stopped, and confirm
 the comment reference. Do not invent an answerer or present the missing evidence as proof
