@@ -354,8 +354,8 @@ mission "rate_finalize" {
       to manufacture lessons.
 
       Apply learnings_capture to the returned proposals and obtain any missing answers from Devin.
-      Check rate_case_log for duplication or supporting cases. A limitation class such as
-      ${inputs.limitation_class} does not by itself require a writeback.
+      Check rate_case_log for duplication or supporting cases. A limitation classification
+      does not by itself require a writeback.
 
       # Record qualifying lessons
 
