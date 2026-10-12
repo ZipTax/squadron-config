@@ -363,8 +363,9 @@ mission "rate_finalize" {
       documentation-only Devin session with `prompt_mode: "raw"`. Supply the source finding,
       evidence, repository, and selected guidance files. Include the writing criteria and style
       reference from learnings_capture in the assignment, and ask Devin to read relevant existing
-      entries before drafting. Let Devin write the prose. Use title ${inputs.issue} — record <lesson>
-      and tags `["${inputs.issue}", "learnings"]`. Continue an existing documentation assignment
+      entries before drafting. Let Devin write the prose. Title the Devin session
+      "${inputs.issue} — record <lesson>" and tag it with `["${inputs.issue}", "learnings"]`.
+      Continue an existing documentation assignment
       instead of creating a duplicate. Review the PR against learnings_capture's completion criteria.
 
       # Finish
