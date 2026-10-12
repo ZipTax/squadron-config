@@ -49,12 +49,6 @@ mission "rate_triage" {
     default = ""
     description = "Recorded triage continuation stage; empty uses ordinary discovery."
   }
-  input "slack_thread" {
-    type        = "string"
-    description = "Slack thread this request lives in, set by the Slack gateway. Pass it unchanged to any mission this one routes to, so the whole request stays in one thread."
-    default     = ""
-  }
-
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."

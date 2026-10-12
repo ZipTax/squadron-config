@@ -19,5 +19,12 @@ gateway "slack" {
     checkpoint_path = ".squadron/slack-gateway.json"
     mcp_url         = "http://localhost:8090/mcp"
     mcp_token       = vars.mcp_host_secret
+    threads         = <<-EOT
+      {
+        "rate_triage":   {"key": "{{.issue}}", "title": "{{.issue}}: rate ticket"},
+        "rate_fix":      {"key": "{{.issue}}", "title": "{{.issue}}: rate ticket"},
+        "rate_finalize": {"key": "{{.issue}}", "title": "{{.issue}}: rate ticket"}
+      }
+    EOT
   }
 }

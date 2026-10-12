@@ -60,12 +60,6 @@ mission "rate_finalize" {
     type = "number"
     default = 0
   }
-  input "slack_thread" {
-    type        = "string"
-    description = "Slack thread this request lives in, set by the Slack gateway. Pass it unchanged to any mission this one routes to, so the whole request stays in one thread."
-    default     = ""
-  }
-
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."
@@ -433,13 +427,13 @@ mission "rate_finalize" {
     objective = <<-EOT
       Summarize what case ${inputs.issue} resolved and link its work.
 
-      Have session_scout read the Jira ticket for the state it concerns, and use check_session
+      Have session_scout read the Jira ticket for the states it concerns, and use check_session
       for the URL of each Devin session that worked on the ticket: those in enter_finalize's
       reachable_sessions, verify_wai's verify_session_id when it ran, and record_learnings'
       writeback_session_id when one was started. Do not create or message sessions or post to Jira.
 
       Then have slack_announcer post the summary, PR links and session links with
-      builtins.gateway.post, setting thread to "${inputs.slack_thread}" when it is not blank.
+      builtins.gateway.post, with thread set to "${inputs.issue}".
 
       Verdict: ${inputs.verdict}
       Mechanism: ${inputs.mechanism}
@@ -452,7 +446,7 @@ mission "rate_finalize" {
     output {
       field "summary" {
         type        = "string"
-        description = "One line in product language: 'Resolves <problem> in <state>' for a fix; 'Confirms <behavior> in <state> is working as intended' for a confirmed WAI; 'Records <problem> in <state> as unsupported by the current engine' for an unsupported disposition. Take the state from the ticket; if the ticket does not name one, say so rather than inferring it. When record_learnings kept an unresolved checkpoint, name what is outstanding instead."
+        description = "One line in product language naming the problem and every state the ticket concerns. Examples of the shape, not fixed wording: 'Resolves <problem> in <state>' for a fix; 'Confirms <behavior> in <states> is working as intended' for a confirmed WAI; 'Records <problem> in <state> as unsupported by the current engine' for an unsupported disposition. Take the states from the ticket; if it names none, say so rather than inferring them. When record_learnings kept an unresolved checkpoint, name what is outstanding instead."
         required    = true
       }
       field "pr_urls" {
