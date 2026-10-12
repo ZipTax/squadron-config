@@ -363,8 +363,10 @@ mission "rate_finalize" {
 
       For an accepted proposal, use delegated_session and devin_code to start a separate
       documentation-only Devin session with `prompt_mode: "raw"`. Supply the source finding,
-      evidence, repository, and selected guidance files. Use title ${inputs.issue} — record
-      <lesson> and tags `["${inputs.issue}", "learnings"]`. Continue an existing documentation
+      evidence, repository, and selected guidance files. Include the writing criteria and style
+      reference from learnings_capture in the assignment, and ask Devin to read relevant existing
+      entries before drafting. Let Devin write the prose and review it against those criteria.
+      Use title ${inputs.issue} — record <lesson> and tags `["${inputs.issue}", "learnings"]`. Continue an existing documentation
       assignment instead of creating a duplicate. Review the resulting PR against the proposal.
       Do not request implementation changes, new tests, or a ticket-specific fix narrative.
 

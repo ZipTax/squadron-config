@@ -80,34 +80,44 @@ rather than opening another session or PR. Collect its result and review the act
 
 ## Write the lesson a future maintainer needs
 
-State what was learned, explain why, and retain only enough evidence to support it. Organize
-around the outcome and the decision it changes, because a future maintainer needs to know
-when and why to apply the lesson without reconstructing the investigation. Use headings that
-name the finding rather than numbered attempts or fix cycles. Choose the structure to fit
-the lesson; do not copy a neighboring entry's format just for consistency.
+Include these writing criteria in the documentation assignment; the writing session does
+not inherit this skill. Ask Devin to read relevant maintained guidance before drafting,
+both to avoid duplication and to select a useful style reference. Prefer an entry that
+explains a finding and its consequence over one organized as an incident log. Use the
+DEV-10223 entry in `ratevariant-audit/references/case-law.md`, as revised in
+[PR #288, commit 2c571e6](https://github.com/FedTax/txc-sqlserver-database/commit/2c571e6f1f06539a817f5c3081f4585256ad3249),
+as an example. Borrow its clarity, not its tax facts or a mandatory heading template.
 
-Keep chronology only when the order explains the result. Link to the supporting PR or commit
-instead of repeating run logs, status, or session history. Preserve the conditions and limits
-of the evidence: a changed result can establish that a branch was exercised without proving
-that its output was correct. Apply these principles when briefing Devin and reviewing its
-writeback.
+- Lead with the reusable finding or required action. A heading should tell the reader what
+  to understand or verify, rather than name a topic or recount what a session got wrong.
+- Explain why the rule matters and what follows from it. Use explicit causal language:
+  TaxCloud output cannot independently validate TaxCloud data because it derives from that
+  data; therefore, the expected value needs independent evidence.
+- Give only the case facts needed to understand and support that conclusion. Introduce the
+  relevant system, source, and period before comparing values. Retain dates or quantities
+  that explain the discrepancy, and link the evidence instead of copying attachment IDs,
+  row IDs, endpoint syntax, session history, or the sequence of attempts unless those details
+  are necessary to apply the lesson.
+- Preserve unresolved obligations. Missing authority leaves an expected value unresolved;
+  omitting its test does not satisfy the coverage requirement. Explain what evidence would
+  resolve the gap without treating a workaround, omission, or documented limitation as proof.
+- Use short, connected paragraphs for distinct findings. A skill should give actionable
+  guidance with its reason; a case reference should show the evidence and consequence.
+  Avoid repeating the same rule in an opening, a case narrative, and a closing rules list.
 
-**Bad:** “Cycle 1: All six replay cases matched. Cycle 2: We replaced the transactions and
-reran the audit. Four cases differed. The audit was satisfactory.”
-
-**Good:** “Matching replays did not establish coverage because an earlier zero-rate condition
-bypassed the changed exemption logic. Replaying transactions with non-zero stored rates
-produced differences in four of six cases. Before trusting a match, verify that the case
-reaches the changed branch. See [PR #282](https://github.com/FedTax/txc-sqlserver-database/pull/282),
-commit `f8cab41`.”
+Leave wording and structure to Devin within these criteria. Review the result for whether a
+maintainer unfamiliar with the case can explain the finding, why it matters, when it applies,
+and what remains unproven. Return specific writing defects for revision instead of supplying
+a replacement article or accepting prose merely because it contains citations.
 
 ## Finish
 
 Report the sessions asked, their proposals or explicit “none” responses, and any unavailable
 responses. Accept a concise rule with its supporting case in a reviewable PR, or explain why
 the returned proposals did not qualify. Check that the diff contains reusable guidance rather
-than a ticket narrative, release status, deployment instructions, or a copy of the PR explanation. Reject changes
-to implementation, migrations, or test artifacts from a documentation-only assignment.
+than a ticket narrative, release status, deployment instructions, or a copy of the PR explanation.
+Reject changes to implementation, migrations, or test artifacts from a documentation-only
+assignment.
 
 The mission's rate_case_log is separate: use your mission file tools for its run ledger.
 Do not ask Devin to commit that log into a repository if the memory slot is unavailable.
