@@ -8,8 +8,8 @@ failed approaches, unexpected constraints, and decisive evidence that a summary 
 Do not infer lessons from a PR diff, an action-item list, or a ticket outcome alone.
 
 Use `delegated_session`: follow up with `send_message`, then collect the response with
-`check_session`. Include the ticket and the session's part of the work, and make the request
-read-only. Ask for no quota; “nothing worth recording” is a complete answer.
+`check_session`. Include the task context and the session's part of the work, and make the
+request read-only. Ask for no quota; “nothing worth recording” is a complete answer.
 
 For each proposed lesson, ask Devin to explain:
 
@@ -32,16 +32,15 @@ value, and a gap in maintained guidance. Clarify a missing answer; reject routin
 obvious facts, generic advice, or duplicate guidance. Keep explanations of one PR's changes
 and unresolved checks with that PR or session rather than creating a ticket document.
 
-Identify the owning repository from the proposal. The rate-learning-writeback playbook
-guides selection of the appropriate reference; a ticket disposition alone does not justify
-an entry or establish an engine deferral.
+Identify the owning repository from the proposal. Use the writeback playbook supplied by
+the task to select the appropriate reference.
 
 ## Separate a supported lesson from unfinished work
 
 A lesson summarizes established evidence; it does not choose an unresolved implementation
 value. If correctness still depends on tracing a consumer, deciding between configuration
 values, or running missing proof, report the gap and its consequence. Do not turn a request
-for learning into instructions to change SQL, migrations, tests, or ticket registration.
+for learning into instructions to change implementation, data, tests, or workflow state.
 Changing those artifacts can invalidate the evidence on which the lesson would rest.
 
 Clarify existing evidence read-only when needed. If proving a proposed lesson requires new
@@ -50,11 +49,11 @@ implementation or acceptance testing, leave it unrecorded and report the missing
 ## Delegate only accepted writebacks
 
 For an accepted proposal, use delegated_session and devin_code to start a separate session
-with `!rate-learning-writeback` and `prompt_mode: "raw"`. Supply the ticket, originating
-session, accepted finding, evidence references, intended future use, destination repository,
-base branch, and any existing documentation PR. The new session does
-not inherit that context. Continue an existing writeback through send_message instead of
-creating another session or PR.
+with the task-supplied writeback playbook and `prompt_mode: "raw"`. Supply the task context,
+originating session, accepted finding, evidence references, intended future use, destination
+repository, base branch, and any existing documentation PR. The new session does not inherit
+that context. Continue an existing writeback through send_message instead of creating another
+session or PR.
 
 The playbook owns documentation scope, destination checks, writing style, and delivery.
 Let Devin author the prose. Collect its structured result and assess the actual diff:
