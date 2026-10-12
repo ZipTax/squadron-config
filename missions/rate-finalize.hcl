@@ -38,7 +38,8 @@ mission "rate_finalize" {
   agents = [
     agents.session_scout,
     agents.taxcloud_legacy_sql_reviewer,
-    agents.learnings_curator
+    agents.learnings_curator,
+    agents.slack_announcer
   ]
 
   # ---------------------------------------------------------------------------
@@ -59,6 +60,12 @@ mission "rate_finalize" {
     type = "number"
     default = 0
   }
+  input "slack_thread" {
+    type        = "string"
+    description = "Slack thread this request lives in, set by the Slack gateway. Pass it unchanged to any mission this one routes to, so the whole request stays in one thread."
+    default     = ""
+  }
+
   input "issue" {
     type        = "string"
     description = "Ticket key for the rate fix (e.g. DEV-7282)."
@@ -431,13 +438,16 @@ mission "rate_finalize" {
       reachable_sessions, verify_wai's verify_session_id when it ran, and record_learnings'
       writeback_session_id when one was started. Do not create or message sessions or post to Jira.
 
+      Then have slack_announcer post the summary, PR links and session links with
+      builtins.gateway.post, setting thread to "${inputs.slack_thread}" when it is not blank.
+
       Verdict: ${inputs.verdict}
       Mechanism: ${inputs.mechanism}
       Disposition: ${inputs.disposition}
       Fix PR: ${inputs.fix_pr_url}
       Bruno PR: ${inputs.bruno_pr_url}
     EOT
-    agents = [agents.session_scout]
+    agents = [agents.session_scout, agents.slack_announcer]
 
     output {
       field "summary" {
