@@ -433,7 +433,8 @@ mission "rate_finalize" {
       writeback_session_id when one was started. Do not create or message sessions or post to Jira.
 
       Then have slack_announcer post the summary, PR links and session links with
-      builtins.gateway.post, with thread set to "${inputs.issue}".
+      builtins.gateway.post, with thread set to "${inputs.issue}" and root set to true, so the
+      summary becomes the case's top-level Slack message.
 
       Verdict: ${inputs.verdict}
       Mechanism: ${inputs.mechanism}
