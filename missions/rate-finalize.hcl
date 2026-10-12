@@ -145,7 +145,7 @@ mission "rate_finalize" {
 
   input "investigation_session_id" {
     type        = "string"
-    description = "The session holding the investigation. verify_wai passes it back as wip_investigation_session_id if it re-fires; record_learnings asks it for its own two learnings. Blank when none survives."
+    description = "The session holding the investigation. verify_wai passes it back as wip_investigation_session_id if it re-fires; record_learnings requests any supported reusable findings. Blank when none survives."
     default     = ""
   }
 
@@ -328,7 +328,9 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Decide whether ${inputs.issue} produced a durable new lesson and settle its close-out state.
+      Decide whether ${inputs.issue} produced a durable new lesson and whether its accepted
+      close-out state remains supported. This stage captures established findings; it does not
+      continue implementation or resolve technical acceptance gaps.
       Use learnings_capture. The result was ${inputs.verdict} — ${inputs.close_reason}; mechanism
       ${inputs.mechanism}, fix PR ${inputs.fix_pr_url}, audit findings ${inputs.audit_findings},
       and disposition ${inputs.disposition}.
@@ -339,6 +341,8 @@ mission "rate_finalize" {
       that would save effort on a similar case. None is a valid answer. Use enter_finalize's
       reachable_sessions; unavailable sessions contribute their reports. Include workflow misfires
       as candidates when evidence shows a brief, gate, or routing rule caused the problem.
+      Keep these requests read-only. Do not instruct those sessions to pick configuration values,
+      change the fix, add tests, or clean up ticket registration as part of gathering lessons.
 
       Have the stage agent search rate_case_log for this mechanism before deciding. Repeated
       occurrence may establish a precedent that this ticket alone would not reveal.
@@ -354,7 +358,10 @@ mission "rate_finalize" {
       For qualifying lessons, have the stage agent use plugins.devin.code_develop to obtain a
       reviewable documentation PR in the owning repository. Supply facts and destination, with
       title ${inputs.issue} — record <lesson> and tags `["${inputs.issue}", "learnings"]`. Prefer an amendment
-      to an existing document. Devin authors the documentation; do not send a prewritten body.
+      to an existing document. Name the reusable rule and the future decision it changes before
+      selecting the destination. Do not request a ticket-specific fix narrative or add documentation
+      to the implementation PR merely to justify its current values. Devin authors the documentation;
+      do not send a prewritten body. Limit this assignment to the selected guidance files.
 
       # Finish or pause
 
@@ -363,9 +370,15 @@ mission "rate_finalize" {
       Use mission file tools for this log, not a repository commit. Report unavailable storage
       rather than inventing another destination.
 
-      Use rate_checkpoint for ${inputs.issue}.yaml. If ${inputs.open_questions} contains a
-      closure-blocking question, use blocked_run and retain the checkpoint. Delete it only when
-      nothing remains, so a later run does not restart completed work.
+      Use rate_checkpoint for ${inputs.issue}.yaml. If the returned evidence reveals a technical
+      correctness or acceptance gap, report it and retain the checkpoint with the evidence and
+      unfinished work in the relevant session report. Do not mark the case closed or resolve the
+      gap from this stage. Record next_entry as rate_fix/audit when an existing fix needs renewed
+      review, or rate_triage/assess_investigation when the diagnosis needs reconsideration.
+      A technical gap is not itself a human question; apply question_screen before blocked_run.
+      For a genuine closure-blocking human dependency in ${inputs.open_questions} or the new
+      findings, use blocked_run and retain the checkpoint. Delete it only when nothing remains,
+      so a later run does not restart completed work.
     EOT
     agents = [agents.learnings_curator]
 
