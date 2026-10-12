@@ -347,8 +347,9 @@ mission "rate_finalize" {
 
       # Collect and assess the answers
 
-      Use enter_finalize's reachable_sessions. For unavailable sessions, retain only lessons
-      explicitly proposed in their recorded reports, with attribution. Record unavailable
+      Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
+      distinct Devin session. For unavailable sessions, retain only lessons explicitly proposed
+      in their recorded reports, with attribution. Record unavailable
       responses separately from “nothing worth recording.” Do not start a new investigation
       to manufacture lessons.
 
