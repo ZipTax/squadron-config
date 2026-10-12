@@ -328,9 +328,10 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Ask the Devin sessions that worked on ${inputs.issue} whether they discovered any
-      difficult-to-discover, worthwhile lessons worth recording. Collect their answers and
-      arrange a documentation writeback only for proposals that pass learnings_capture.
+      Ask learnings_curator to contact the Devin sessions that worked on ${inputs.issue}
+      and ask whether they discovered any difficult-to-discover, worthwhile lessons worth
+      recording. Collect their answers through learnings_curator and arrange a documentation
+      writeback only for proposals that pass learnings_capture.
 
       # Context for the session requests
 
@@ -346,7 +347,7 @@ mission "rate_finalize" {
 
       # Ask the sessions that performed the work
 
-      Have the stage agent use delegated_session to message each distinct reachable work session
+      Ask learnings_curator to use delegated_session to message each distinct reachable work session
       from enter_finalize's reachable_sessions. Ask about its own discoveries using the criteria
       in learnings_capture, then collect its reply with check_session. Explicitly include the
       read-only scope in each message: propose findings, with no implementation or documentation
@@ -365,7 +366,7 @@ mission "rate_finalize" {
       not a source of substitute lessons when no session proposed one. A limitation class such
       as ${inputs.limitation_class} identifies a possible destination, not a requirement to write.
 
-      For accepted proposals, have the stage agent start a separate documentation-only session
+      For accepted proposals, ask learnings_curator to start a separate documentation-only session
       using plugins.devin.code_develop, devin_code, and `prompt_mode: "raw"`. Supply the originating
       session's finding and evidence, the selected guidance files, repository, title
       ${inputs.issue} — record <lesson>, and tags `["${inputs.issue}", "learnings"]`.
@@ -375,7 +376,7 @@ mission "rate_finalize" {
 
       # Finish or pause
 
-      Have the stage agent append one line to rate_case_log/cases.md, even when no lesson qualifies:
+      Ask learnings_curator to append one line to rate_case_log/cases.md, even when no lesson qualifies:
       <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
       Use mission file tools for this log, not a repository commit. Report unavailable storage
       rather than inventing another destination.
