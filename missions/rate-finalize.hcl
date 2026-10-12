@@ -337,7 +337,6 @@ mission "rate_finalize" {
       # Context
 
       The following is context for your requests. Do not infer lessons from it yourself.
-      Ask the Devin sessions for their own findings.
 
       Result: ${inputs.verdict}
       Close reason: ${inputs.close_reason}
