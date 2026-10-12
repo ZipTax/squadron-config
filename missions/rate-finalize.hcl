@@ -328,15 +328,16 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Ask learnings_curator to contact the Devin sessions that worked on ${inputs.issue}
-      and ask whether they discovered any difficult-to-discover, worthwhile lessons worth
-      recording. Collect their answers through learnings_curator and arrange a documentation
-      writeback only for proposals that pass learnings_capture.
+      Ask the Devin sessions that worked on ${inputs.issue} whether they discovered anything
+      difficult to discover and worthwhile to record for future work. Use delegated_session
+      to contact each distinct reachable work session and collect its answer. Tell each session
+      this is a read-only request for lessons from its own work. “Nothing worth recording” is
+      a complete answer; do not request a quota of lessons.
 
-      # Context for the session requests
+      # Context
 
-      Use the following context to identify the work and frame your requests to Devin.
-      Do not infer lessons from it yourself; collect the work sessions' own proposals.
+      The following is context for your requests. Do not infer lessons from it yourself.
+      Ask the Devin sessions for their own findings.
 
       Result: ${inputs.verdict}
       Close reason: ${inputs.close_reason}
@@ -345,51 +346,41 @@ mission "rate_finalize" {
       Audit findings: ${inputs.audit_findings}
       Disposition: ${inputs.disposition}
 
-      # Ask the sessions that performed the work
+      # Collect and assess the answers
 
-      Ask learnings_curator to use delegated_session to message each distinct reachable work session
-      from enter_finalize's reachable_sessions. Ask about its own discoveries using the criteria
-      in learnings_capture, then collect its reply with check_session. Explicitly include the
-      read-only scope in each message: propose findings, with no implementation or documentation
-      changes yet. The session does not inherit this objective. No lesson quota applies, and
-      “nothing worth recording” is a valid answer.
+      Use enter_finalize's reachable_sessions. For unavailable sessions, retain only lessons
+      explicitly proposed in their recorded reports, with attribution. Record unavailable
+      responses separately from “nothing worth recording.” Do not start a new investigation
+      to manufacture lessons.
 
-      For an unavailable session, retain only lessons it explicitly proposed in its recorded
-      report, with attribution. Record missing responses rather than inventing discoveries or
-      starting a replacement investigation to produce lessons.
+      Apply learnings_capture to the returned proposals. Ask Devin what made each discovery
+      difficult, what evidence supports it, what future decision it changes, and whether existing
+      guidance already covers it. Check rate_case_log for duplication or supporting cases.
+      Record only proposals that meet those criteria. A limitation class such as
+      ${inputs.limitation_class} does not by itself require a writeback.
 
-      # Assess the returned proposals and delegate accepted writebacks
+      # Record qualifying lessons
 
-      Apply learnings_capture to the sessions' proposals. Have Devin establish what was difficult
-      to discover, the evidence, the future decision it changes, and what existing guidance lacks.
-      Use rate_case_log to check a proposed precedent for duplication or supporting cases; it is
-      not a source of substitute lessons when no session proposed one. A limitation class such
-      as ${inputs.limitation_class} identifies a possible destination, not a requirement to write.
+      For an accepted proposal, use delegated_session and devin_code to start a separate
+      documentation-only Devin session with `prompt_mode: "raw"`. Supply the source finding,
+      evidence, repository, and selected guidance files. Use title ${inputs.issue} — record
+      <lesson> and tags `["${inputs.issue}", "learnings"]`. Continue an existing documentation
+      assignment instead of creating a duplicate. Review the resulting PR against the proposal.
+      Do not request implementation changes, new tests, or a ticket-specific fix narrative.
 
-      For accepted proposals, ask learnings_curator to start a separate documentation-only session
-      using plugins.devin.code_develop, devin_code, and `prompt_mode: "raw"`. Supply the originating
-      session's finding and evidence, the selected guidance files, repository, title
-      ${inputs.issue} — record <lesson>, and tags `["${inputs.issue}", "learnings"]`.
-      Continue any already-started documentation assignment through delegated_session instead of
-      duplicating it. Do not widen an investigation or fix session's lane for the writeback.
-      Require a reviewable documentation PR and assess its diff against the accepted proposal.
+      # Finish
 
-      # Finish or pause
-
-      Ask learnings_curator to append one line to rate_case_log/cases.md, even when no lesson qualifies:
+      Append one line to rate_case_log/cases.md using mission file tools, even if nothing qualified:
       <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
-      Use mission file tools for this log, not a repository commit. Report unavailable storage
-      rather than inventing another destination.
+      Report unavailable storage rather than committing the log to a repository.
 
-      Use rate_checkpoint for ${inputs.issue}.yaml. If the returned evidence reveals a technical
-      correctness or acceptance gap, report it and retain the checkpoint with the evidence and
-      unfinished work in the relevant session report. Do not mark the case closed or resolve the
-      gap from this stage. Record next_entry as rate_fix/audit when an existing fix needs renewed
-      review, or rate_triage/assess_investigation when the diagnosis needs reconsideration.
-      A technical gap is not itself a human question; apply question_screen before blocked_run.
-      For a genuine closure-blocking human dependency in ${inputs.open_questions} or the new
-      findings, use blocked_run and retain the checkpoint. Delete it only when nothing remains,
-      so a later run does not restart completed work.
+      Use rate_checkpoint for ${inputs.issue}.yaml. If a response reveals a technical correctness
+      or acceptance gap, report it and retain the checkpoint and source evidence. Do not resolve
+      it here or mark the case closed. Set next_entry to rate_fix/audit for an existing fix needing
+      review, or rate_triage/assess_investigation for a diagnosis needing reconsideration.
+      Apply question_screen before treating an unresolved item as a human dependency. Use
+      blocked_run for genuine closure-blocking human questions, including any in
+      ${inputs.open_questions}. Delete the checkpoint only when nothing remains.
     EOT
     agents = [agents.learnings_curator]
 
