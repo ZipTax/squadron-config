@@ -328,11 +328,8 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Ask the Devin sessions that worked on ${inputs.issue} whether they discovered anything
-      difficult to discover and worthwhile to record for future work. Use delegated_session
-      to contact each distinct reachable work session and collect its answer. Tell each session
-      this is a read-only request for lessons from its own work. “Nothing worth recording” is
-      a complete answer; do not request a quota of lessons.
+      Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
+      worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
 
       # Context
 
@@ -345,28 +342,14 @@ mission "rate_finalize" {
       Audit findings: ${inputs.audit_findings}
       Disposition: ${inputs.disposition}
 
-      # Collect and assess the answers
+      # Session selection and writeback details
 
       Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
-      distinct Devin session. For unavailable sessions, retain only lessons explicitly proposed
-      in their recorded reports, with attribution. Record unavailable
-      responses separately from “nothing worth recording.” Do not start a new investigation
-      to manufacture lessons.
+      distinct Devin session through learnings_capture. Check rate_case_log for duplication or
+      supporting cases when assessing their proposals.
 
-      Apply learnings_capture to the returned proposals and obtain any missing answers from Devin.
-      Check rate_case_log for duplication or supporting cases. A limitation classification
-      does not by itself require a writeback.
-
-      # Record qualifying lessons
-
-      For an accepted proposal, use delegated_session and devin_code to start a separate
-      documentation-only Devin session with `prompt_mode: "raw"`. Supply the source finding,
-      evidence, repository, and selected guidance files. Include the writing criteria and style
-      reference from learnings_capture in the assignment, and ask Devin to read relevant existing
-      entries before drafting. Let Devin write the prose. Title the Devin session
+      If a proposal qualifies for a documentation writeback, title the new Devin session
       "${inputs.issue} — record <lesson>" and tag it with `["${inputs.issue}", "learnings"]`.
-      Continue an existing documentation assignment
-      instead of creating a duplicate. Review the PR against learnings_capture's completion criteria.
 
       # Finish
 

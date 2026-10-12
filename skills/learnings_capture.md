@@ -104,7 +104,3 @@ the evidence, and explains the finding, its consequence, applicable conditions, 
 uncertainty. Return specific deficiencies to Devin for revision. If nothing qualifies,
 report that result without creating a document. Exclude release status, deployment instructions,
 and implementation or test changes from the documentation diff.
-
-The mission's rate_case_log is separate: use your mission file tools for its run ledger.
-Do not ask Devin to commit that log into a repository if the memory slot is unavailable.
-The ledger records runs; repository references preserve only what generalizes.
