@@ -64,6 +64,13 @@ mission "rate_fix" {
   # carried across does not exist.
   # ---------------------------------------------------------------------------
 
+  # Without this a failed run says nothing in the case's Slack thread.
+  notification {
+    gateway {
+      events = ["mission_failed"]
+    }
+  }
+
   input "start_event_id" {
     type = "string"
     default = ""

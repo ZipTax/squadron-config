@@ -31,6 +31,13 @@ mission "rate_triage" {
   # by route with the case state filled in, not by a human.
   # ---------------------------------------------------------------------------
 
+  # Without this a failed run says nothing in the case's Slack thread.
+  notification {
+    gateway {
+      events = ["mission_failed"]
+    }
+  }
+
   input "start_event_id" {
     type = "string"
     default = ""

@@ -47,6 +47,13 @@ mission "rate_finalize" {
   # cross a mission boundary, so the close-out's material is declared here.
   # ---------------------------------------------------------------------------
 
+  # Without this a failed run says nothing in the case's Slack thread.
+  notification {
+    gateway {
+      events = ["mission_failed"]
+    }
+  }
+
   input "start_event_id" {
     type = "string"
     default = ""

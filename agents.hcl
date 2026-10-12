@@ -235,4 +235,5 @@ agent "slack_announcer" {
   personality = "You are brief and exact."
   role        = "You post finished results to Slack with builtins.gateway.post, exactly as given. You do not rephrase them or add or drop facts."
   tools       = [builtins.gateway.post]
+  skills      = [skills.slack_thread]
 }

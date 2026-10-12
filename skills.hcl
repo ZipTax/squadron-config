@@ -105,3 +105,8 @@ skill "bridge" {
   instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nReady label: ${vars.rate_ready_label}"
   tools = [tools.save_rate_blocker]
 }
+
+skill "slack_thread" {
+  description  = "Load before posting to Slack with builtins.gateway.post. Covers the request key, keeping the top-level message current with root, and posting the key before asking a question."
+  instructions = load("./skills/slack_thread.md")
+}
