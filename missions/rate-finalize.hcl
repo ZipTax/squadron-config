@@ -331,9 +331,18 @@ mission "rate_finalize" {
       Ask the Devin sessions that worked on ${inputs.issue} whether they discovered any
       difficult-to-discover, worthwhile lessons worth recording. Collect their answers and
       arrange a documentation writeback only for proposals that pass learnings_capture.
-      The result was ${inputs.verdict} — ${inputs.close_reason}; mechanism ${inputs.mechanism},
-      fix PR ${inputs.fix_pr_url}, audit findings ${inputs.audit_findings}, and disposition
-      ${inputs.disposition} provide context for the request, not lessons to infer yourself.
+
+      # Context for the session requests
+
+      Use the following context to identify the work and frame your requests to Devin.
+      Do not infer lessons from it yourself; collect the work sessions' own proposals.
+
+      Result: ${inputs.verdict}
+      Close reason: ${inputs.close_reason}
+      Mechanism: ${inputs.mechanism}
+      Fix PR: ${inputs.fix_pr_url}
+      Audit findings: ${inputs.audit_findings}
+      Disposition: ${inputs.disposition}
 
       # Ask the sessions that performed the work
 
