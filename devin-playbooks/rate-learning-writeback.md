@@ -1,8 +1,8 @@
 # Record an accepted rate-workflow lesson
 
 Turn the supplied lesson into a focused documentation PR. The brief supplies the ticket,
-originating session and evidence, intended future use, destination repository and guidance
-files, base branch, and any existing documentation PR. Use that evidence; do not invent a
+originating session and evidence, intended future use, destination repository, base branch,
+and any existing documentation PR. Use that evidence; do not invent a
 lesson or reopen the underlying fix to produce one.
 
 ## Check the evidence and destination
@@ -13,7 +13,7 @@ that the finding is supported and adds useful guidance. If it is already documen
 missing or contradictory, return `blocked` with the precise gap; do not choose configuration
 values, run a new investigation, or turn an unresolved hypothesis into a rule.
 
-Use the supplied destination when it fits the lesson:
+Select the relevant maintained guidance in the supplied repository using these rules:
 
 | Lesson | Appropriate guidance |
 | --- | --- |
@@ -22,7 +22,7 @@ Use the supplied destination when it fits the lesson:
 | Proven rate-audit precedent | SQL repository's `ratevariant-audit/references/case-law.md` |
 | Proven limitation with an established new-rate-engine deferral | SQL repository's `ratevariant-audit/references/limitations.md` |
 
-If the destination does not fit, report the mismatch rather than expanding the assignment.
+If the lesson belongs in another repository, report the mismatch rather than expanding the assignment.
 A ticket's disposition alone does not justify an entry or establish an engine deferral.
 
 ## Write for the next maintainer

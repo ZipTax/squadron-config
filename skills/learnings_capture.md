@@ -32,9 +32,9 @@ value, and a gap in maintained guidance. Clarify a missing answer; reject routin
 obvious facts, generic advice, or duplicate guidance. Keep explanations of one PR's changes
 and unresolved checks with that PR or session rather than creating a ticket document.
 
-Select the owning repository and relevant maintained guidance from the proposal. Use the
-rate-learning-writeback playbook's destination rules; a ticket disposition alone does not
-justify an entry or establish an engine deferral.
+Identify the owning repository from the proposal. The rate-learning-writeback playbook
+guides selection of the appropriate reference; a ticket disposition alone does not justify
+an entry or establish an engine deferral.
 
 ## Separate a supported lesson from unfinished work
 
@@ -51,8 +51,8 @@ implementation or acceptance testing, leave it unrecorded and report the missing
 
 For an accepted proposal, use delegated_session and devin_code to start a separate session
 with `!rate-learning-writeback` and `prompt_mode: "raw"`. Supply the ticket, originating
-session, accepted finding, evidence references, intended future use, destination repository
-and guidance files, base branch, and any existing documentation PR. The new session does
+session, accepted finding, evidence references, intended future use, destination repository,
+base branch, and any existing documentation PR. The new session does
 not inherit that context. Continue an existing writeback through send_message instead of
 creating another session or PR.
 
