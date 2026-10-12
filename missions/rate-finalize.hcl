@@ -348,8 +348,7 @@ mission "rate_finalize" {
       distinct Devin session through learnings_capture. Check rate_case_log for duplication or
       supporting cases when assessing their proposals.
 
-      For an accepted proposal, invoke !rate-learning-writeback through learnings_capture.
-      Supply base branch ${inputs.base_branch}. Title the new Devin session
+      For any writeback, supply base branch ${inputs.base_branch}. Title the new Devin session
       "${inputs.issue} — record <lesson>" and tag it with `["${inputs.issue}", "learnings"]`.
 
       # Finish
