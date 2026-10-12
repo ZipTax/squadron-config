@@ -55,7 +55,8 @@ mission "rate_fix" {
     agents.session_scout,
     agents.taxcloud_legacy_sql_implementer,
     agents.test_authoring_coordinator,
-    agents.taxcloud_legacy_sql_reviewer
+    agents.taxcloud_legacy_sql_reviewer,
+    agents.slack_announcer
   ]
 
   # ---------------------------------------------------------------------------
@@ -204,7 +205,8 @@ mission "rate_fix" {
   # entry points cannot all be startable, so one stage reads entry_stage and
   # routes. It is cheap and not pointless — it confirms the lane's sessions are
   # actually in the state the handoff claims before a stage commits to them.
-  # Read-only: creates no session, sends no message.
+  # Read-only apart from the case's Slack status: creates no session and sends
+  # no session message.
   # ---------------------------------------------------------------------------
 
   task "enter_fix" {
@@ -214,6 +216,10 @@ mission "rate_fix" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
+      Once the run continues, and before any stage asks a question, have slack_announcer post
+      the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
+      true: the ticket key, the cause in one line from this mechanism, and "Status: fixing".
+      Mechanism: ${inputs.mechanism}
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
@@ -248,7 +254,7 @@ mission "rate_fix" {
       them. A missing investigation session alone does not prevent audit from asking other
       available Devin sessions for evidence.
     EOT
-    agents = [agents.session_scout]
+    agents = [agents.session_scout, agents.slack_announcer]
 
     output {
       field "entry_stage" {
