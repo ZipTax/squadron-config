@@ -18,9 +18,8 @@ both — and a disagreement means deployment drift to reconcile, not permission 
 | `rate-fix.md` | `!rate-fix` | `playbook-5683e1f25ceb400bb864eefc88d718b1` | `rate_fix`: `develop` |
 | `ratevariant-cases.md` | `!ratevariant-cases` | `playbook-0db2e3c790dd493e83d6a747de250fd4` | `rate_fix`: `author_tests` |
 | `bruno-regression.md` | `!bruno-regression` | `playbook-1c31b008e5f846d8a0987956e25af2b0` | `rate_fix`: `bruno_tests` |
-| `rate-learning-writeback.md` | `!rate-learning-writeback` | — | `rate_finalize`: `record_learnings`, after a lesson qualifies |
-| `txc-support.md` | `!rate-learning-writeback` | Accepted rate-workflow lessons in selected maintained guidance; a separate documentation PR | Discover new lessons, change implementation or tests, or turn a ticket outcome into a fix narrative |
-| `!txc-support` | `playbook-3ec650231e6b4764a4b2254960218566` | none — generic support, and it routes rate tickets *out* to this flow |
+| `rate-learning-writeback.md` | `!rate-learning-writeback` | `playbook-5f43ccbc8ec94e93b372415eafe9ab33` | `rate_finalize`: `record_learnings`, after a lesson qualifies |
+| `txc-support.md` | `!txc-support` | `playbook-3ec650231e6b4764a4b2254960218566` | none — generic support, and it routes rate tickets *out* to this flow |
 
 ## What each playbook owns
 
@@ -34,6 +33,7 @@ so in the description.
 | `!rate-fix` | `output/schema/**` and `scripts/**`; opening and labelling the fix PR | Re-derive the diagnosis, touch `tests/ratevariant-cases/**`, or interpret the A/B |
 | `!ratevariant-cases` | `tests/ratevariant-cases/**`, and the fixture/eligibility discovery behind it | Grade the run it enables, or encode expected outputs in case YAML or metadata |
 | `!bruno-regression` | V3 API regression scenarios for the settled behavior | Assert a figure with no authority behind it, or derive one from the system under test |
+| `!rate-learning-writeback` | Accepted rate-workflow lessons in selected maintained guidance; a separate documentation PR | Discover new lessons, change implementation or tests, or turn a ticket outcome into a fix narrative |
 | `!txc-support` | Generic support: API/app, account, configuration, explaining behavior | Fix anything that changes how tax is calculated — those route into the flow above |
 
 Two splits look redundant and are not. Investigation is separate from the fix because evidence and
