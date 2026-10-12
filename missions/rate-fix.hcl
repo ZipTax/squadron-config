@@ -55,8 +55,7 @@ mission "rate_fix" {
     agents.session_scout,
     agents.taxcloud_legacy_sql_implementer,
     agents.test_authoring_coordinator,
-    agents.taxcloud_legacy_sql_reviewer,
-    agents.slack_announcer
+    agents.taxcloud_legacy_sql_reviewer
   ]
 
   # ---------------------------------------------------------------------------
@@ -216,8 +215,8 @@ mission "rate_fix" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
-      Once the run continues, and before any stage asks a question, have slack_announcer post
-      the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
+      Once the run continues, and before any stage asks a question, have session_scout load
+      slack_thread and post the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
       true: the ticket key, the cause in one line from this mechanism, and "Status: fixing".
       Mechanism: ${inputs.mechanism}
 
@@ -254,7 +253,7 @@ mission "rate_fix" {
       them. A missing investigation session alone does not prevent audit from asking other
       available Devin sessions for evidence.
     EOT
-    agents = [agents.session_scout, agents.slack_announcer]
+    agents = [agents.session_scout]
 
     output {
       field "entry_stage" {

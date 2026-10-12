@@ -109,4 +109,5 @@ skill "bridge" {
 skill "slack_thread" {
   description  = "Load before posting to Slack with builtins.gateway.post. Covers the request key, keeping the top-level message current with root, and posting the key before asking a question."
   instructions = load("./skills/slack_thread.md")
+  tools        = [builtins.gateway.post]
 }

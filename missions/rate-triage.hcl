@@ -22,8 +22,7 @@ mission "rate_triage" {
 
   agents = [
     agents.session_scout,
-    agents.taxcloud_legacy_sql_investigator,
-    agents.slack_announcer
+    agents.taxcloud_legacy_sql_investigator
   ]
 
   # ---------------------------------------------------------------------------
@@ -114,8 +113,8 @@ mission "rate_triage" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
-      Once the run continues, and before any stage asks a question, have slack_announcer post
-      the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
+      Once the run continues, and before any stage asks a question, have session_scout load
+      slack_thread and post the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
       true: the ticket key and "Status: triaging".
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
@@ -167,7 +166,7 @@ mission "rate_triage" {
       Leave the answer assessment to the routed stage. Do not mine PR descriptions for
       workflow state; use artifact links and returned session evidence to identify the fix.
     EOT
-    agents = [agents.session_scout, agents.slack_announcer]
+    agents = [agents.session_scout]
 
     output {
       field "entry_mode" {

@@ -107,7 +107,7 @@ agent "session_scout" {
     mcp.atlassian.getJiraIssue,
     mcp.atlassian.editJiraIssue
   ]
-  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_checkpoint]
+  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_checkpoint, skills.slack_thread]
 }
 
 agent "taxcloud_legacy_sql_investigator" {
@@ -228,12 +228,4 @@ agent "learnings_curator" {
     skills.blocked_run, skills.bridge,
     skills.rate_checkpoint
   ]
-}
-
-agent "slack_announcer" {
-  model       = models.anthropic.claude_sonnet_4_6
-  personality = "You are brief and exact."
-  role        = "You post finished results to Slack with builtins.gateway.post, exactly as given. You do not rephrase them or add or drop facts."
-  tools       = [builtins.gateway.post]
-  skills      = [skills.slack_thread]
 }

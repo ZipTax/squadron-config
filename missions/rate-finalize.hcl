@@ -38,8 +38,7 @@ mission "rate_finalize" {
   agents = [
     agents.session_scout,
     agents.taxcloud_legacy_sql_reviewer,
-    agents.learnings_curator,
-    agents.slack_announcer
+    agents.learnings_curator
   ]
 
   # ---------------------------------------------------------------------------
@@ -209,6 +208,9 @@ mission "rate_finalize" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
+      Once the run continues, and before any stage asks a question, have session_scout load
+      slack_thread and post the case's status with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true: the ticket key and "Status: closing out".
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       because ${inputs.close_reason}.
@@ -439,7 +441,7 @@ mission "rate_finalize" {
       reachable_sessions, verify_wai's verify_session_id when it ran, and record_learnings'
       writeback_session_id when one was started. Do not create or message sessions or post to Jira.
 
-      Then have slack_announcer post the summary, PR links and session links with
+      Then have session_scout load slack_thread and post the summary, PR links and session links with
       builtins.gateway.post, with thread set to "${inputs.issue}" and root set to true, so the
       summary becomes the case's top-level Slack message.
 
@@ -449,7 +451,7 @@ mission "rate_finalize" {
       Fix PR: ${inputs.fix_pr_url}
       Bruno PR: ${inputs.bruno_pr_url}
     EOT
-    agents = [agents.session_scout, agents.slack_announcer]
+    agents = [agents.session_scout]
 
     output {
       field "summary" {
