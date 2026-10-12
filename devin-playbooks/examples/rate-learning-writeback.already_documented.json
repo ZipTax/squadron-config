@@ -1,0 +1,10 @@
+{
+  "outcome": "already_documented",
+  "learning": "Equal tax totals do not establish that filing boundaries agree.",
+  "evidence": [
+    ".claude/skills/ratevariant-audit/references/case-law.md#demo-100"
+  ],
+  "destination_pr_url": "",
+  "files_changed": [],
+  "reason": "The existing DEMO-100 entry already explains this check."
+}

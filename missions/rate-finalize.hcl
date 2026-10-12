@@ -24,7 +24,7 @@ mission "rate_finalize" {
   #
   # Routed graph (Squadron is acyclic — no backward edges):
   #   enter_finalize --router--> verify_wai       (a working-as-intended claim to check)
-  #                         \--> record_learnings (a closed case to write up)
+  #                         \--> record_learnings (ask work sessions for worthwhile lessons)
   #   verify_wai     --router--> missions.rate_triage (WAI refuted, capped at one re-fire)
   #                         \--> tasks.record_learnings (WAI confirmed)
   #
@@ -82,7 +82,7 @@ mission "rate_finalize" {
 
   input "close_reason" {
     type        = "string"
-    description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. record_learnings routes on it — the unsupported entry is the one where recording is not discretionary."
+    description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. Context for asking the work sessions about their discoveries; no disposition by itself requires a learning writeback."
   }
 
   input "verdict" {
@@ -145,7 +145,7 @@ mission "rate_finalize" {
 
   input "investigation_session_id" {
     type        = "string"
-    description = "The session holding the investigation. verify_wai passes it back as wip_investigation_session_id if it re-fires; record_learnings asks it for its own two learnings. Blank when none survives."
+    description = "The session holding the investigation. verify_wai passes it back as wip_investigation_session_id if it re-fires; record_learnings requests any supported reusable findings. Blank when none survives."
     default     = ""
   }
 
@@ -239,7 +239,7 @@ mission "rate_finalize" {
       }
       route {
         target    = tasks.record_learnings
-        condition = "entry_stage == record_learnings — the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so what is left is deciding what it leaves behind."
+        condition = "entry_stage == record_learnings — the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so ask its work sessions whether they have worthwhile discoveries to preserve."
       }
     }
   }
@@ -328,56 +328,66 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Decide whether ${inputs.issue} produced a durable new lesson and settle its close-out state.
-      Use learnings_capture. The result was ${inputs.verdict} — ${inputs.close_reason}; mechanism
-      ${inputs.mechanism}, fix PR ${inputs.fix_pr_url}, audit findings ${inputs.audit_findings},
-      and disposition ${inputs.disposition}.
+      Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
+      worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
 
-      # Gather candidates
+      # Context
 
-      Have the stage agent ask each reachable Devin session for up to two reusable discoveries
-      that would save effort on a similar case. None is a valid answer. Use enter_finalize's
-      reachable_sessions; unavailable sessions contribute their reports. Include workflow misfires
-      as candidates when evidence shows a brief, gate, or routing rule caused the problem.
+      The following is context for your requests. Do not infer lessons from it yourself.
 
-      Have the stage agent search rate_case_log for this mechanism before deciding. Repeated
-      occurrence may establish a precedent that this ticket alone would not reveal.
+      Result: ${inputs.verdict}
+      Close reason: ${inputs.close_reason}
+      Mechanism: ${inputs.mechanism}
+      Fix PR: ${inputs.fix_pr_url}
+      Audit findings: ${inputs.audit_findings}
+      Disposition: ${inputs.disposition}
 
-      # Assess and record
+      # Session selection and writeback details
 
-      Require a useful rule, supporting evidence, and a check for existing guidance, per
-      learnings_capture. An unsupported disposition may establish a known limitation or a new
-      one; ${inputs.limitation_class} is a reference when supplied, not a prerequisite for proof.
-      Record proven findings in the appropriate repository reference without treating an unproven
-      hypothesis as a limitation or claiming a deferral that has not been decided.
+      Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
+      distinct Devin session through learnings_capture. Check rate_case_log for duplication or
+      supporting cases when assessing their proposals.
 
-      For qualifying lessons, have the stage agent use plugins.devin.code_develop to obtain a
-      reviewable documentation PR in the owning repository. Supply facts and destination, with
-      title ${inputs.issue} — record <lesson> and tags `["${inputs.issue}", "learnings"]`. Prefer an amendment
-      to an existing document. Devin authors the documentation; do not send a prewritten body.
+      Use `!rate-learning-writeback` as the writeback playbook and supply base branch
+      ${inputs.base_branch}. Title the new Devin session "${inputs.issue} — record <lesson>"
+      and tag it with `["${inputs.issue}", "learnings"]`.
 
-      # Finish or pause
+      # Finish
 
-      Have the stage agent append one line to rate_case_log/cases.md, even when no lesson qualifies:
+      Append one line to rate_case_log/cases.md using mission file tools, even if nothing qualified:
       <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
-      Use mission file tools for this log, not a repository commit. Report unavailable storage
-      rather than inventing another destination.
+      Report unavailable storage rather than committing the log to a repository.
 
-      Use rate_checkpoint for ${inputs.issue}.yaml. If ${inputs.open_questions} contains a
-      closure-blocking question, use blocked_run and retain the checkpoint. Delete it only when
-      nothing remains, so a later run does not restart completed work.
+      If a failure prevents completion or a returned finding calls close-out into question,
+      apply question_screen, then use builtins.human.ask when an operator decision is needed.
+      Explain the failure, available evidence, and the decision needed to proceed. Follow
+      blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
+      or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
+
+      Use rate_checkpoint for ${inputs.issue}.yaml. Preserve unresolved work and any outstanding
+      questions from ${inputs.open_questions}; delete the checkpoint only when nothing remains.
     EOT
     agents = [agents.learnings_curator]
 
     output {
+      field "session_findings" {
+        type        = "string"
+        description = "Each distinct work session asked and its response reference, proposed lessons or explicit none, and any unavailable response. Attribute proposals recovered from recorded reports."
+        required    = true
+      }
       field "recorded" {
         type        = "boolean"
-        description = "Whether a durable learning was written back"
+        description = "True only when the assessed rate-learning-writeback outcome is recorded and its documentation PR is verified."
         required    = true
       }
       field "learning" {
         type        = "string"
-        description = "The rule as recorded, with the case that demonstrates it, or one line on why nothing qualified"
+        description = "The accepted session-proposed rule with its supporting case, or why the returned proposals did not qualify. Do not infer a lesson to fill this field."
+        required    = true
+      }
+      field "writeback_outcome" {
+        type        = "string"
+        description = "recorded | already_documented | blocked from the assessed rate-learning-writeback result, or not_requested when no proposal qualified. A blocked writeback is not a no-lessons result."
         required    = true
       }
       field "destination_pr_url" {

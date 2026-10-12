@@ -1,0 +1,12 @@
+{
+  "outcome": "recorded",
+  "learning": "Equal tax totals do not establish that filing boundaries agree.",
+  "evidence": [
+    "https://example.invalid/pull/101"
+  ],
+  "destination_pr_url": "https://example.invalid/pull/102",
+  "files_changed": [
+    ".claude/skills/ratevariant-audit/references/case-law.md"
+  ],
+  "reason": "Added the filing-boundary coverage lesson to the maintained audit reference."
+}

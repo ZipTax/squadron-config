@@ -70,3 +70,11 @@ so support stops without a fix PR and identifies the rate workflow as the destin
 The support schema has no `outcome` or `human_questions`; it uses `routed_to_rate_flow` and
 `open_questions`. Its examples intentionally retain that contract rather than pretending
 all five schemas are identical.
+
+## Learning writeback: recorded, already covered, or blocked
+
+The `rate-learning-writeback.*.json` examples use a fictional filing-boundary lesson.
+`recorded` identifies a documentation PR; `already_documented` cites guidance that covers
+the lesson without another change; `blocked` names missing evidence instead of inventing
+a finding. These outcomes describe writeback after a lesson is proposed, not whether the
+work sessions had lessons to offer.
