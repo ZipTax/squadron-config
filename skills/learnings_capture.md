@@ -1,28 +1,38 @@
 # Capture reusable learning
 
-## Your responsibility
+## Ask for discoveries from the work actually performed
 
-Decide whether a case established a useful, new rule for future work. Most cases need no
-writeback. A ticket outcome belongs on its ticket; a reusable discovery belongs where the
-next person doing similar work will look for guidance.
+Ask the Devin sessions that did the work whether they encountered anything difficult to
+discover and worthwhile to preserve for a future case. Their working context contains the
+failed approaches, unexpected constraints, and decisive evidence that a summary may omit.
+Do not infer lessons from a PR diff, an action-item list, or a ticket outcome alone.
 
-## Work with Devin
+Use `delegated_session`: follow up with `send_message`, then collect the response with
+`check_session`. Include the ticket and the session's part of the work, and make the request
+read-only. Ask for no quota; “nothing worth recording” is a complete answer.
 
-Ask the Devin sessions that did the work for concrete discoveries supported by evidence.
-Use their reports when they cannot be messaged. Have Devin check the intended destination
-for existing guidance before proposing another rule, because duplicate instructions drift.
+For each proposed lesson, ask Devin to explain:
 
-For a qualifying lesson, ask Devin to author a reviewable documentation PR, supplying the
-established finding, the future decision it changes, and the destination rather than a
-drafted body. Confirm that the proposed change belongs in maintained guidance before
-requesting a document; a ticket identifier and a completed fix are not a lesson. One Devin
-session may update several repositories when each needs a distinct part of the lesson.
-Prefer amending existing guidance.
+- What it discovered during its own work and what made that discovery difficult.
+- Which evidence established the finding and the conditions where it applies.
+- What a future maintainer would do differently and why that would save meaningful effort
+  or prevent a consequential mistake.
+- Whether the relevant skills or references already explain it, and what is missing if so.
+
+Ask for the session's findings without suggesting a lesson it should endorse. Use a bounded
+follow-up when a proposal lacks support. Do not commission a fresh investigation merely to
+produce learning material. If a session is unavailable, use only lessons it explicitly
+proposed in its recorded report, retain that attribution, and disclose the unavailable
+response. An unavailable session is not a session that reported no lessons.
 
 ## Assess the candidate and destination
 
-A useful lesson changes how a similar case would be handled: a proven failure pattern,
-an expensive environment discovery, or a mismatch between documented and actual behavior.
+Accept a session-proposed lesson only when it was difficult to discover, is supported by
+evidence, changes a future decision, and adds something missing from maintained guidance.
+Routine fixes, obvious code behavior, generic best practices, and restatements of existing
+instructions do not meet that bar. Ask Devin to check the proposed destination before
+accepting the addition, because duplicate instructions drift.
+
 Require a citation and distinguish established findings from hypotheses. State the rule
 and the conditions under which it matters before choosing where to record it. If the only
 content is what one PR changes, why a particular row was chosen, or what remains to check,
@@ -36,12 +46,10 @@ A durable reference must help resolve a future case without reproducing this fix
 | Proven data-model or configuration constraint that changes future decisions | Relevant maintained repository reference |
 | Proven rate-audit precedent | SQL repository's ratevariant-audit case-law reference |
 | Proven limitation deferred under new-rate-engine | SQL repository's ratevariant-audit limitations reference |
-| Unproven mechanism | Open-theories reference, explicitly labelled as a hypothesis |
 
-New limitations need not match an existing entry. Preserve the proven scope in case law
-when no deferral has been decided; do not invent a new-rate-engine decision to fit the
-limitations reference. For an existing limitation, add useful new evidence or the new case
-rather than restating the rule.
+Apply the same value and evidence bar to limitations and precedents. A ticket's disposition
+does not itself justify another reference entry. Do not invent a new-rate-engine deferral
+or convert an unresolved hypothesis into a lesson to fill a destination.
 
 ## Separate a supported lesson from unfinished work
 
@@ -55,6 +63,20 @@ Documentation is not a substitute for that proof. Keep an unresolved hypothesis 
 unproven, and do not present it as a rule merely because a plausible explanation can be
 written. A read-only clarification of existing evidence may establish whether a lesson
 qualifies; implementation and new acceptance testing are separate work.
+
+## Delegate only accepted writebacks
+
+Request documentation only after a proposal qualifies. Supply the originating session's
+finding, evidence references, intended future use, and selected guidance files. Keep the
+wording for Devin to author; supplying a finished paragraph bypasses its repository context.
+Prefer a focused amendment to relevant maintained guidance over a new ticket document.
+
+Use `delegated_session` and `devin_code` for a new documentation assignment, with
+`prompt_mode: "raw"` and an explicit documentation-only scope. The default development
+wrapper asks for implementation and tests, which are not authorized by a learning writeback.
+A new session does not inherit the source session's context, so include the accepted evidence
+and its provenance. Continue an existing documentation assignment with `send_message`
+rather than opening another session or PR. Collect its result and review the actual diff.
 
 ## Write the lesson a future maintainer needs
 
@@ -81,9 +103,10 @@ commit `f8cab41`.”
 
 ## Finish
 
-Accept a concise rule with its supporting case in a reviewable PR, or state why nothing
-qualifies. Check that the diff contains reusable guidance rather than a ticket narrative,
-release status, deployment instructions, or a copy of the PR explanation. Reject changes
+Report the sessions asked, their proposals or explicit “none” responses, and any unavailable
+responses. Accept a concise rule with its supporting case in a reviewable PR, or explain why
+the returned proposals did not qualify. Check that the diff contains reusable guidance rather
+than a ticket narrative, release status, deployment instructions, or a copy of the PR explanation. Reject changes
 to implementation, migrations, or test artifacts from a documentation-only assignment.
 
 The mission's rate_case_log is separate: use your mission file tools for its run ledger.

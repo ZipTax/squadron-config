@@ -24,7 +24,7 @@ mission "rate_finalize" {
   #
   # Routed graph (Squadron is acyclic — no backward edges):
   #   enter_finalize --router--> verify_wai       (a working-as-intended claim to check)
-  #                         \--> record_learnings (a closed case to write up)
+  #                         \--> record_learnings (ask work sessions for worthwhile lessons)
   #   verify_wai     --router--> missions.rate_triage (WAI refuted, capped at one re-fire)
   #                         \--> tasks.record_learnings (WAI confirmed)
   #
@@ -82,7 +82,7 @@ mission "rate_finalize" {
 
   input "close_reason" {
     type        = "string"
-    description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. record_learnings routes on it — the unsupported entry is the one where recording is not discretionary."
+    description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. Context for asking the work sessions about their discoveries; no disposition by itself requires a learning writeback."
   }
 
   input "verdict" {
@@ -239,7 +239,7 @@ mission "rate_finalize" {
       }
       route {
         target    = tasks.record_learnings
-        condition = "entry_stage == record_learnings — the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so what is left is deciding what it leaves behind."
+        condition = "entry_stage == record_learnings — the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so ask its work sessions whether they have worthwhile discoveries to preserve."
       }
     }
   }
@@ -328,40 +328,41 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Decide whether ${inputs.issue} produced a durable new lesson and whether its accepted
-      close-out state remains supported. This stage captures established findings; it does not
-      continue implementation or resolve technical acceptance gaps.
-      Use learnings_capture. The result was ${inputs.verdict} — ${inputs.close_reason}; mechanism
-      ${inputs.mechanism}, fix PR ${inputs.fix_pr_url}, audit findings ${inputs.audit_findings},
-      and disposition ${inputs.disposition}.
+      Ask the Devin sessions that worked on ${inputs.issue} whether they discovered any
+      difficult-to-discover, worthwhile lessons worth recording. Collect their answers and
+      arrange a documentation writeback only for proposals that pass learnings_capture.
+      The result was ${inputs.verdict} — ${inputs.close_reason}; mechanism ${inputs.mechanism},
+      fix PR ${inputs.fix_pr_url}, audit findings ${inputs.audit_findings}, and disposition
+      ${inputs.disposition} provide context for the request, not lessons to infer yourself.
 
-      # Gather candidates
+      # Ask the sessions that performed the work
 
-      Have the stage agent ask each reachable Devin session for up to two reusable discoveries
-      that would save effort on a similar case. None is a valid answer. Use enter_finalize's
-      reachable_sessions; unavailable sessions contribute their reports. Include workflow misfires
-      as candidates when evidence shows a brief, gate, or routing rule caused the problem.
-      Keep these requests read-only. Do not instruct those sessions to pick configuration values,
-      change the fix, add tests, or clean up ticket registration as part of gathering lessons.
+      Have the stage agent use delegated_session to message each distinct reachable work session
+      from enter_finalize's reachable_sessions. Ask about its own discoveries using the criteria
+      in learnings_capture, then collect its reply with check_session. Explicitly include the
+      read-only scope in each message: propose findings, with no implementation or documentation
+      changes yet. The session does not inherit this objective. No lesson quota applies, and
+      “nothing worth recording” is a valid answer.
 
-      Have the stage agent search rate_case_log for this mechanism before deciding. Repeated
-      occurrence may establish a precedent that this ticket alone would not reveal.
+      For an unavailable session, retain only lessons it explicitly proposed in its recorded
+      report, with attribution. Record missing responses rather than inventing discoveries or
+      starting a replacement investigation to produce lessons.
 
-      # Assess and record
+      # Assess the returned proposals and delegate accepted writebacks
 
-      Require a useful rule, supporting evidence, and a check for existing guidance, per
-      learnings_capture. An unsupported disposition may establish a known limitation or a new
-      one; ${inputs.limitation_class} is a reference when supplied, not a prerequisite for proof.
-      Record proven findings in the appropriate repository reference without treating an unproven
-      hypothesis as a limitation or claiming a deferral that has not been decided.
+      Apply learnings_capture to the sessions' proposals. Have Devin establish what was difficult
+      to discover, the evidence, the future decision it changes, and what existing guidance lacks.
+      Use rate_case_log to check a proposed precedent for duplication or supporting cases; it is
+      not a source of substitute lessons when no session proposed one. A limitation class such
+      as ${inputs.limitation_class} identifies a possible destination, not a requirement to write.
 
-      For qualifying lessons, have the stage agent use plugins.devin.code_develop to obtain a
-      reviewable documentation PR in the owning repository. Supply facts and destination, with
-      title ${inputs.issue} — record <lesson> and tags `["${inputs.issue}", "learnings"]`. Prefer an amendment
-      to an existing document. Name the reusable rule and the future decision it changes before
-      selecting the destination. Do not request a ticket-specific fix narrative or add documentation
-      to the implementation PR merely to justify its current values. Devin authors the documentation;
-      do not send a prewritten body. Limit this assignment to the selected guidance files.
+      For accepted proposals, have the stage agent start a separate documentation-only session
+      using plugins.devin.code_develop, devin_code, and `prompt_mode: "raw"`. Supply the originating
+      session's finding and evidence, the selected guidance files, repository, title
+      ${inputs.issue} — record <lesson>, and tags `["${inputs.issue}", "learnings"]`.
+      Continue any already-started documentation assignment through delegated_session instead of
+      duplicating it. Do not widen an investigation or fix session's lane for the writeback.
+      Require a reviewable documentation PR and assess its diff against the accepted proposal.
 
       # Finish or pause
 
@@ -383,14 +384,19 @@ mission "rate_finalize" {
     agents = [agents.learnings_curator]
 
     output {
+      field "session_findings" {
+        type        = "string"
+        description = "Each distinct work session asked and its response reference, proposed lessons or explicit none, and any unavailable response. Attribute proposals recovered from recorded reports."
+        required    = true
+      }
       field "recorded" {
         type        = "boolean"
-        description = "Whether a durable learning was written back"
+        description = "Whether an accepted session-proposed lesson was written back in a reviewable PR."
         required    = true
       }
       field "learning" {
         type        = "string"
-        description = "The rule as recorded, with the case that demonstrates it, or one line on why nothing qualified"
+        description = "The accepted session-proposed rule with its supporting case, or why the returned proposals did not qualify. Do not infer a lesson to fill this field."
         required    = true
       }
       field "destination_pr_url" {

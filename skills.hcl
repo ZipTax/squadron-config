@@ -76,7 +76,7 @@ skill "sme_writeback" {
 }
 
 skill "learnings_capture" {
-  description  = "Load at the end of a case to decide whether anything durable was learned and where it belongs. Most cases record nothing; generalizable traps go to the owning repo's skills/docs as a reviewable PR."
+  description  = "Load when asking Devin work sessions for difficult-to-discover, worthwhile lessons, assessing their proposals, and delegating accepted documentation writebacks. Most sessions may report nothing worth recording."
   instructions = load("./skills/learnings_capture.md")
 }
 
