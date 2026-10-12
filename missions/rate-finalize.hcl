@@ -353,10 +353,8 @@ mission "rate_finalize" {
       responses separately from “nothing worth recording.” Do not start a new investigation
       to manufacture lessons.
 
-      Apply learnings_capture to the returned proposals. Ask Devin what made each discovery
-      difficult, what evidence supports it, what future decision it changes, and whether existing
-      guidance already covers it. Check rate_case_log for duplication or supporting cases.
-      Record only proposals that meet those criteria. A limitation class such as
+      Apply learnings_capture to the returned proposals and obtain any missing answers from Devin.
+      Check rate_case_log for duplication or supporting cases. A limitation class such as
       ${inputs.limitation_class} does not by itself require a writeback.
 
       # Record qualifying lessons
@@ -365,10 +363,9 @@ mission "rate_finalize" {
       documentation-only Devin session with `prompt_mode: "raw"`. Supply the source finding,
       evidence, repository, and selected guidance files. Include the writing criteria and style
       reference from learnings_capture in the assignment, and ask Devin to read relevant existing
-      entries before drafting. Let Devin write the prose and review it against those criteria.
-      Use title ${inputs.issue} — record <lesson> and tags `["${inputs.issue}", "learnings"]`. Continue an existing documentation
-      assignment instead of creating a duplicate. Review the resulting PR against the proposal.
-      Do not request implementation changes, new tests, or a ticket-specific fix narrative.
+      entries before drafting. Let Devin write the prose. Use title ${inputs.issue} — record <lesson>
+      and tags `["${inputs.issue}", "learnings"]`. Continue an existing documentation assignment
+      instead of creating a duplicate. Review the PR against learnings_capture's completion criteria.
 
       # Finish
 

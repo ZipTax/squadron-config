@@ -27,17 +27,10 @@ response. An unavailable session is not a session that reported no lessons.
 
 ## Assess the candidate and destination
 
-Accept a session-proposed lesson only when it was difficult to discover, is supported by
-evidence, changes a future decision, and adds something missing from maintained guidance.
-Routine fixes, obvious code behavior, generic best practices, and restatements of existing
-instructions do not meet that bar. Ask Devin to check the proposed destination before
-accepting the addition, because duplicate instructions drift.
-
-Require a citation and distinguish established findings from hypotheses. State the rule
-and the conditions under which it matters before choosing where to record it. If the only
-content is what one PR changes, why a particular row was chosen, or what remains to check,
-keep that evidence with the PR or session instead of creating a ticket-specific document.
-A durable reference must help resolve a future case without reproducing this fix's history.
+Accept a proposal only when Devin's answers establish difficulty, cited evidence, future
+value, and a gap in maintained guidance. Clarify a missing answer; reject routine fixes,
+obvious facts, generic advice, or duplicate guidance. Keep explanations of one PR's changes
+and unresolved checks with that PR or session rather than creating a ticket document.
 
 | Learning | Destination |
 | --- | --- |
@@ -59,10 +52,8 @@ values, or running missing proof, report the gap and its consequence. Do not tur
 for learning into instructions to change SQL, migrations, tests, or ticket registration.
 Changing those artifacts can invalidate the evidence on which the lesson would rest.
 
-Documentation is not a substitute for that proof. Keep an unresolved hypothesis explicitly
-unproven, and do not present it as a rule merely because a plausible explanation can be
-written. A read-only clarification of existing evidence may establish whether a lesson
-qualifies; implementation and new acceptance testing are separate work.
+Clarify existing evidence read-only when needed. If proving a proposed lesson requires new
+implementation or acceptance testing, leave it unrecorded and report the missing proof.
 
 ## Delegate only accepted writebacks
 
@@ -105,19 +96,14 @@ as an example. Borrow its clarity, not its tax facts or a mandatory heading temp
   guidance with its reason; a case reference should show the evidence and consequence.
   Avoid repeating the same rule in an opening, a case narrative, and a closing rules list.
 
-Leave wording and structure to Devin within these criteria. Review the result for whether a
-maintainer unfamiliar with the case can explain the finding, why it matters, when it applies,
-and what remains unproven. Return specific writing defects for revision instead of supplying
-a replacement article or accepting prose merely because it contains citations.
-
 ## Finish
 
 Report the sessions asked, their proposals or explicit “none” responses, and any unavailable
-responses. Accept a concise rule with its supporting case in a reviewable PR, or explain why
-the returned proposals did not qualify. Check that the diff contains reusable guidance rather
-than a ticket narrative, release status, deployment instructions, or a copy of the PR explanation.
-Reject changes to implementation, migrations, or test artifacts from a documentation-only
-assignment.
+responses. A writeback is complete when its PR contains only the accepted guidance, cites
+the evidence, and explains the finding, its consequence, applicable conditions, and remaining
+uncertainty. Return specific deficiencies to Devin for revision. If nothing qualifies,
+report that result without creating a document. Exclude release status, deployment instructions,
+and implementation or test changes from the documentation diff.
 
 The mission's rate_case_log is separate: use your mission file tools for its run ledger.
 Do not ask Devin to commit that log into a repository if the memory slot is unavailable.
