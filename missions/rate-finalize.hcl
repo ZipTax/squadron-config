@@ -27,6 +27,7 @@ mission "rate_finalize" {
   #                         \--> record_learnings (ask work sessions for worthwhile lessons)
   #   verify_wai     --router--> missions.rate_triage (WAI refuted, capped at one re-fire)
   #                         \--> tasks.record_learnings (WAI confirmed)
+  #   record_learnings --send_to--> summarize_case
   #
   # Objective convention (same as the other two): "You"/"# You do" is this
   # Squadron stage, "the session"/"# Brief the session" is text for the Devin
@@ -298,6 +299,11 @@ mission "rate_finalize" {
         description = "The data basis for confirming or refuting, with the values that prove it"
         required    = true
       }
+      field "verify_session_id" {
+        type        = "string"
+        description = "Devin session id of the verification session"
+        required    = true
+      }
       field "final_summary" {
         type        = "string"
         description = "Summary in at most 150 words; ends with the ticket link for human review"
@@ -320,7 +326,7 @@ mission "rate_finalize" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — record_learnings. The chain's terminal. Reached from enter_finalize
+  # Task — record_learnings. The chain's last working stage. Reached from enter_finalize
   # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.
@@ -395,9 +401,58 @@ mission "rate_finalize" {
         description = "PR URL of the write-back, when one was made"
         required    = false
       }
+      field "writeback_session_id" {
+        type        = "string"
+        description = "Devin session id of the rate-learning-writeback session. Blank when none was started."
+        required    = false
+      }
       field "checkpoint" {
         type        = "string"
         description = "The ticket's current checkpoint, or 'none — file deleted' when the case closed."
+        required    = true
+      }
+    }
+
+    send_to = [tasks.summarize_case]
+  }
+
+  # ---------------------------------------------------------------------------
+  # Task — summarize_case. Runs after record_learnings so whoever picks up the
+  # run sees in one place what the case resolved and where its work lives.
+  # Read-only.
+  # ---------------------------------------------------------------------------
+
+  task "summarize_case" {
+    objective = <<-EOT
+      Summarize what case ${inputs.issue} resolved and link its work.
+
+      Have session_scout read the Jira ticket for the state it concerns, and use check_session
+      for the URL of each Devin session that worked on the ticket: those in enter_finalize's
+      reachable_sessions, verify_wai's verify_session_id when it ran, and record_learnings'
+      writeback_session_id when one was started. Do not create or message sessions or post to Jira.
+
+      Verdict: ${inputs.verdict}
+      Mechanism: ${inputs.mechanism}
+      Disposition: ${inputs.disposition}
+      Fix PR: ${inputs.fix_pr_url}
+      Bruno PR: ${inputs.bruno_pr_url}
+    EOT
+    agents = [agents.session_scout]
+
+    output {
+      field "summary" {
+        type        = "string"
+        description = "One line in product language: 'Resolves <problem> in <state>' for a fix; 'Confirms <behavior> in <state> is working as intended' for a confirmed WAI; 'Records <problem> in <state> as unsupported by the current engine' for an unsupported disposition. Take the state from the ticket; if the ticket does not name one, say so rather than inferring it. When record_learnings kept an unresolved checkpoint, name what is outstanding instead."
+        required    = true
+      }
+      field "pr_urls" {
+        type        = "string"
+        description = "Each PR this case produced — fix, Bruno and learning writeback — one per line as <kind>: <URL>. Empty when there are none."
+        required    = true
+      }
+      field "session_urls" {
+        type        = "string"
+        description = "Each Devin session that worked on this ticket, one per line as <lane>: <URL from check_session>. Mark a session whose URL check_session could not return rather than omitting it."
         required    = true
       }
     }
