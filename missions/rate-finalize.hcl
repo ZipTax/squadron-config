@@ -357,13 +357,14 @@ mission "rate_finalize" {
       <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
       Report unavailable storage rather than committing the log to a repository.
 
-      Use rate_checkpoint for ${inputs.issue}.yaml. If a response reveals a technical correctness
-      or acceptance gap, report it and retain the checkpoint and source evidence. Do not resolve
-      it here or mark the case closed. Set next_entry to rate_fix/audit for an existing fix needing
-      review, or rate_triage/assess_investigation for a diagnosis needing reconsideration.
-      Apply question_screen before treating an unresolved item as a human dependency. Use
-      blocked_run for genuine closure-blocking human questions, including any in
-      ${inputs.open_questions}. Delete the checkpoint only when nothing remains.
+      If a failure prevents completion or a returned finding calls close-out into question,
+      apply question_screen, then use builtins.human.ask when an operator decision is needed.
+      Explain the failure, available evidence, and the decision needed to proceed. Follow
+      blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
+      or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
+
+      Use rate_checkpoint for ${inputs.issue}.yaml. Preserve unresolved work and any outstanding
+      questions from ${inputs.open_questions}; delete the checkpoint only when nothing remains.
     EOT
     agents = [agents.learnings_curator]
 

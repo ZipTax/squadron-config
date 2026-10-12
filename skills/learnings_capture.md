@@ -102,5 +102,6 @@ Report the sessions asked, their proposals or explicit “none” responses, and
 responses. A writeback is complete when its PR contains only the accepted guidance, cites
 the evidence, and explains the finding, its consequence, applicable conditions, and remaining
 uncertainty. Return specific deficiencies to Devin for revision. If nothing qualifies,
-report that result without creating a document. Exclude release status, deployment instructions,
+report that result without creating a document. If a failure prevents completing the assessment
+or writeback, report the failure and what is needed to proceed rather than reporting no lessons. Exclude release status, deployment instructions,
 and implementation or test changes from the documentation diff.
