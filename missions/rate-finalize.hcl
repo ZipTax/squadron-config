@@ -348,7 +348,8 @@ mission "rate_finalize" {
       distinct Devin session through learnings_capture. Check rate_case_log for duplication or
       supporting cases when assessing their proposals.
 
-      If a proposal qualifies for a documentation writeback, title the new Devin session
+      For an accepted proposal, invoke !rate-learning-writeback through learnings_capture.
+      Supply base branch ${inputs.base_branch}. Title the new Devin session
       "${inputs.issue} — record <lesson>" and tag it with `["${inputs.issue}", "learnings"]`.
 
       # Finish
@@ -376,12 +377,17 @@ mission "rate_finalize" {
       }
       field "recorded" {
         type        = "boolean"
-        description = "Whether an accepted session-proposed lesson was written back in a reviewable PR."
+        description = "True only when the assessed rate-learning-writeback outcome is recorded and its documentation PR is verified."
         required    = true
       }
       field "learning" {
         type        = "string"
         description = "The accepted session-proposed rule with its supporting case, or why the returned proposals did not qualify. Do not infer a lesson to fill this field."
+        required    = true
+      }
+      field "writeback_outcome" {
+        type        = "string"
+        description = "recorded | already_documented | blocked from the assessed rate-learning-writeback result, or not_requested when no proposal qualified. A blocked writeback is not a no-lessons result."
         required    = true
       }
       field "destination_pr_url" {

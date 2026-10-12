@@ -1,0 +1,10 @@
+{
+  "outcome": "blocked",
+  "learning": "Equal tax totals do not establish that filing boundaries agree.",
+  "evidence": [
+    "https://example.invalid/pull/101"
+  ],
+  "destination_pr_url": "",
+  "files_changed": [],
+  "reason": "The supplied capture shows totals only; a capture of filing boundaries is needed to support the claimed boundary difference."
+}

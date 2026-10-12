@@ -1,0 +1,49 @@
+{
+  "type": "object",
+  "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "recorded",
+        "already_documented",
+        "blocked"
+      ],
+      "description": "recorded means a scoped documentation change is pushed to a reviewable PR; already_documented means cited maintained guidance covers the lesson; blocked means the assignment could not be completed."
+    },
+    "learning": {
+      "type": "string",
+      "description": "The supplied reusable lesson and its applicable conditions; do not invent a lesson to fill this field."
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Source references supporting the lesson. For already_documented, include the guidance location."
+    },
+    "destination_pr_url": {
+      "type": "string",
+      "description": "Documentation PR URL; empty if no PR exists. A partial PR does not establish recorded."
+    },
+    "files_changed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Guidance paths changed by this assignment."
+    },
+    "reason": {
+      "type": "string",
+      "description": "What was recorded, where the lesson is already documented, or the failed step and evidence or decision needed to proceed."
+    }
+  },
+  "required": [
+    "outcome",
+    "learning",
+    "evidence",
+    "destination_pr_url",
+    "files_changed",
+    "reason"
+  ],
+  "additionalProperties": false
+}
