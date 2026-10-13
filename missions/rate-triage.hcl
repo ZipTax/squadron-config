@@ -114,8 +114,8 @@ mission "rate_triage" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
       Once the run continues, and before any stage asks a question, have session_scout load
-      slack_thread and post the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
-      true: the ticket key and "Status: triaging".
+      slack_thread and post what this run is doing with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.

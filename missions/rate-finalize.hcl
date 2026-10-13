@@ -209,8 +209,8 @@ mission "rate_finalize" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
       Once the run continues, and before any stage asks a question, have session_scout load
-      slack_thread and post the case's status with builtins.gateway.post, with thread
-      "${inputs.issue}" and root true: the ticket key and "Status: closing out".
+      slack_thread and post what this run is doing with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true.
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       because ${inputs.close_reason}.

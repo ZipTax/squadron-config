@@ -216,9 +216,8 @@ mission "rate_fix" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
       Once the run continues, and before any stage asks a question, have session_scout load
-      slack_thread and post the case's status with builtins.gateway.post, with thread "${inputs.issue}" and root
-      true: the ticket key, the cause in one line from this mechanism, and "Status: fixing".
-      Mechanism: ${inputs.mechanism}
+      slack_thread and post what this run is doing with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
