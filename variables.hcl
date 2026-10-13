@@ -75,3 +75,9 @@ variable "slack_app_token" {
 }
 
 variable "slack_channel_id" {}
+
+# The command center's run page with {mission_id} for the run id, so a Slack
+# request's mission name opens its run. Empty leaves the name unlinked.
+variable "squadron_run_url" {
+  default = ""
+}

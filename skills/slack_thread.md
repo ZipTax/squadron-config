@@ -15,5 +15,15 @@ it, either because the run was started from `/squadron` or because it has alread
 `thread`. A run started by routing or by the bridge must post with its key before it asks
 anything, or its question opens a second top-level message.
 
-The gateway keeps a requester line on the top-level message, so don't add one. Replies don't
-need to tag anyone, because the requester already follows the thread.
+Replies don't need to tag anyone, because the requester already follows the thread.
+
+## Rewrite the top-level message's content, not its layout
+
+Each `root` post replaces the whole message. Keep the layout the previous one used and change
+only what's new, e.g. the status, or a fuller description once more is known. The gateway adds
+its own lines after your text on every rewrite (the mission and the requester), so don't
+include them.
+
+A run that asks before it has a thread gets a top-level message of
+`*<mission>*: <question summary>`. The question itself is a reply in the thread, so replacing
+that message with `root` loses only the summary line.

@@ -19,5 +19,6 @@ gateway "slack" {
     checkpoint_path = ".squadron/slack-gateway.json"
     mcp_url         = "http://localhost:8090/mcp"
     mcp_token       = vars.mcp_host_secret
+    run_url         = vars.squadron_run_url
   }
 }

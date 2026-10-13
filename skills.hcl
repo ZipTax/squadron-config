@@ -111,3 +111,8 @@ skill "slack_thread" {
   instructions = load("./skills/slack_thread.md")
   tools        = [builtins.gateway.post]
 }
+
+skill "slack_question" {
+  description  = "Load before asking a question with builtins.human.ask when the run reports to Slack. Covers where the question lands, what short_summary and choices do there, and how an answered question is shown."
+  instructions = load("./skills/slack_question.md")
+}
