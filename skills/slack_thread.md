@@ -11,12 +11,13 @@
   the post that opens the thread; once the run or key has a thread, posts stay in that thread's
   channel.
 
-## Post the key before asking
+## Link before asking
 
-A run's `human.ask` questions only reach its thread once the gateway has linked the run to
-it, either because the run was started from `/squadron` or because it has already posted with
-`thread`. A run started by routing or by the bridge must post with its key before it asks
-anything, or its question opens a second top-level message.
+A run's `human.ask` questions and failure notices only reach its thread once the gateway has
+linked the run to it: the run was started from `/squadron`, it has posted with `thread`, or it
+has called `builtins.gateway.link` with `{"key": "<the request key>"}`. A run started by
+routing or by the bridge must do one of these before it asks anything, or its question opens a
+second top-level message. Use `builtins.gateway.link` when the run has nothing to post yet.
 
 ## Rewrite the top-level message's content, not its layout
 
