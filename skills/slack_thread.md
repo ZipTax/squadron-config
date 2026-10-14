@@ -7,6 +7,9 @@
   works the request, so chained and resumed runs land in the same thread.
 - `root`: `true` replaces the request's top-level message with this post, or posts it if the
   request has none. Without it, the post is a reply in the thread.
+- `desired_channel`: a channel name or ID to open the request's thread in. It only applies to
+  the post that opens the thread; once the run or key has a thread, posts stay in that thread's
+  channel.
 
 ## Post the key before asking
 
