@@ -15,8 +15,6 @@ it, either because the run was started from `/squadron` or because it has alread
 `thread`. A run started by routing or by the bridge must post with its key before it asks
 anything, or its question opens a second top-level message.
 
-Replies don't need to tag anyone, because the requester already follows the thread.
-
 ## Rewrite the top-level message's content, not its layout
 
 Each `root` post replaces the whole message. Keep the layout the previous one used and change
