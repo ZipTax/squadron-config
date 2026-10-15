@@ -32,6 +32,10 @@ value, and a gap in maintained guidance. Clarify a missing answer; reject routin
 obvious facts, generic advice, or duplicate guidance. Keep explanations of one PR's changes
 and unresolved checks with that PR or session rather than creating a ticket document.
 
+Accept guidance about behavior after the fix or a repeatable remedy with clear prerequisites.
+Check it against the final implementation; reject incident recaps and removed defects presented
+as current limitations. Include corrections to related obsolete guidance in the writeback scope.
+
 Identify the owning repository from the proposal. Use the writeback playbook supplied by
 the task to select the appropriate reference.
 
