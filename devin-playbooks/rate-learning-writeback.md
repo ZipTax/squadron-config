@@ -32,7 +32,12 @@ Read a relevant existing entry for style. The DEV-10223 entry in the SQL reposit
 [PR #288, commit 2c571e6](https://github.com/FedTax/txc-sqlserver-database/commit/2c571e6f1f06539a817f5c3081f4585256ad3249),
 illustrates the intended clarity; use its approach, not its tax facts or a fixed template.
 
-- Lead with the reusable finding or action. Explain why it matters and what decision it changes.
+- Lead with behavior after the fix or a repeatable remedy and its prerequisites. Check against
+  the final implementation. Explain why it matters; keep history only when it explains the rule.
+  Correct related obsolete guidance within scope instead of leaving contradictory instructions.
+- For example, write “TX remote sellers use ZIP5 unless a live override covers the ZIP, ZIP+4,
+  state, and date,” not “ZIP+4 overrides are ignored and need a code change” after that defect is fixed
+  ([SQL PR #304](https://github.com/FedTax/txc-sqlserver-database/pull/304)).
 - Retain the conditions, period, and case facts needed to understand the evidence. Introduce
   participants before comparing values, and link the supporting ticket, PR, or commit rather
   than reproducing row IDs, endpoint syntax, or session history without a practical reason.
