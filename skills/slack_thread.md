@@ -29,3 +29,17 @@ include them.
 A run that asks before it has a thread gets a top-level message of
 `*<mission>*: <question summary>`. The question itself is a reply in the thread, so replacing
 that message with `root` loses only the summary line.
+
+## Record every post
+
+The gateway can't return what a post contained, so record every post in the `slack_messages`
+memory, under `slack_messages/<request key>/`:
+
+- `root.md` is the top-level message's current content. To change it, read the file if it
+  exists, change only the parts that are new, write the result back with `overwrite`, then post
+  exactly that with `root`.
+- `thread.md` is the thread's posts. When you post one, append it after a line naming the run
+  and mission, creating the file for the first post.
+
+The files hold only your `text` and `blocks`, never the gateway's lines, so nothing needs
+stripping before they're reused.

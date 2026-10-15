@@ -49,7 +49,7 @@ mission "rate_fix" {
   # dependency first screens it and selects native ask-human for operator
   # decisions or a Jira bridge wait for ticket evidence. A Jira wait records this
   # lane's next stage so rate_triage can resume without repeating finished work.
-  memories = [memories.rate_checkpoint]
+  memories = [memories.rate_checkpoint, memories.slack_messages]
 
   agents = [
     agents.session_scout,

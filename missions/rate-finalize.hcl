@@ -33,7 +33,7 @@ mission "rate_finalize" {
   # Squadron stage, "the session"/"# Brief the session" is text for the Devin
   # task. Every Jira comment, query and write-back PR here is a Devin session's
   # work; the sentinel label is the stage's own, per blocked_run.
-  memories = [memories.rate_case_log, memories.rate_checkpoint]
+  memories = [memories.rate_case_log, memories.rate_checkpoint, memories.slack_messages]
 
   agents = [
     agents.session_scout,

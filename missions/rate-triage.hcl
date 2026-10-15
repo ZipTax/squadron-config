@@ -18,7 +18,7 @@ mission "rate_triage" {
   # Discovery and assessment precede implementation so a fix starts from an explicit verdict.
   # Session lifecycle, human waits, and checkpoint rules live in the attached skills.
   # See docs/rate-ticket-orchestration.md for phase ownership and bridge rollout.
-  memories = [memories.rate_checkpoint, memories.rate_resume_state]
+  memories = [memories.rate_checkpoint, memories.rate_resume_state, memories.slack_messages]
 
   agents = [
     agents.session_scout,
