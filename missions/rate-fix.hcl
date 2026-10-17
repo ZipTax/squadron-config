@@ -49,7 +49,7 @@ mission "rate_fix" {
   # dependency first screens it and selects native ask-human for operator
   # decisions or a Jira bridge wait for ticket evidence. A Jira wait records this
   # lane's next stage so rate_triage can resume without repeating finished work.
-  memories = [memories.rate_checkpoint]
+  memories = [memories.rate_checkpoint, memories.slack_messages]
 
   agents = [
     agents.session_scout,
@@ -63,6 +63,13 @@ mission "rate_fix" {
   # one's task outputs, so anything a stage here needs is declared: what is not
   # carried across does not exist.
   # ---------------------------------------------------------------------------
+
+  # Without this a failed run says nothing in the case's Slack thread.
+  notification {
+    gateway {
+      events = ["mission_failed"]
+    }
+  }
 
   input "start_event_id" {
     type = "string"
@@ -197,7 +204,8 @@ mission "rate_fix" {
   # entry points cannot all be startable, so one stage reads entry_stage and
   # routes. It is cheap and not pointless — it confirms the lane's sessions are
   # actually in the state the handoff claims before a stage commits to them.
-  # Read-only: creates no session, sends no message.
+  # Read-only apart from the case's Slack status: creates no session and sends
+  # no session message.
   # ---------------------------------------------------------------------------
 
   task "enter_fix" {
@@ -207,6 +215,9 @@ mission "rate_fix" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
+      Once the run continues, and before any stage asks a question, have session_scout load
+      slack_thread and post what this run is doing with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.

@@ -107,7 +107,7 @@ agent "session_scout" {
     mcp.atlassian.getJiraIssue,
     mcp.atlassian.editJiraIssue
   ]
-  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_checkpoint]
+  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_checkpoint, skills.slack_thread]
 }
 
 agent "taxcloud_legacy_sql_investigator" {

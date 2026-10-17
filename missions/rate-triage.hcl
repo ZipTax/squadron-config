@@ -18,7 +18,7 @@ mission "rate_triage" {
   # Discovery and assessment precede implementation so a fix starts from an explicit verdict.
   # Session lifecycle, human waits, and checkpoint rules live in the attached skills.
   # See docs/rate-ticket-orchestration.md for phase ownership and bridge rollout.
-  memories = [memories.rate_checkpoint, memories.rate_resume_state]
+  memories = [memories.rate_checkpoint, memories.rate_resume_state, memories.slack_messages]
 
   agents = [
     agents.session_scout,
@@ -30,6 +30,13 @@ mission "rate_triage" {
   # key. This is the chain's front door; rate_fix and rate_finalize are entered
   # by route with the case state filled in, not by a human.
   # ---------------------------------------------------------------------------
+
+  # Without this a failed run says nothing in the case's Slack thread.
+  notification {
+    gateway {
+      events = ["mission_failed"]
+    }
+  }
 
   input "start_event_id" {
     type = "string"
@@ -106,6 +113,9 @@ mission "rate_triage" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
+      Once the run continues, and before any stage asks a question, have session_scout load
+      slack_thread and post what this run is doing with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.

@@ -27,12 +27,13 @@ mission "rate_finalize" {
   #                         \--> record_learnings (ask work sessions for worthwhile lessons)
   #   verify_wai     --router--> missions.rate_triage (WAI refuted, capped at one re-fire)
   #                         \--> tasks.record_learnings (WAI confirmed)
+  #   record_learnings --send_to--> summarize_case
   #
   # Objective convention (same as the other two): "You"/"# You do" is this
   # Squadron stage, "the session"/"# Brief the session" is text for the Devin
   # task. Every Jira comment, query and write-back PR here is a Devin session's
   # work; the sentinel label is the stage's own, per blocked_run.
-  memories = [memories.rate_case_log, memories.rate_checkpoint]
+  memories = [memories.rate_case_log, memories.rate_checkpoint, memories.slack_messages]
 
   agents = [
     agents.session_scout,
@@ -44,6 +45,13 @@ mission "rate_finalize" {
   # Inputs — the typed handoff from rate_triage or rate_fix. Task outputs do not
   # cross a mission boundary, so the close-out's material is declared here.
   # ---------------------------------------------------------------------------
+
+  # Without this a failed run says nothing in the case's Slack thread.
+  notification {
+    gateway {
+      events = ["mission_failed"]
+    }
+  }
 
   input "start_event_id" {
     type = "string"
@@ -200,6 +208,9 @@ mission "rate_finalize" {
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
+      Once the run continues, and before any stage asks a question, have session_scout load
+      slack_thread and post what this run is doing with builtins.gateway.post, with thread
+      "${inputs.issue}" and root true.
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       because ${inputs.close_reason}.
@@ -298,6 +309,11 @@ mission "rate_finalize" {
         description = "The data basis for confirming or refuting, with the values that prove it"
         required    = true
       }
+      field "verify_session_id" {
+        type        = "string"
+        description = "Devin session id of the verification session"
+        required    = true
+      }
       field "final_summary" {
         type        = "string"
         description = "Summary in at most 150 words; ends with the ticket link for human review"
@@ -320,7 +336,7 @@ mission "rate_finalize" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — record_learnings. The chain's terminal. Reached from enter_finalize
+  # Task — record_learnings. The chain's last working stage. Reached from enter_finalize
   # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.
@@ -395,9 +411,62 @@ mission "rate_finalize" {
         description = "PR URL of the write-back, when one was made"
         required    = false
       }
+      field "writeback_session_id" {
+        type        = "string"
+        description = "Devin session id of the rate-learning-writeback session. Blank when none was started."
+        required    = false
+      }
       field "checkpoint" {
         type        = "string"
         description = "The ticket's current checkpoint, or 'none — file deleted' when the case closed."
+        required    = true
+      }
+    }
+
+    send_to = [tasks.summarize_case]
+  }
+
+  # ---------------------------------------------------------------------------
+  # Task — summarize_case. Runs after record_learnings so whoever picks up the
+  # run sees in one place what the case resolved and where its work lives.
+  # Read-only.
+  # ---------------------------------------------------------------------------
+
+  task "summarize_case" {
+    objective = <<-EOT
+      Summarize what case ${inputs.issue} resolved and link its work.
+
+      Have session_scout read the Jira ticket for the states it concerns, and use check_session
+      for the URL of each Devin session that worked on the ticket: those in enter_finalize's
+      reachable_sessions, verify_wai's verify_session_id when it ran, and record_learnings'
+      writeback_session_id when one was started. Do not create or message sessions or post to Jira.
+
+      Then have session_scout load slack_thread and post the summary, PR links and session links with
+      builtins.gateway.post, with thread set to "${inputs.issue}" and root set to true, so the
+      summary becomes the case's top-level Slack message.
+
+      Verdict: ${inputs.verdict}
+      Mechanism: ${inputs.mechanism}
+      Disposition: ${inputs.disposition}
+      Fix PR: ${inputs.fix_pr_url}
+      Bruno PR: ${inputs.bruno_pr_url}
+    EOT
+    agents = [agents.session_scout]
+
+    output {
+      field "summary" {
+        type        = "string"
+        description = "One line in product language naming the problem and every state the ticket concerns. Examples of the shape, not fixed wording: 'Resolves <problem> in <state>' for a fix; 'Confirms <behavior> in <states> is working as intended' for a confirmed WAI; 'Records <problem> in <state> as unsupported by the current engine' for an unsupported disposition. Take the states from the ticket; if it names none, say so rather than inferring them. When record_learnings kept an unresolved checkpoint, name what is outstanding instead."
+        required    = true
+      }
+      field "pr_urls" {
+        type        = "string"
+        description = "Each PR this case produced — fix, Bruno and learning writeback — one per line as <kind>: <URL>. Empty when there are none."
+        required    = true
+      }
+      field "session_urls" {
+        type        = "string"
+        description = "Each Devin session that worked on this ticket, one per line as <lane>: <URL from check_session>. Mark a session whose URL check_session could not return rather than omitting it."
         required    = true
       }
     }
