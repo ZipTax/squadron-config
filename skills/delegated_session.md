@@ -41,7 +41,8 @@ before cloning, and a cloned repo can override indexed skills with its branch's 
 Cloning solely to make a skill available is not required. See
 [Devin skills](https://docs.devin.ai/product-guides/skills).
 
-For published prose, provide facts and purpose rather than a drafted body. Use
+For published prose, provide facts and purpose only. Never send a drafted body or demand
+exact wording, under any circumstance. Use
 `sme_writeback` for ticket updates and `session_lane` for shared PR edits.
 
 ## Find and continue existing work

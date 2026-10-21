@@ -15,8 +15,12 @@ explain, do not request another comment.
 
 Supply established facts with their evidence basis, each unanswered question, and the scope
 of the decision. Ask Devin to use the repository's `writing-ticket-updates` skill as it drafts.
-Do not supply a comment body or ask for verbatim publication; the repository skill owns the
-wording, and a ready-made body bypasses it. Use delegated_session for the tool interaction.
+Never supply a comment body, draft, outline, template, or required wording, and never ask
+for verbatim or exact publication. This holds under every circumstance, including corrections,
+follow-ups, and urgent or blocked tickets. The repository skill owns the wording, and a
+ready-made body bypasses it. DEV-10202 shows the cost: two Squadron-drafted bodies full of
+procedure names, query receipts, and run caveats were posted as written, and the
+ticket's readers could not use them. Use delegated_session for the tool interaction.
 
 An access blocker can be raised on the ticket. Have Devin name the needed table or kind of
 data, relevant identifiers or period, and why access or supplied data would settle the issue.

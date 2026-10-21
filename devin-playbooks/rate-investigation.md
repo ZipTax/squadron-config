@@ -77,5 +77,7 @@ only when a person's answer is necessary to reach a supported result. Otherwise 
 Return available findings instead of waiting for a person.
 
 Post a Jira update only when requested. Read `writing-ticket-updates` as you draft, post
-the product-level finding or question, and return the comment reference. Do not independently
+the product-level finding or question, and return the comment reference. Never post a body
+the caller drafted, even when asked to post it verbatim or exactly. Write your own from its
+facts and say so in your reply. Do not independently
 change workflow labels or ticket status.
