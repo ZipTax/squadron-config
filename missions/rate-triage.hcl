@@ -438,7 +438,7 @@ mission "rate_triage" {
       For needs_human, use blocked_run and rate_checkpoint. If a production evidence gap ends
       the work without an actionable request, record insufficient_production_evidence and have
       Devin post a ticket update explaining what remains unproven and why work stopped, using
-      sme_writeback. Confirm the comment reference; do not invent a question or claim nobody
+      sme_writeback. Send facts only; Devin writes the comment. Confirm the comment reference; do not invent a question or claim nobody
       can resolve the gap unless the evidence establishes that.
     EOT
     agents = [agents.taxcloud_legacy_sql_investigator]
