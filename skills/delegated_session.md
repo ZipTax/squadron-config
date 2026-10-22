@@ -62,6 +62,9 @@ Capture session ids as soon as returned. For ticket work, ask Devin to register 
 so discovery does not mistake it for a work owner. Follow the skill's registration procedure
 rather than copying its field-editing mechanics into your message.
 
+Ask for replies in product terms: behavior, who is affected, and any decision needed. Technical
+detail belongs in the structured output or PR, not the reply.
+
 Continue with `send_message` and collect the result with `check_session`. When an owner
 cannot be messaged, retain its report with attribution and choose an explicit replacement
 or ask another available session a bounded question, within the mission's constraints.

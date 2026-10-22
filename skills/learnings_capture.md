@@ -11,6 +11,9 @@ Use `delegated_session`: follow up with `send_message`, then collect the respons
 `check_session`. Include the task context and the session's part of the work, and make the
 request read-only. Ask for no quota; “nothing worth recording” is a complete answer.
 
+Ask for lessons in product terms: what the product does, whom it affects, and the remedy.
+Do not request file paths, queries, or tool output; one evidence reference per lesson is enough.
+
 For each proposed lesson, ask Devin to explain:
 
 - What it discovered during its own work and what made that discovery difficult.
