@@ -22,9 +22,15 @@ through MCP alone cannot establish whether an attachment answers the question. A
 attachment is an access or evidence gap, not proof that the ticket lacks an answer.
 
 Have Devin also identify any relevant code, available data, or published authority that
-can settle the question. A missing report field does not establish a human dependency.
-Request the missing research before escalating, and use an answer already found instead
-of asking a person to confirm it.
+can settle the question, and have it attempt each one: the state's rate lookup service,
+every configured data tool re-listed rather than remembered, and the stored record. A
+missing report field does not establish a human dependency. When a governed tool omits a
+field its data holds, have Devin extend the tool instead of asking for the value. Request the
+missing research before escalating, and use an answer already found instead of asking a
+person to confirm it. A closing artifact Devin names is a candidate question, not a ticket
+ask, until Devin reports attempting it. On DEV-10543 an evidence request asked readers for
+the stored ZIP and a Comptroller lookup; both were available to the session, and the street
+address was in the replica behind a tool that did not select it.
 
 For each proposed question, establish:
 

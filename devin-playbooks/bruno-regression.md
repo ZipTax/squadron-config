@@ -46,7 +46,7 @@ what would be needed. Do not silently omit a required scenario or soften its ass
 Return the attached schema's PR URL, scenarios with authority, and `unwritten_scenarios`.
 Distinguish a deliberate API coverage limit from a required assertion missing its authority.
 Use `outcome: needs_human` and exact question-and-context pairs in `human_questions` when
-that missing answer prevents a valid deliverable. Otherwise use `completed` with an empty
+that missing answer prevents a valid deliverable. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise use `completed` with an empty
 list; a justified coverage limit can coexist with completion. Return instead of waiting.
 Squadron owns blocker handling and next-stage routing; post Jira prose only when requested,
 using `writing-ticket-updates`.

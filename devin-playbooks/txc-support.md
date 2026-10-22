@@ -287,7 +287,7 @@ On an incremental re-run of this playbook against the same ticket, post one shor
 - **Start in `txc-sqlserver-database`** for most support issues — for read-only diagnosis, even on tickets the routing gate sends to the rate-fix flow, since the classification and observed behavior are what that flow needs from you. Only move to `txcapp` if the issue is clearly an API/app bug unrelated to underlying tax data, rates, or TICs.
 - **Use the repo wikis** (`read_wiki_contents`) for both repos — they contain detailed architectural documentation that will help you understand code paths quickly.
 - **Tax rule changes go to the rate-fix flow, not to you** — new TICs, rate changes, exemption updates, and PCTA modifications are routed out per the Step 1 gate; the `!rate-fix` stage invokes `tax-rule-change` there. Never hand-roll them here.
-- **Ask questions** via a non-blocking message if additional context is needed, but keep investigating in parallel.
+- **Ask questions** via a non-blocking message only after trying to answer them yourself from the ticket, code, and every configured tool, and say what you tried; keep investigating in parallel.
 - **Logic drift is the #1 non-SSUTA bug source** — always check both the cart SP and Reports function for consistency when touching non-SSUTA states.
 - **Read code and structure from prod schema files** — proc/function bodies, table definitions, and column names come from `output/schema/fedtax-prod/` and `output/schema/reports-prod/`, never by querying.
     - For configured data (rates, exemptions, overrides), follow Step 2E: use `prod-sql-insights` for production evidence, or ratebench's `cmd/sqlprobe` for the dated staging snapshot.
