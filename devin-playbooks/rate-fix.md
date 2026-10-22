@@ -65,7 +65,7 @@ Stop after pushing. Do not grade A/B results, run staging-mutating harness comma
 mechanical delegation, not permission to judge the fix.
 
 Return `outcome: needs_human` and exact question-and-context pairs in `human_questions`
-only if implementation cannot safely finish without a person's answer. Otherwise return
+only if implementation cannot safely finish without a person's answer. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise return
 `completed` with an empty list and preserve non-blocking questions in the report. Raise
 blockers rather than wait for answers; waiting on machine work (CI, slow requests) is fine.
 Post a Jira comment only when requested, using `writing-ticket-updates`.

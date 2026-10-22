@@ -39,8 +39,18 @@ authority gap. Return the source and its scope in `target_authority`, with the e
 If unresolved, leave that field empty and record what was checked and the precise gap in
 `unknowns`. Do not ask a person to repeat an answer already on the ticket.
 
-A question must identify the decision it changes, the sources checked, and why those
-sources cannot settle it.
+Never ask a question you have not first tried to answer. This covers every ask: a
+`human_questions` entry, a closing artifact in `unknowns`, a ticket evidence request, and a
+question back to whoever briefed you. Try each source that could settle it: the ticket, the
+state's published material and rate lookup service, the repository, every configured MCP tool
+(re-list them; do not rely on an earlier listing), reachable snapshots, and the stored record.
+When a governed tool omits a field its data holds, open a PR extending the tool in its own
+repository (for example a SQL insights function in `FedTax/txc-databricks`); a tooling PR is
+not a fix and is outside this lane's no-branch rule. A question that survives names the
+decision it changes, what was tried, and why that cannot settle it. A follow-up naming a gap is
+an instruction to close it, not to restate it. On DEV-10543 the evidence request asked readers
+for the stored ZIP and a Comptroller lookup; the ZIP was in the replica, the Comptroller's rate
+service was reachable, and the street address sat behind a tool that did not select it.
 
 ## Return the supported result
 

@@ -57,7 +57,7 @@ is evidence collection, not permission to accept your own coverage. Never run co
 that deploy to or mutate shared staging from the session.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
-answer is necessary to finish authoring safely. Otherwise use `completed` and empty
+answer is necessary to finish authoring safely. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise use `completed` and empty
 `human_questions`. An evidenced coverage limit can be a completed result for audit to judge.
 Do not wait or change workflow state. If asked to write on Jira, use `writing-ticket-updates`.
 Keep session registration on the ticket and preserve others' content in any PR edit.

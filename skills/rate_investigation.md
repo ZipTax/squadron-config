@@ -10,7 +10,9 @@ its evidence, and explicit unknowns so the mission can decide what happens next.
 Use `delegated_session` to start or continue a Devin session. For a new session, include
 `!rate_investigation` in the `code_develop` task with the ticket, scope, and known evidence
 attributed to its sources. Instruct Devin to investigate read-only using that playbook.
-For a continuation, send only the remaining question and new context. For a challenged
+For a continuation, send only the remaining question and new context. When Devin names a
+gap it could close itself (a lookup, a reachable source, a tool extension), send it back to
+close the gap rather than carrying it to a person. For a challenged
 conclusion, include the rebuttal and ask Devin to check both accounts against the evidence.
 On resumption, ask Devin to read new ticket comments and identify which questions they settle.
 

@@ -33,8 +33,8 @@ tool diagnostics in the Devin report.
   them to retrieve a statute or bulletin; cite the ruling already present.
 - Apply `blocked_run` before publishing a question. Unresolved effective-date choices go
   through Squadron's `builtins.human.ask`, not Devin's Jira comments.
-- Remove requests to reconfirm settled facts, perform an available lookup, or approve an
-  implementation defect. A missed checkout/import/filing path within the agreed scope needs
+- Remove requests to reconfirm settled facts, perform an available lookup, supply a value
+  an available tool holds or could be extended to return, or approve an implementation defect. A missed checkout/import/filing path within the agreed scope needs
   correction, while contradictory scope evidence needs analysis before the remedy changes.
 - Do not propose or ask about correcting recorded transactions or filing data. Historical
   data correction is outside the rate fix, so its omission is not an unresolved decision.
