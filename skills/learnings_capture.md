@@ -16,11 +16,10 @@ Do not request file paths, queries, or tool output; one evidence reference per l
 
 For each proposed lesson, ask Devin to explain:
 
-- What it discovered during its own work and what made that discovery difficult.
-- Which evidence established the finding and the conditions where it applies.
-- What a future maintainer would do differently and why that would save meaningful effort
-  or prevent a consequential mistake.
-- Whether the relevant skills or references already explain it, and what is missing if so.
+- What the product does that was hard to discover, and why it was hard.
+- When it applies: the state, seller, or order conditions.
+- What a future session would do differently, and the mistake or effort that saves.
+- Whether existing guidance already covers it.
 
 Ask for the session's findings without suggesting a lesson it should endorse. Use a bounded
 follow-up when a proposal lacks support. Do not commission a fresh investigation merely to
