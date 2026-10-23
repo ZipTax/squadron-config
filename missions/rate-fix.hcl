@@ -602,9 +602,13 @@ mission "rate_fix" {
       Devin session with relevant context to investigate. Evidence gathering does not change its
       file ownership, and you retain acceptance of the result.
 
-      Use txc_rate_audit to request predictions, captures, and technical analysis. Explicitly ask
-      Devin to apply the run label when needed. Route code corrections to the fix owner and case
-      corrections to the cases owner. If a migration changes, have the cases owner update its
+      Use txc_rate_audit to choose state/TIC coverage from the actual diff and request predictions,
+      captures, and technical analysis. You own the scope/risk decision: matching either state
+      OR TIC selects a case, and no criteria runs all cases. Record the rationale for this head.
+      Explicitly delegate workflow dispatch when available, or the current-head scope comment
+      and run label, using ratevariant-testing's request contract. Reassess scope after a push.
+      Route code corrections to the fix owner and case corrections to the cases owner.
+      If a migration changes, have the cases owner update its
       alteration too. Use session_lane when a request includes editing shared PR content.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
@@ -624,9 +628,10 @@ mission "rate_fix" {
       # Assess the evidence
 
       Apply evidence_gate, ab_audit, and txc_rate_audit. Obtain predictions before examining results.
-      Only accept captures for the current PR head and required modes; reuse a complete applicable
-      run on an unchanged head, and request fresh evidence after changes. A successful plan, a
-      diff, an absent diff, or an author's assurance is not enough to pass.
+      Only accept captures for the current PR head, approved selection, and required modes; reuse
+      a complete applicable run on an unchanged head with sufficient coverage, and request fresh
+      evidence after changes. A successful plan, a diff, an absent diff, or an author's assurance
+      is not enough to pass.
 
       CASES_INADEQUATE calls for an evidenced coverage correction; FIX_OR_TICKET_WRONG calls for
       an implementation correction. Keep expected-output analysis outside case YAML. A

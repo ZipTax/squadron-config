@@ -62,8 +62,11 @@ Read the current PR description before editing it and preserve other authors' co
 Session registration belongs on the ticket; do not add process history to the PR body.
 
 Stop after pushing. Do not grade A/B results, run staging-mutating harness commands, or add
-`ratevariant:run` on your own initiative. An explicit request to apply the run label is
-mechanical delegation, not permission to judge the fix.
+`ratevariant:run` on your own initiative. On Squadron's explicit request, submit its approved
+current-head scope and rationale using the `ratevariant-testing` workflow-dispatch or
+scope-comment/label procedure. Do not narrow the supplied criteria; report a changed head
+so Squadron can reassess. Triggering the run is mechanical delegation, not permission to
+judge the fix.
 
 Return `outcome: needs_human` and exact question-and-context pairs in `human_questions`
 only if implementation cannot safely finish without a person's answer. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise return
