@@ -132,7 +132,7 @@ mission "rate_triage" {
       only with no usable history or checkpoint may you start blind, history_provenance none.
 
       Honor recorded entry stage "${inputs.entry_stage}" after validating checkpoint ownership.
-      For a fix-lane resumption, recover mechanism, disposition, affected_roots, target authority, and cited evidence
+      For a fix-lane resumption, recover mechanism, disposition, affected_roots, target authority, correction start date, and cited evidence
       from the checkpoint and its recorded investigation report. Reading that accepted report
       restores the handoff; it does not require a fresh investigation or a messageable author.
 
@@ -419,12 +419,8 @@ mission "rate_triage" {
       # Obtain and assess evidence
 
       Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
-      The investigation owns target authority and the correction start date. Apply
-      rate_investigation to obtain the date, scope, evidence, and selection rationale in
-      target_authority, or the reason no dated correction is needed. Return missing research to
-      that session. If research cannot settle the date, use builtins.human.ask and return the
-      answer to investigation before routing to a fix. An unanswered date question means
-      needs_human even when the defect mechanism is proven.
+      The investigation owns establishing target authority and effective period. Return missing
+      research to that session before handing the requirement to implementation or asking a person.
       Confirm the selected session actually investigated: a comment-only session is a discovery
       error, not evidence that an investigation found nothing. Ask Devin bounded questions for
       missing or contradictory support. Use delegated_session when the original session cannot
@@ -498,9 +494,14 @@ mission "rate_triage" {
         description = "The typed production observations: status, ticket gap outcome, bounded scope/query, result summary, and limitations. Empty list when production was not queried."
         required    = true
       }
+      field "correction_start" {
+        type        = "string"
+        description = "Date, scope, evidence, and reasoning from Devin's disposition_detail. Empty when no dated remedy applies. An unresolved date needed for the fix keeps outcome needs_human."
+        required    = false
+      }
       field "target_authority" {
         type        = "string"
-        description = "Authority and correction start-date decision from investigation: exact date, scope, sources and diagnostic evidence, and selection rationale, or why no dated correction is needed. An unresolved date blocks the fix handoff after research and Squadron ask-human; preserve the proven mechanism separately."
+        description = "Authority and effective period established by investigation, with citations. Blank only when the report records the sources checked and the remaining gap; absence alone is not a ticket question."
         required    = false
       }
       field "unknowns" {
@@ -552,7 +553,7 @@ mission "rate_triage" {
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
           AND disposition != 'unsupported at available granularity' — enter author_tests if
           existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
-          including target_authority, production evidence, and existing work; map session_messageable to
+          including target_authority, correction_start, production evidence, and existing work; map session_messageable to
           investigation_messageable.
         EOT
       }

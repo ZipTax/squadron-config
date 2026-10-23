@@ -39,11 +39,6 @@ Hedge language to catch in your own output and in a session's report: *presumabl
 be, expected to, likely uses the same, indirect evidence is strong, no access so I assumed,
 consistent with, appears to*.
 
-A selected correction start date is a decision, not a claim that a publication states that
-exact date. It may proceed when investigation cites measured or traced support for the
-applicable treatment, period, and boundary and explains the choice. This does not permit an
-inferred legal effective date or unsupported treatment to pass as fact.
-
 ## Gates
 
 Before emitting a terminal verdict, state each gate as `pass` / `fail` / `n/a` with the

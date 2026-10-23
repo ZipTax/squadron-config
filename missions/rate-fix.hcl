@@ -119,9 +119,15 @@ mission "rate_fix" {
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
   }
 
+  input "correction_start" {
+    type        = "string"
+    description = "Correction date and basis from the accepted investigation's disposition_detail; recover from that report on resume. Empty when no dated remedy applies."
+    default     = ""
+  }
+
   input "target_authority" {
     type        = "string"
-    description = "Authority and correction start-date decision established by investigation, including scope, evidence and selection rationale, or why no dated correction is needed. Recover from the accepted report on resume; missing date research belongs to investigation, not implementation."
+    description = "Authority and effective period established by investigation. Recover from its accepted report on resume; missing research belongs to investigation, not implementation."
     default     = ""
   }
 
@@ -218,6 +224,7 @@ mission "rate_fix" {
       Affected roots: ${inputs.affected_roots}
       Evidence: ${inputs.evidence}
       Target authority: ${inputs.target_authority}
+      Correction start: ${inputs.correction_start}
       Production observations: ${inputs.production_evidence}
 
       # Inspect the handoff
@@ -298,11 +305,11 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
       PR ${inputs.existing_pr}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
       disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
-      target authority ${inputs.target_authority}, and relevant unresolved gaps.
-      Use the investigation's correction start date and preserve its basis. If a dated fix
-      lacks that decision, including on resumption or adoption, return the gap to investigation
-      through delegated_session before authoring the dated change. Investigation researches it
-      and Squadron uses builtins.human.ask only if that work cannot settle it.
+      target authority ${inputs.target_authority}, correction start ${inputs.correction_start},
+      and relevant unresolved gaps. If a dated change lacks its start date, obtain it from the
+      investigating Devin session through delegated_session before briefing implementation.
+      If its research cannot resolve the date, use blocked_run and return the human answer
+      to that session for its report.
       An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
 
@@ -312,7 +319,6 @@ mission "rate_fix" {
       any reported contradiction with the diagnosis. Return missing authority research to the
       investigation owner through delegated_session. An explicitly unresolved target may
       accompany a reviewable proposal; implementation alone does not settle tax treatment.
-      This does not permit implementation to invent an unresolved correction start date.
       A missed applicable path within the diagnosis goes back to the fix owner, not to a human
       asked whether inconsistent checkout, import, or filing behavior is acceptable.
 
