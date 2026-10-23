@@ -37,10 +37,11 @@ conflict before affected work rather than guessing a procedure.
    the PR's review/testing context because a snapshot-proven mechanism does not establish
    today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
-   contradictions, and `target_authority` from the accepted investigation. The fix does not
-   own authority research. Report missing or contradictory support with the relevant
-   evidence; do not turn it into a ticket question. A proposal against an
-   explicitly unresolved target must retain that uncertainty through audit.
+   contradictions, and the accepted `findings` unchanged. Apply each finding only to its
+   stated scope and period; do not substitute one issue’s date or authority for another’s.
+   If a required start date is unresolved, report the affected finding and question before
+   authoring that dated change. Report contradictory evidence without rewriting the accepted
+   findings or turning it into a ticket question.
 5. Cover every applicable checkout, import, and filing path in the supplied diagnosis so
    the same transaction receives consistent treatment. A missed path within that scope is
    implementation work, not a question about whether inconsistency is acceptable. If the

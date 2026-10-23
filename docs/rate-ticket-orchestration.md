@@ -89,7 +89,7 @@ schema-matching submission through `submit_output`; downstream tasks can query t
 See [Tasks](https://docs.squadron.sh/missions/tasks).
 
 For example, case authoring must obtain coverage and evidence for gaps, so that work belongs in
-the objective. Copying `target_authority` from development or the checkpoint belongs in the output
+the objective. Copying Devin’s `findings` from development or the checkpoint belongs in the output
 field's description: this stage preserves a prior conclusion rather than establishing authority.
 Evidence acceptance still needs an objective or skill because a correctly shaped result can be
 unsupported.

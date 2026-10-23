@@ -35,9 +35,13 @@ specific conflict before the affected work; do not invent a replacement procedur
 Investigation owns the target authority and effective period because implementation and
 independent tests need the same supported requirement. Use the repository's
 `establish-tax-authority` skill to assess the supplied sources and research any remaining
-authority gap. Return the source and its scope in `target_authority`, with the evidence chain.
-If unresolved, leave that field empty and record what was checked and the precise gap in
-`unknowns`. Do not ask a person to repeat an answer already on the ticket.
+authority gap. Return `findings` per issue, separating scopes or periods that need different
+treatment, authority, or start dates. Include the correction start date and its reasoning
+from `investigate-tax-behavior`; distinguish a selected boundary from a published effective
+date. Preserve supported findings when another remains unresolved. Link human questions to
+the affected finding and record attempted research. Top-level verdict fields summarize the
+primary issue; they do not replace the other findings. Do not ask a person to repeat an
+answer already on the ticket.
 
 Never ask a question you have not first tried to answer. This covers every ask: a
 `human_questions` entry, a closing artifact in `unknowns`, a ticket evidence request, and a

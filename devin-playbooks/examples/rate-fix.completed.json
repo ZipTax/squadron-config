@@ -16,5 +16,22 @@
   ],
   "mirrored_paths_checked": true,
   "diagnosis_disagreement": "",
-  "fix_summary": "Check the existing request identifier before inserting. Replaying the same request now returns the existing record; new identifiers still create records."
+  "fix_summary": "Check the existing request identifier before inserting. Replaying the same request now returns the existing record; new identifiers still create records.",
+  "findings": [
+    {
+      "id": "replay",
+      "issue": "Repeated request handling",
+      "scope": "Replay of the same request identifier in the import path.",
+      "verdict": "DEFECT_PROVEN",
+      "remedy": "Check the persisted request identifier before insertion.",
+      "authority": [],
+      "start_date": {
+        "status": "not_applicable",
+        "date": null,
+        "reasoning": "Request replay behavior has no dated tax treatment.",
+        "evidence": []
+      },
+      "unknowns": []
+    }
+  ]
 }

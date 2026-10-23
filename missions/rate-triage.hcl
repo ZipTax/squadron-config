@@ -132,7 +132,7 @@ mission "rate_triage" {
       only with no usable history or checkpoint may you start blind, history_provenance none.
 
       Honor recorded entry stage "${inputs.entry_stage}" after validating checkpoint ownership.
-      For a fix-lane resumption, recover mechanism, disposition, affected_roots, target authority, correction start date, and cited evidence
+      For a fix-lane resumption, recover mechanism, disposition, affected_roots, per-issue findings, and cited evidence
       from the checkpoint and its recorded investigation report. Reading that accepted report
       restores the handoff; it does not require a fresh investigation or a messageable author.
 
@@ -494,15 +494,10 @@ mission "rate_triage" {
         description = "The typed production observations: status, ticket gap outcome, bounded scope/query, result summary, and limitations. Empty list when production was not queried."
         required    = true
       }
-      field "correction_start" {
+      field "findings" {
         type        = "string"
-        description = "Date, scope, evidence, and reasoning from Devin's disposition_detail. Empty when no dated remedy applies. An unresolved date needed for the fix keeps outcome needs_human."
-        required    = false
-      }
-      field "target_authority" {
-        type        = "string"
-        description = "Authority and effective period established by investigation, with citations. Blank only when the report records the sources checked and the remaining gap; absence alone is not a ticket question."
-        required    = false
+        description = "Devin’s per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
+        required    = true
       }
       field "unknowns" {
         type        = "string"
@@ -553,7 +548,7 @@ mission "rate_triage" {
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
           AND disposition != 'unsupported at available granularity' — enter author_tests if
           existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
-          including target_authority, correction_start, production evidence, and existing work; map session_messageable to
+          including findings, production evidence, and existing work; map session_messageable to
           investigation_messageable.
         EOT
       }

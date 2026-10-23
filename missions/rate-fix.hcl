@@ -119,16 +119,10 @@ mission "rate_fix" {
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
   }
 
-  input "correction_start" {
+  input "findings" {
     type        = "string"
-    description = "Correction date and basis from the accepted investigation's disposition_detail; recover from that report on resume. Empty when no dated remedy applies."
-    default     = ""
-  }
-
-  input "target_authority" {
-    type        = "string"
-    description = "Authority and effective period established by investigation. Recover from its accepted report on resume; missing research belongs to investigation, not implementation."
-    default     = ""
+    description = "Devin’s per-issue findings array as JSON. Recover from the accepted investigation report on resume."
+    default     = "[]"
   }
 
   input "production_evidence" {
@@ -223,8 +217,7 @@ mission "rate_fix" {
       Disposition: ${inputs.disposition}
       Affected roots: ${inputs.affected_roots}
       Evidence: ${inputs.evidence}
-      Target authority: ${inputs.target_authority}
-      Correction start: ${inputs.correction_start}
+      Investigation findings: ${inputs.findings}
       Production observations: ${inputs.production_evidence}
 
       # Inspect the handoff
@@ -305,11 +298,7 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
       PR ${inputs.existing_pr}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
       disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
-      target authority ${inputs.target_authority}, correction start ${inputs.correction_start},
-      and relevant unresolved gaps. If a dated change lacks its start date, obtain it from the
-      investigating Devin session through delegated_session before briefing implementation.
-      If its research cannot resolve the date, use blocked_run and return the human answer
-      to that session for its report.
+      investigation findings ${inputs.findings}, and relevant unresolved gaps.
       An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
 
@@ -375,10 +364,10 @@ mission "rate_fix" {
         description = "Set when the code contradicted the briefed diagnosis: what the session found instead. Blank normally."
         required    = false
       }
-      field "target_authority" {
+      field "findings" {
         type        = "string"
-        description = "Authority and effective period carried from the accepted investigation. Missing research returns to investigation. An explicitly unresolved target remains a proposal through audit; a SATISFACTORY A/B does not authorize treatment or automatically justify a ticket question."
-        required    = false
+        description = "Devin’s per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
+        required    = true
       }
     }
 
@@ -458,10 +447,10 @@ mission "rate_fix" {
         description = "Roots/paths not coverable on the reporting merchant, with reasons (including reasons Devin gives)"
         required    = false
       }
-      field "target_authority" {
+      field "findings" {
         type        = "string"
-        description = "Copy target_authority unchanged from develop, or from the checkpoint on resumption. Blank only when neither establishes authority; case authoring does not supply it."
-        required    = false
+        description = "Copy findings unchanged from develop, or recover the accepted report on resumption. Case authoring does not revise investigation findings."
+        required    = true
       }
     }
 

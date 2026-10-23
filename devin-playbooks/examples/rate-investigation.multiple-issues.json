@@ -1,0 +1,117 @@
+{
+  "outcome": "needs_human",
+  "human_questions": [
+    {
+      "finding_id": "C",
+      "question": "From what date does issue C\u2019s treatment apply?",
+      "context": "Current and archived guidance and available row history were checked; the research log records the unresolved historical applicability. Issues A and B retain their supported dates."
+    }
+  ],
+  "verdict": "DEFECT_PROVEN",
+  "question_matched_verdict": "Primary issue proven; a separate issue still lacks a supported start date.",
+  "evidence_complete": true,
+  "working_as_intended": false,
+  "disposition": "data/configuration change",
+  "disposition_detail": "Separate corrections are required for the three scopes.",
+  "mechanism": "The fixture contains three independently scoped dated treatment discrepancies.",
+  "gates": {
+    "question_match": "pass",
+    "basis": "pass",
+    "mechanism_located": "pass",
+    "alternative_killed": "pass",
+    "scope_stated": "pass"
+  },
+  "affected_roots": [
+    "dbo.ExampleRates"
+  ],
+  "paths": [
+    "cart"
+  ],
+  "evidence": [
+    {
+      "claim": "Issue A treatment applies from 2024-01-01.",
+      "basis": "traced",
+      "citation": "https://example.invalid/DEMO-300/A/bulletin"
+    },
+    {
+      "claim": "Issue B treatment applies from 2025-07-01.",
+      "basis": "traced",
+      "citation": "https://example.invalid/DEMO-300/B/bulletin"
+    }
+  ],
+  "production_evidence": [],
+  "limitation_class": "none",
+  "unknowns": [
+    "Issue C start date remains unresolved."
+  ],
+  "investigation_summary": "Issues A and B have supported corrections with different dates. Issue C remains unresolved after research.",
+  "findings": [
+    {
+      "id": "A",
+      "issue": "Issue A treatment",
+      "scope": "Fictional jurisdiction A, product A.",
+      "verdict": "DEFECT_PROVEN",
+      "remedy": "Correct the dated treatment for this scope.",
+      "authority": [
+        {
+          "citation": "https://example.invalid/DEMO-300/A/bulletin",
+          "treatment": "Fictional exempt treatment.",
+          "effective_period": "2024-01-01 onward"
+        }
+      ],
+      "start_date": {
+        "status": "resolved",
+        "date": "2024-01-01",
+        "reasoning": "Published applicability and observed row history support this date.",
+        "evidence": [
+          "https://example.invalid/DEMO-300/A/bulletin",
+          "https://example.invalid/DEMO-300/A/row-history"
+        ]
+      },
+      "unknowns": []
+    },
+    {
+      "id": "B",
+      "issue": "Issue B treatment",
+      "scope": "Fictional jurisdiction B, product B.",
+      "verdict": "DEFECT_PROVEN",
+      "remedy": "Correct the dated treatment for this scope.",
+      "authority": [
+        {
+          "citation": "https://example.invalid/DEMO-300/B/bulletin",
+          "treatment": "Fictional exempt treatment.",
+          "effective_period": "2025-07-01 onward"
+        }
+      ],
+      "start_date": {
+        "status": "resolved",
+        "date": "2025-07-01",
+        "reasoning": "Published applicability and observed row history support this date.",
+        "evidence": [
+          "https://example.invalid/DEMO-300/B/bulletin",
+          "https://example.invalid/DEMO-300/B/row-history"
+        ]
+      },
+      "unknowns": []
+    },
+    {
+      "id": "C",
+      "issue": "Issue C treatment",
+      "scope": "Fictional jurisdiction C, product C.",
+      "verdict": "EVIDENCE_INCOMPLETE",
+      "remedy": "",
+      "authority": [],
+      "start_date": {
+        "status": "unresolved",
+        "date": null,
+        "reasoning": "Current guidance omits historical applicability; archived publications and available history do not settle it.",
+        "evidence": [
+          "https://example.invalid/DEMO-300/C/research-log"
+        ]
+      },
+      "unknowns": [
+        "Historical applicability and correction start date."
+      ]
+    }
+  ]
+}

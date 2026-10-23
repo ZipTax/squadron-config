@@ -27,14 +27,10 @@ inferring a result from its summary.
   is insufficient.
 - `EVIDENCE_INCOMPLETE` identifies the evidence needed to reach a supported conclusion.
 
-Brief the investigating Devin session to determine the correction start date using
-`investigate-tax-behavior` and return it with scope, evidence, and reasoning in
-`disposition_detail`. Keep `target_authority` for the supporting authority. Assess the
-choice against its cited facts; a selected boundary need not be a date stated verbatim by
-an authority. Return unfinished research to Devin. If Devin cannot support a date after
-research, use `blocked_run` to ask through Squadron's human tool, then send the answer back
-to Devin and collect its revised report. Hand the resolved date and basis to the fix session;
-an unanswered date question blocks the dated fix, not the finding that a defect exists.
+Preserve Devin's per-issue `findings` when handing off or recovering a report. Return missing
+research to Devin; use `blocked_run` for questions that still need a person, and send the
+answer back to the owning session. Do not collapse separate findings into one ticket-wide
+requirement.
 
 Check that the reported scope is answered, material claims have citations, and inherited
 claims remain attributed until verified. Preserve multipart findings and their unknowns;

@@ -3,7 +3,8 @@
   "human_questions": [
     {
       "question": "Can you provide the order identifier and transaction date for the reported duplicate request?",
-      "context": "The ticket describes two submissions but does not identify the affected order. We need the original request to distinguish replay behavior from a new order."
+      "context": "The ticket describes two submissions but does not identify the affected order. We need the original request to distinguish replay behavior from a new order.",
+      "finding_id": "replay"
     }
   ],
   "verdict": "EVIDENCE_INCOMPLETE",
@@ -49,5 +50,24 @@
   "unknowns": [
     "Affected order identifier and date are missing."
   ],
-  "investigation_summary": "The reported duplicate cannot be traced without the order identifier and date. Please supply them so the two submissions can be compared."
+  "investigation_summary": "The reported duplicate cannot be traced without the order identifier and date. Please supply them so the two submissions can be compared.",
+  "findings": [
+    {
+      "id": "replay",
+      "issue": "Repeated request handling",
+      "scope": "Replay of the same request identifier in the import path.",
+      "verdict": "EVIDENCE_INCOMPLETE",
+      "remedy": "",
+      "authority": [],
+      "start_date": {
+        "status": "not_applicable",
+        "date": null,
+        "reasoning": "Request replay behavior has no dated tax treatment.",
+        "evidence": []
+      },
+      "unknowns": [
+        "The question in human_questions remains unresolved."
+      ]
+    }
+  ]
 }
