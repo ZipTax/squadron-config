@@ -72,10 +72,9 @@ Do not silently replace file ownership or claim the inherited evidence was reche
 
 ## Assess results and follow up
 
-Before dependent work, ask Devin to re-express reports that predate the current output
-contract, preserving established findings, sources, and unknowns. Supply the complete
-prior report; do not fill missing fields or merge scopes yourself. Use an available read-only
-session if its owner cannot provide the updated report. A missing field or empty collection
+If Devin's structured output does not match the latest format, ask it to update the output
+while preserving established findings, sources, and unknowns. Supply the complete prior report;
+do not fill missing fields or merge scopes yourself. Use an available read-only session if its owner cannot provide the updated report. A missing field or empty collection
 is not proof that there is no work in scope.
 
 An empty tool message or uncertain send is not proof that the work failed. Check the
