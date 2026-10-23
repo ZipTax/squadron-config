@@ -27,10 +27,10 @@ inferring a result from its summary.
   is insufficient.
 - `EVIDENCE_INCOMPLETE` identifies the evidence needed to reach a supported conclusion.
 
-Require cited support for the target treatment and effective period, or a record of the
-sources checked and the specific unresolved gap. Complete missing research before treating
-it as a question for ticket readers. Preserve `target_authority` and its citations when
-passing on or recovering an accepted report so later decisions use the same requirement.
+Preserve Devin's per-issue `findings` when handing off or recovering a report. Return missing
+research to Devin; use `blocked_run` for questions that still need a person, and send the
+answer back to the owning session. Do not collapse separate findings into one ticket-wide
+requirement.
 
 Check that the reported scope is answered, material claims have citations, and inherited
 claims remain attributed until verified. Preserve multipart findings and their unknowns;

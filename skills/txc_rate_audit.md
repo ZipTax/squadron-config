@@ -19,7 +19,7 @@ Require a compact report that establishes:
 
 - PR head, plan/run references, and the case set examined, so an older run cannot approve
   a newer change.
-- Predictions from the actual diff and requirement, followed by observed results and
+- Predictions from the actual diff and the affected findings’ scope, authority, and dates, followed by observed results and
   independently grounded expected values.
 - Coverage and agreement across applicable cart, import, and Reports/filing paths,
   including jurisdiction/filing codes when relevant; a correct total can still file wrongly.
@@ -27,7 +27,7 @@ Require a compact report that establishes:
   differences. Missing coverage is not proof that a path is unreachable.
 - For data changes, migration/alteration agreement, fixture prerequisites, and affected
   rows, so a probe cannot hide an overbroad change.
-- Unexplained execution failures, unavailable evidence, and unresolved target authority.
+- Unexplained execution failures, unavailable evidence, and gaps in the affected findings.
 
 For a limitation, require evidence of the mechanism and the scope the system cannot express.
 Ask Devin to check known limitations for relevant precedent, but allow newly discovered

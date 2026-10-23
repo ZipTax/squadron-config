@@ -43,5 +43,24 @@
   "unknowns": [
     "Current production impact has not been measured; inspect the affected request identifiers before rollout."
   ],
-  "investigation_summary": "Repeated submissions create duplicate records in the dated test database. The replay path inserts before checking for an existing request. The evidence supports a procedure change; current production impact remains unmeasured."
+  "investigation_summary": "Repeated submissions create duplicate records in the dated test database. The replay path inserts before checking for an existing request. The evidence supports a procedure change; current production impact remains unmeasured.",
+  "findings": [
+    {
+      "id": "replay",
+      "issue": "Repeated request handling",
+      "scope": "Replay of the same request identifier in the import path.",
+      "verdict": "DEFECT_PROVEN",
+      "remedy": "Check the persisted request identifier before insertion.",
+      "authority": [],
+      "start_date": {
+        "status": "not_applicable",
+        "date": null,
+        "reasoning": "Request replay behavior has no dated tax treatment.",
+        "evidence": []
+      },
+      "unknowns": [
+        "Current production impact has not been measured; inspect the affected request identifiers before rollout."
+      ]
+    }
+  ]
 }

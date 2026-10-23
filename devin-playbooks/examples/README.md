@@ -31,9 +31,12 @@ result identifies the existing branch and changed files, without claiming test e
 changed payload is undecided, so no implementation or PR exists. Empty artifact fields and
 `change_type: none` describe that state without inventing a deliverable.
 
-For a tax-treatment change, `target_authority` carries the investigation's cited treatment
-and effective period through implementation. These replay examples do not assert a tax
-value, so they omit that optional field.
+`findings` preserves each issue’s scope, authority, and start-date decision through
+implementation. The replay examples need no dated tax correction. The
+[multiple-issue investigation](rate-investigation.multiple-issues.json) retains two supported
+corrections with different dates while a third issue still needs an answer. That blocking
+question pauses the ticket's fix handoff; the supported findings remain available on resume.
+This workflow does not schedule independently scoped partial fixes.
 
 ## Ratevariant: coverage delivered or an input missing
 

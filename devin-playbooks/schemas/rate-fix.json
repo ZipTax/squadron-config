@@ -1,9 +1,116 @@
 {
   "type": "object",
   "properties": {
-    "target_authority": {
-      "type": "string",
-      "description": "Authority and effective period carried from the accepted investigation; implementation does not establish authority. Empty when the investigation explicitly leaves the target unresolved."
+    "findings": {
+      "type": "array",
+      "description": "Copy the accepted investigation findings unchanged; report contradictions separately.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable identifier for this independently assessed issue, scope, and period."
+          },
+          "issue": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "description": "Affected products, jurisdictions, paths, and period; split entries when their requirements differ."
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "DEFECT_PROVEN",
+              "WORKING_AS_INTENDED",
+              "EVIDENCE_INCOMPLETE"
+            ]
+          },
+          "remedy": {
+            "type": "string",
+            "description": "Supported remedy or limitation for this scope; empty when unresolved."
+          },
+          "authority": {
+            "type": "array",
+            "description": "Sources establishing this scope’s expected treatment. Empty when no tax authority applies or it remains unresolved; explain in unknowns when unresolved.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "citation": {
+                  "type": "string"
+                },
+                "treatment": {
+                  "type": "string"
+                },
+                "effective_period": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "citation",
+                "treatment",
+                "effective_period"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "start_date": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "resolved",
+                  "unresolved",
+                  "not_applicable"
+                ]
+              },
+              "date": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "YYYY-MM-DD when resolved; null otherwise."
+              },
+              "reasoning": {
+                "type": "string",
+                "description": "Selection under investigate-tax-behavior: identify an explicit correction-date decision or explain the inferred onset, with any unresolved conflict."
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Sources and diagnostic results supporting the choice, or research attempted when unresolved."
+              }
+            },
+            "required": [
+              "status",
+              "date",
+              "reasoning",
+              "evidence"
+            ],
+            "additionalProperties": false
+          },
+          "unknowns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "issue",
+          "scope",
+          "verdict",
+          "remedy",
+          "authority",
+          "start_date",
+          "unknowns"
+        ],
+        "additionalProperties": false
+      }
     },
     "outcome": {
       "type": "string",
@@ -19,10 +126,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "question": { "type": "string" },
-          "context": { "type": "string" }
+          "question": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string",
+            "description": "Identify the affected finding by id and the established facts needed to answer; state when the question is not tied to a finding."
+          }
         },
-        "required": ["question", "context"],
+        "required": [
+          "question",
+          "context"
+        ],
         "additionalProperties": false
       }
     },
@@ -84,6 +199,7 @@
     }
   },
   "required": [
+    "findings",
     "outcome",
     "human_questions",
     "implemented",

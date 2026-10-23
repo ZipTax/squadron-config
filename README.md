@@ -129,6 +129,16 @@ A lightweight mission that retrieves and structures Linear issue details for eng
 
 **Output:** Issue title, description, comments, linked documents, and any Technical Spec content.
 
+## Contract checks
+
+Run the rate-workflow contract checks before changing its missions, report schemas, or examples:
+
+```sh
+uv run --with-requirements tests/requirements.txt python -m unittest discover -s tests -p test_rate_findings.py -v
+```
+
+These checks cover local contracts and fixtures; they do not exercise a live Squadron or Devin run.
+
 ## Further Reading
 
 - [Project documentation](docs/README.md)

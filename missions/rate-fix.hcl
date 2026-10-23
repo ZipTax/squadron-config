@@ -119,9 +119,15 @@ mission "rate_fix" {
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
   }
 
+  input "findings" {
+    type        = "string"
+    description = "Devin’s per-issue findings array as JSON. Recover from the accepted investigation report on resume."
+    default     = ""
+  }
+
   input "target_authority" {
     type        = "string"
-    description = "Authority and effective period established by investigation. Recover from its accepted report on resume; missing research belongs to investigation, not implementation."
+    description = "Legacy resume input only. Preserve it with the prior report for Devin to convert into scoped findings; it is not a replacement for findings."
     default     = ""
   }
 
@@ -213,12 +219,47 @@ mission "rate_fix" {
 
       # Accepted investigation
 
-      Mechanism: ${inputs.mechanism}
-      Disposition: ${inputs.disposition}
-      Affected roots: ${inputs.affected_roots}
-      Evidence: ${inputs.evidence}
-      Target authority: ${inputs.target_authority}
-      Production observations: ${inputs.production_evidence}
+      ### Mechanism
+
+      ~~~~text
+      ${inputs.mechanism}
+      ~~~~
+
+      ### Disposition
+
+      ~~~~text
+      ${inputs.disposition}
+      ~~~~
+
+      ### Affected roots
+
+      ~~~~text
+      ${inputs.affected_roots}
+      ~~~~
+
+      ### Evidence
+
+      ~~~~text
+      ${inputs.evidence}
+      ~~~~
+
+      ### Investigation findings
+
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+
+      ### Production observations
+
+      ~~~~text
+      ${inputs.production_evidence}
+      ~~~~
+
+      ### Legacy authority, when resuming an older report
+
+      ~~~~text
+      ${inputs.target_authority}
+      ~~~~
 
       # Inspect the handoff
 
@@ -234,6 +275,8 @@ mission "rate_fix" {
 
       # Select the entry
 
+      Missing or empty findings require report recovery through delegated_session in the
+      selected work stage before it acts on the requirement; preserve any legacy authority.
       Use the requested entry unless a writing lane needs an owner: a dead fix owner changes
       an author_tests/audit/bruno_tests entry to develop; a dead cases owner changes an
       audit/bruno_tests entry to author_tests. When both are dead, develop comes first because
@@ -295,19 +338,65 @@ mission "rate_fix" {
 
       Use delegated_session to resume the registered owner. When a new owner is needed, have the
       stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
-      and tags `["${inputs.issue}", "rate-fix"]`. Supply base branch ${inputs.base_branch}, existing
-      PR ${inputs.existing_pr}, branch ${inputs.fix_branch}, mechanism ${inputs.mechanism},
-      disposition ${inputs.disposition}, roots ${inputs.affected_roots}, evidence ${inputs.evidence},
-      target authority ${inputs.target_authority}, and relevant unresolved gaps.
+      and tags `["${inputs.issue}", "rate-fix"]`. Supply the following brief and relevant unresolved
+      gaps, preserving the labeled blocks for long values. Use the latest accepted findings
+      when upstream work has updated the supplied report. Recover missing or empty findings
+      through delegated_session before implementing a scoped change.
+
+      Base branch: ${inputs.base_branch}
+      Existing PR: ${inputs.existing_pr}
+      Fix branch: ${inputs.fix_branch}
+
+      ### Mechanism
+
+      ~~~~text
+      ${inputs.mechanism}
+      ~~~~
+
+      ### Disposition
+
+      ~~~~text
+      ${inputs.disposition}
+      ~~~~
+
+      ### Affected roots
+
+      ~~~~text
+      ${inputs.affected_roots}
+      ~~~~
+
+      ### Evidence
+
+      ~~~~text
+      ${inputs.evidence}
+      ~~~~
+
+      ### Investigation findings
+
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+
+      ### Legacy authority for report recovery
+
+      ~~~~text
+      ${inputs.target_authority}
+      ~~~~
+
+      ### Production observations
+
+      ~~~~text
+      ${inputs.production_evidence}
+      ~~~~
+
       An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
 
       # Assess the result
 
       Collect Devin's result with check_session. Require a PR for completed work and investigate
-      any reported contradiction with the diagnosis. Return missing authority research to the
-      investigation owner through delegated_session. An explicitly unresolved target may
-      accompany a reviewable proposal; implementation alone does not settle tax treatment.
+      any reported contradiction with the diagnosis. Have Devin resolve missing support or
+      contradictions in the affected finding before accepting completed work.
       A missed applicable path within the diagnosis goes back to the fix owner, not to a human
       asked whether inconsistent checkout, import, or filing behavior is acceptable.
 
@@ -364,9 +453,9 @@ mission "rate_fix" {
         description = "Set when the code contradicted the briefed diagnosis: what the session found instead. Blank normally."
         required    = false
       }
-      field "target_authority" {
+      field "findings" {
         type        = "string"
-        description = "Authority and effective period carried from the accepted investigation. Missing research returns to investigation. An explicitly unresolved target remains a proposal through audit; a SATISFACTORY A/B does not authorize treatment or automatically justify a ticket question."
+        description = "Devin’s per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
         required    = false
       }
     }
@@ -399,15 +488,42 @@ mission "rate_fix" {
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
-      Supply the PR, mechanism ${inputs.mechanism}, disposition ${inputs.disposition}, prior
-      coverage, and outstanding questions. Devin selects situations and investigates fixtures
-      using the playbook. Case YAML describes inputs, not expected outputs.
+      Supply the PR, prior coverage, outstanding questions, and these labeled blocks:
+
+      ### Mechanism
+
+      ~~~~text
+      ${inputs.mechanism}
+      ~~~~
+
+      ### Disposition
+
+      ~~~~text
+      ${inputs.disposition}
+      ~~~~
+
+      Devin selects situations and investigates fixtures using the playbook. Case YAML describes
+      inputs, not expected outputs.
+
+      Supply the latest accepted findings, using delegated_session for report recovery.
+      Direct-entry context:
+
+      ### Investigation findings
+
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+
+      Legacy authority for recovering older reports:
+      ~~~~text
+      ${inputs.target_authority}
+      ~~~~
 
       # Assess the result
 
       Collect the result with check_session. Require offline validation and coverage or an
       evidenced gap for each affected root. Ask Devin to investigate missing support rather than
-      inventing a fixture yourself. Case authoring does not establish target authority.
+      inventing a fixture yourself. Case authoring preserves the accepted per-issue requirements.
 
       # Finish or pause
 
@@ -447,9 +563,9 @@ mission "rate_fix" {
         description = "Roots/paths not coverable on the reporting merchant, with reasons (including reasons Devin gives)"
         required    = false
       }
-      field "target_authority" {
+      field "findings" {
         type        = "string"
-        description = "Copy target_authority unchanged from develop, or from the checkpoint on resumption. Blank only when neither establishes authority; case authoring does not supply it."
+        description = "Copy findings unchanged from develop, or recover the accepted report on resumption. Case authoring does not revise investigation findings."
         required    = false
       }
     }
@@ -491,6 +607,20 @@ mission "rate_fix" {
       corrections to the cases owner. If a migration changes, have the cases owner update its
       alteration too. Use session_lane when a request includes editing shared PR content.
 
+      Supply the latest accepted findings, using delegated_session for report recovery.
+      Direct-entry context:
+
+      ### Investigation findings
+
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+
+      Legacy authority for recovering older reports:
+      ~~~~text
+      ${inputs.target_authority}
+      ~~~~
+
       # Assess the evidence
 
       Apply evidence_gate, ab_audit, and txc_rate_audit. Obtain predictions before examining results.
@@ -500,8 +630,9 @@ mission "rate_fix" {
 
       CASES_INADEQUATE calls for an evidenced coverage correction; FIX_OR_TICKET_WRONG calls for
       an implementation correction. Keep expected-output analysis outside case YAML. A
-      SATISFACTORY result demonstrates implementation against the target, but any missing target
-      authority remains open. FIX_IS_NO_OP requires positive evidence of correct prior behavior
+      SATISFACTORY result requires support for the implemented findings' treatment and dates;
+      a passing A/B does not supply missing support. Have Devin resolve gaps in the affected
+      finding before accepting that result. FIX_IS_NO_OP requires positive evidence of correct prior behavior
       or a dead changed branch, not just failure to reproduce.
 
       # Finish or pause
@@ -518,6 +649,12 @@ mission "rate_fix" {
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
     output {
+      field "findings" {
+        type        = "string"
+        description = "Latest accepted per-issue findings as JSON, preserved from Devin's report for downstream work."
+        required    = false
+      }
+
       field "verdict" {
         type        = "string"
         description = "SATISFACTORY | FIX_IS_NO_OP | CASES_INADEQUATE | FIX_OR_TICKET_WRONG at exit. These four are the whole vocabulary; the investigation's DEFECT_PROVEN / WORKING_AS_INTENDED belong to another stage and mean something else."
@@ -540,7 +677,7 @@ mission "rate_fix" {
       }
       field "open_questions" {
         type        = "string"
-        description = "Unresolved authority and coverage gaps, with evidence checked and the artifact or decision needed. Missing research returns to investigation; a missed in-scope path returns to implementation. Apply blocked_run before asking a human, and use Squadron ask-human for unresolved effective-date choices. An A/B pass cannot settle authority."
+        description = "Unresolved questions and coverage gaps associated with the affected finding, including the evidence checked and what remains needed."
         required    = false
       }
       field "final_summary" {
@@ -561,7 +698,8 @@ mission "rate_fix" {
           verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
           Set close_reason = 'audit FIX_IS_NO_OP' and use this audit's verdict. Map
           confirmed_findings to audit_findings; include its citations alongside the investigation
-          evidence, with each conclusion attributed. Use the latest artifacts, lane owners, and
+          evidence, with each conclusion attributed. Carry findings unchanged into rate_finalize.
+          Use the latest artifacts, lane owners, and
           open questions from completed work or resumed state; map existing_pr to fix_pr_url
           when develop did not run.
         EOT
@@ -592,8 +730,22 @@ mission "rate_fix" {
       https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
-      Supply the ticket, PR, accepted audit findings, target authority, and open questions.
+      Supply the ticket, PR, accepted audit results, investigation findings, and open questions.
       Devin selects portable API scenarios and authors tests without making live API calls.
+
+      Supply the latest accepted findings, using delegated_session for report recovery.
+      Direct-entry context:
+
+      ### Investigation findings
+
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+
+      Legacy authority for recovering older reports:
+      ~~~~text
+      ${inputs.target_authority}
+      ~~~~
 
       # Assess the result
 
@@ -609,6 +761,12 @@ mission "rate_fix" {
     agents  = [agents.test_authoring_coordinator]
 
     output {
+      field "findings" {
+        type        = "string"
+        description = "Latest accepted per-issue findings as JSON, preserved from Devin's report for downstream work."
+        required    = false
+      }
+
       field "outcome" {
         type        = "string"
         description = "completed | needs_human — the Bruno lane's typed completion state."
@@ -649,6 +807,7 @@ mission "rate_fix" {
           SATISFACTORY and Bruno authoring completed' and verdict = SATISFACTORY.
           Use the latest accepted outputs or resumed state. Map audit.confirmed_findings to
           audit_findings and include its citations alongside the investigation evidence.
+          Carry findings unchanged into rate_finalize.
           Combine audit.open_questions and this task's unwritten_scenarios into open_questions
           without treating a coverage limit as a human blocker. Preserve the current PRs and
           lane owners; map existing_pr to fix_pr_url
