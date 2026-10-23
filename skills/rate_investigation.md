@@ -27,10 +27,21 @@ inferring a result from its summary.
   is insufficient.
 - `EVIDENCE_INCOMPLETE` identifies the evidence needed to reach a supported conclusion.
 
-Require cited support for the target treatment and effective period, or a record of the
-sources checked and the specific unresolved gap. Complete missing research before treating
-it as a question for ticket readers. Preserve `target_authority` and its citations when
-passing on or recovering an accepted report so later decisions use the same requirement.
+Have `investigate-tax-behavior` determine the correction start date before the fix handoff.
+Require `target_authority` to carry the exact date, affected scope, cited treatment and data
+history, and the rationale for choosing that boundary; when no dated correction is needed,
+require the reason. The investigator may select a reasonable boundary within a supported
+period without human confirmation. Distinguish that decision from a claim that a source
+explicitly specifies the date. Apply `evidence_gate` to the facts supporting the choice.
+
+A missing date is unfinished investigation: have Devin research the applicable sources and
+query the relevant history. If that work cannot establish a defensible date, apply
+`question_screen`, then call `builtins.human.ask` with the precise question, sources checked,
+supported options, and effect on the fix. This date question goes to Squadron, not Jira.
+Pass the answer back to investigation to incorporate into `target_authority` with its source
+before a dated fix proceeds. Use `blocked_run` if no answer is available; a proven mechanism
+can remain proven while the start-date decision blocks the fix handoff. Preserve the date,
+rationale, and citations when forwarding or recovering the report.
 
 Check that the reported scope is answered, material claims have citations, and inherited
 claims remain attributed until verified. Preserve multipart findings and their unknowns;

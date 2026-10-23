@@ -419,8 +419,12 @@ mission "rate_triage" {
       # Obtain and assess evidence
 
       Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
-      The investigation owns establishing target authority and effective period. Return missing
-      research to that session before handing the requirement to implementation or asking a person.
+      The investigation owns target authority and the correction start date. Apply
+      rate_investigation to obtain the date, scope, evidence, and selection rationale in
+      target_authority, or the reason no dated correction is needed. Return missing research to
+      that session. If research cannot settle the date, use builtins.human.ask and return the
+      answer to investigation before routing to a fix. An unanswered date question means
+      needs_human even when the defect mechanism is proven.
       Confirm the selected session actually investigated: a comment-only session is a discovery
       error, not evidence that an investigation found nothing. Ask Devin bounded questions for
       missing or contradictory support. Use delegated_session when the original session cannot
@@ -496,7 +500,7 @@ mission "rate_triage" {
       }
       field "target_authority" {
         type        = "string"
-        description = "Authority and effective period established by investigation, with citations. Blank only when the report records the sources checked and the remaining gap; absence alone is not a ticket question."
+        description = "Authority and correction start-date decision from investigation: exact date, scope, sources and diagnostic evidence, and selection rationale, or why no dated correction is needed. An unresolved date blocks the fix handoff after research and Squadron ask-human; preserve the proven mechanism separately."
         required    = false
       }
       field "unknowns" {
