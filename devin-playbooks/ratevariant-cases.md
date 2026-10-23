@@ -43,6 +43,11 @@ metadata; describe that prediction separately as an audit finding.
    dropping coverage or manufacturing eligibility. A guardrail whose input the procedure
    must reject in both arms sets `expects_failure: true` so the rejection is the capture
    under comparison instead of an unexplained failed case.
+   Describe each case's full coverage using the repository's state/TIC metadata conventions:
+   include every relevant state and every item TIC, including freight and multi-TIC inputs.
+   For Reports/filing inputs backed by existing records, record supported coverage when known;
+   disclose unknown coverage rather than inventing tags or claiming completeness. These values
+   determine which existing cases participate in scoped runs, so ticket-only tags are inadequate.
 5. Validate with the repository's offline loader procedure, push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
@@ -52,8 +57,11 @@ pivot, compare the new plan/diff with existing cases, report valid/obsolete/miss
 and update the migration's mirroring alteration when needed.
 
 Do not independently run the harness or grade its result. On an explicit Squadron request,
-you may apply/reapply `ratevariant:run` and return the exact-head result and captures; this
-is evidence collection, not permission to accept your own coverage. Never run commands
+you may submit its approved current-head state/TIC criteria and rationale through workflow
+dispatch when available, or the scope comment plus `ratevariant:run` label, following
+`ratevariant-testing`. Return the exact-head result, recorded criteria, and captures. Do not
+choose a narrower scope yourself; a new push requires Squadron to reassess the decision.
+This is evidence collection, not permission to accept your own coverage. Never run commands
 that deploy to or mutate shared staging from the session.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
