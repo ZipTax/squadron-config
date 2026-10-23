@@ -32,7 +32,7 @@
           },
           "authority": {
             "type": "array",
-            "description": "Sources establishing this scope\u2019s expected treatment. Empty when no tax authority applies or it remains unresolved; explain in unknowns when unresolved.",
+            "description": "Sources establishing this scope’s expected treatment. Empty when no tax authority applies or it remains unresolved; explain in unknowns when unresolved.",
             "items": {
               "type": "object",
               "properties": {
@@ -70,12 +70,11 @@
                   "string",
                   "null"
                 ],
-                "format": "date",
                 "description": "YYYY-MM-DD when resolved; null otherwise."
               },
               "reasoning": {
                 "type": "string",
-                "description": "Why this date applies, or why it is unresolved or unnecessary. Distinguish a selected correction boundary from a published effective date."
+                "description": "Selection under investigate-tax-behavior: identify an explicit correction-date decision or explain the inferred onset, with any unresolved conflict."
               },
               "evidence": {
                 "type": "array",
@@ -91,33 +90,7 @@
               "reasoning",
               "evidence"
             ],
-            "additionalProperties": false,
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "status": {
-                      "const": "resolved"
-                    }
-                  }
-                },
-                "then": {
-                  "properties": {
-                    "date": {
-                      "type": "string",
-                      "format": "date"
-                    }
-                  }
-                },
-                "else": {
-                  "properties": {
-                    "date": {
-                      "type": "null"
-                    }
-                  }
-                }
-              }
-            ]
+            "additionalProperties": false
           },
           "unknowns": {
             "type": "array",
@@ -157,20 +130,13 @@
             "type": "string"
           },
           "context": {
-            "type": "string"
-          },
-          "finding_id": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Affected finding id; null for a question unrelated to an investigated issue."
+            "type": "string",
+            "description": "Identify the affected finding by id and the established facts needed to answer; state when the question is not tied to a finding."
           }
         },
         "required": [
           "question",
-          "context",
-          "finding_id"
+          "context"
         ],
         "additionalProperties": false
       }
@@ -189,7 +155,7 @@
     },
     "branch": {
       "type": "string",
-      "description": "Branch the change is on \u2014 later stages push to this same branch."
+      "description": "Branch the change is on — later stages push to this same branch."
     },
     "head_sha": {
       "type": "string",
@@ -210,7 +176,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Paths changed. Never tests/ratevariant-cases/** \u2014 those belong to the case-authoring stage."
+      "description": "Paths changed. Never tests/ratevariant-cases/** — those belong to the case-authoring stage."
     },
     "roots_touched": {
       "type": "array",
@@ -233,6 +199,7 @@
     }
   },
   "required": [
+    "findings",
     "outcome",
     "human_questions",
     "implemented",
@@ -241,8 +208,7 @@
     "change_type",
     "files_changed",
     "roots_touched",
-    "fix_summary",
-    "findings"
+    "fix_summary"
   ],
   "additionalProperties": false
 }

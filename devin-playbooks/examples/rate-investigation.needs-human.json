@@ -3,8 +3,7 @@
   "human_questions": [
     {
       "question": "Can you provide the order identifier and transaction date for the reported duplicate request?",
-      "context": "The ticket describes two submissions but does not identify the affected order. We need the original request to distinguish replay behavior from a new order.",
-      "finding_id": "replay"
+      "context": "Finding replay: The ticket describes two submissions but does not identify the affected order. We need the original request to distinguish replay behavior from a new order."
     }
   ],
   "verdict": "EVIDENCE_INCOMPLETE",

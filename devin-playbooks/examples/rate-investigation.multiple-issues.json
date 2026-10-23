@@ -2,9 +2,8 @@
   "outcome": "needs_human",
   "human_questions": [
     {
-      "finding_id": "C",
-      "question": "From what date does issue C\u2019s treatment apply?",
-      "context": "Current and archived guidance and available row history were checked; the research log records the unresolved historical applicability. Issues A and B retain their supported dates."
+      "question": "From what date does issue C’s treatment apply?",
+      "context": "Finding C: Current and archived guidance and available row history were checked; the research log records the unresolved historical applicability. Issues A and B retain their supported dates."
     }
   ],
   "verdict": "DEFECT_PROVEN",

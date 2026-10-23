@@ -72,6 +72,12 @@ Do not silently replace file ownership or claim the inherited evidence was reche
 
 ## Assess results and follow up
 
+Before dependent work, ask Devin to re-express reports that predate the current output
+contract, preserving established findings, sources, and unknowns. Supply the complete
+prior report; do not fill missing fields or merge scopes yourself. Use an available read-only
+session if its owner cannot provide the updated report. A missing field or empty collection
+is not proof that there is no work in scope.
+
 An empty tool message or uncertain send is not proof that the work failed. Check the
 session before retrying, creating a replacement, or asking it to repeat a side effect.
 Apply `evidence_gate`; a plausible summary cannot substitute for missing support.

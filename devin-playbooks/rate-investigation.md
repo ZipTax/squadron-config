@@ -39,7 +39,10 @@ authority gap. Return `findings` per issue, separating scopes or periods that ne
 treatment, authority, or start dates. Include the correction start date and its reasoning
 from `investigate-tax-behavior`; distinguish a selected boundary from a published effective
 date. Preserve supported findings when another remains unresolved. Link human questions to
-the affected finding and record attempted research. Top-level verdict fields summarize the
+the affected finding and record attempted research. A blocking human question pauses this
+ticket's fix handoff, including its resolved findings; retaining those findings avoids
+repeating their investigation, not a promise of independent partial execution.
+Top-level verdict fields summarize the
 primary issue; they do not replace the other findings. Do not ask a person to repeat an
 answer already on the ticket.
 
@@ -84,6 +87,10 @@ available, record observations in `production_evidence` using the attached schem
 query reference, time, catalog objects, bounded scope, conclusion, and ticket gap outcome.
 Distinguish no matching rows, missing history, refused access, and truncated output. Keep
 raw results in the evidence source. Production observations do not replace SQL Server proof.
+
+Before returning, check that a resolved start date is a real calendar date in YYYY-MM-DD
+form and has cited support; unresolved or inapplicable dates are null. The schema specifies
+the fields, not the correctness of the decision.
 
 Return `outcome: needs_human` with exact question-and-context pairs in `human_questions`
 only when a person's answer is necessary to reach a supported result. Otherwise return

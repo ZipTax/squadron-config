@@ -119,6 +119,12 @@ mission "rate_finalize" {
     default     = "[]"
   }
 
+  input "findings" {
+    type        = "string"
+    description = "Accepted per-issue investigation findings as JSON; recover from the recorded report on older resumptions."
+    default     = ""
+  }
+
   input "audit_findings" {
     type        = "string"
     description = "From rate_fix: the confirmed bugs, dead/shadowed branches, wrong-value diffs and path inconsistencies, each with the case result that demonstrated it. Blank when no A/B ran."
@@ -212,6 +218,12 @@ mission "rate_finalize" {
       session still contributes its report; it cannot answer follow-up questions. Do not create
       or message sessions here.
 
+      Accepted investigation findings:
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+      If they are missing, the selected work stage recovers the report through delegated_session.
+
       # Select the entry
 
       Choose verify_wai for a working-as-intended claim not yet independently checked; otherwise
@@ -263,6 +275,12 @@ mission "rate_finalize" {
       and tags `["${inputs.issue}", "verify-wai"]`. Have Devin use the repository's investigate-tax-behavior
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
       Use delegated_session for registration and follow-ups.
+
+      Use the issue scopes in the accepted findings below; re-derive the disputed behavior
+      independently rather than treating the prior conclusions as proof.
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
 
       # Assess the result
 
@@ -341,6 +359,12 @@ mission "rate_finalize" {
       Fix PR: ${inputs.fix_pr_url}
       Audit findings: ${inputs.audit_findings}
       Disposition: ${inputs.disposition}
+
+      Per-issue investigation findings:
+      ~~~~text
+      ${inputs.findings}
+      ~~~~
+      Recover missing report context through delegated_session before drawing on it.
 
       # Session selection and writeback details
 

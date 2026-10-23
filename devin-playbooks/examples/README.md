@@ -34,7 +34,9 @@ changed payload is undecided, so no implementation or PR exists. Empty artifact 
 `findings` preserves each issue’s scope, authority, and start-date decision through
 implementation. The replay examples need no dated tax correction. The
 [multiple-issue investigation](rate-investigation.multiple-issues.json) retains two supported
-corrections with different dates while a third issue still needs an answer.
+corrections with different dates while a third issue still needs an answer. That blocking
+question pauses the ticket's fix handoff; the supported findings remain available on resume.
+This workflow does not schedule independently scoped partial fixes.
 
 ## Ratevariant: coverage delivered or an input missing
 

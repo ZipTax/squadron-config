@@ -214,11 +214,11 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use the checkpoint and recorded reports for the accepted diagnosis, evidence, artifacts, and lane owners. Map artifacts.fix_pr.url to existing_pr; develop may resume before a PR exists."
+        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use the checkpoint and recorded reports for the accepted diagnosis, per-issue findings, evidence, artifacts, and lane owners. Map artifacts.fix_pr.url to existing_pr; develop may resume before a PR exists."
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Recover the accepted verdict, close_reason, evidence, outstanding questions, artifacts, and lane owners from the checkpoint and recorded reports. Map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url when present."
+        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Recover the accepted verdict, close_reason, per-issue findings, evidence, outstanding questions, artifacts, and lane owners from the checkpoint and recorded reports. Map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url when present."
       }
       route {
         target    = tasks.confirm_wai
@@ -419,8 +419,8 @@ mission "rate_triage" {
       # Obtain and assess evidence
 
       Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
-      The investigation owns establishing target authority and effective period. Return missing
-      research to that session before handing the requirement to implementation or asking a person.
+      Use Devin's per-issue findings as the requirement. Recover older reports through
+      delegated_session before accepting the handoff; return unfinished research to Devin.
       Confirm the selected session actually investigated: a comment-only session is a discovery
       error, not evidence that an investigation found nothing. Ask Devin bounded questions for
       missing or contradictory support. Use delegated_session when the original session cannot
@@ -497,7 +497,7 @@ mission "rate_triage" {
       field "findings" {
         type        = "string"
         description = "Devin’s per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
-        required    = true
+        required    = false
       }
       field "unknowns" {
         type        = "string"
@@ -558,7 +558,7 @@ mission "rate_triage" {
           outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
           AND disposition == 'unsupported at available granularity')) — enter verify_wai for
           WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
-          naming that decision. Use the accepted assessment; map session_messageable to
+          naming that decision. Carry findings unchanged into rate_finalize. Use the accepted assessment; map session_messageable to
           investigation_messageable, existing_pr to fix_pr_url, and unknowns to open_questions.
         EOT
       }
