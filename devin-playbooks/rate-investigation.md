@@ -90,7 +90,8 @@ raw results in the evidence source. Production observations do not replace SQL S
 
 Before returning, check that a resolved start date is a real calendar date in YYYY-MM-DD
 form and has cited support; unresolved or inapplicable dates are null. The schema specifies
-the fields, not the correctness of the decision.
+the fields, not the correctness of the decision. Check that question contexts name an
+existing finding id, or explicitly say why the question is not tied to a finding.
 
 Return `outcome: needs_human` with exact question-and-context pairs in `human_questions`
 only when a person's answer is necessary to reach a supported result. Otherwise return
