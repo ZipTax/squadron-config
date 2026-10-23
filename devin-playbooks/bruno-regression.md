@@ -17,9 +17,8 @@ material or a tax SME's explicit ruling on the ticket. A reporter's expected fig
 question to investigate, not automatically authority. Cite the source per scenario. Current
 API output, snapshot rows, ZipTax, and A/B output are supporting observations only.
 
-Match each scenario to its accepted finding’s scope, authority, and date; do not borrow
-another issue’s treatment. Take scenarios from the audited change and its guardrails, then
-assess API portability.
+Use the accepted findings to determine scenario coverage and expected results. Take
+scenarios from the audited change and its guardrails, then assess API portability.
 A snapshot fixture does not exist in the live API. Report scenarios needing unavailable
 merchant configuration, and scenarios outside this lane's V3 surface, with the reason and
 what would be needed. Do not silently omit a required scenario or soften its assertion.
