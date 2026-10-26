@@ -45,9 +45,10 @@ metadata; describe that prediction separately as an audit finding.
    under comparison instead of an unexplained failed case.
    Describe each case's full coverage using the repository's state/TIC metadata conventions:
    include every relevant state and every item TIC, including freight and multi-TIC inputs.
-   For Reports/filing inputs backed by existing records, record supported coverage when known;
-   disclose unknown coverage rather than inventing tags or claiming completeness. These values
-   determine which existing cases participate in scoped runs, so ticket-only tags are inadequate.
+   For Reports/filing inputs backed by existing records, record states/TICs supported by the
+   data and disclose missing or incomplete metadata rather than inventing tags or claiming
+   completeness. These values determine which existing cases participate in scoped runs, so
+   ticket-only tags are inadequate.
 5. Validate with the repository's offline loader procedure, push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.

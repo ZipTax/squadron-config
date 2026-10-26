@@ -26,7 +26,8 @@ when needed. Use the ticket as context, not as proof that the implementation is 
   behavior changes, or a state/TIC boundary itself changes.
 - Keep required positives and guardrails in the executed set. Check the selection report;
   if a required guardrail is excluded, broaden the criteria or run all. New/modified cases
-  and cases with unknown coverage remain included by the repository's selection rules.
+  and cases with missing or invalid state/TIC data for a selected filter remain included
+  by the repository's selection rules.
 
 Record the head SHA, selected states/TICs (or all), and a short rationale grounded in the
 diff. Explain what makes the boundary reliable and what regression coverage is excluded;
