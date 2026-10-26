@@ -33,5 +33,17 @@
       },
       "unknowns": []
     }
-  ]
+  ],
+  "impact_radius": {
+    "scope": "Import request replay handling for every state and TIC, including new identifiers and repeated identifiers.",
+    "risk_rationale": "The changed identifier lookup has no state or TIC predicate, so request handling can change for any import.",
+    "affected_states": [],
+    "affected_tics": [],
+    "test_recommendation": {
+      "states": [],
+      "tics": [],
+      "reason": "Run all eligible cases because the identifier handling applies across states and TICs."
+    },
+    "risk_level": "medium"
+  }
 }

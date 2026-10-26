@@ -43,12 +43,11 @@ metadata; describe that prediction separately as an audit finding.
    dropping coverage or manufacturing eligibility. A guardrail whose input the procedure
    must reject in both arms sets `expects_failure: true` so the rejection is the capture
    under comparison instead of an unexplained failed case.
-   Describe each case's full coverage using the repository's state/TIC metadata conventions:
-   include every relevant state and every item TIC, including freight and multi-TIC inputs.
-   For Reports/filing inputs backed by existing records, record states/TICs supported by the
-   data and disclose missing or incomplete metadata rather than inventing tags or claiming
-   completeness. These values determine which existing cases participate in scoped runs, so
-   ticket-only tags are inadequate.
+   Tag each case with every relevant state and every item TIC, including freight and
+   multi-TIC inputs, using the repository's tag conventions. Keep the case description
+   focused on the behavior or situation. For Reports/filing inputs backed by existing
+   records, use tags supported by the data and report missing or incomplete metadata in
+   the handoff. These tags determine which existing cases participate in scoped runs.
 5. Validate with the repository's offline loader procedure, push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
@@ -57,12 +56,12 @@ On adoption, retain existing justified cases and complete the missing work. Afte
 pivot, compare the new plan/diff with existing cases, report valid/obsolete/missing coverage,
 and update the migration's mirroring alteration when needed.
 
-On Squadron's request, dispatch the workflow with its selected states/TICs, or post a
-comment in the fix PR's discussion beginning with `<!-- ratevariant-scope -->`, containing
-the head SHA, states, TICs, and rationale in the
-[documented JSON format](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope),
-then apply/reapply `ratevariant:run`. Return the automatic result comment and captures to
-Squadron for evidence acceptance. GitHub Actions runs the database harness.
+On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
+selected `states` and `tics` inputs, following
+[ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
+Return the automatic result comment and captures to Squadron for evidence acceptance.
+GitHub Actions runs the database harness. If dispatch is unavailable, report the tool or
+permission limitation to Squadron so it can arrange the run.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
 answer is necessary to finish authoring safely. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise use `completed` and empty

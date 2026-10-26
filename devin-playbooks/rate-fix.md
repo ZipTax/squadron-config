@@ -37,8 +37,8 @@ conflict before affected work rather than guessing a procedure.
    the PR's review/testing context because a snapshot-proven mechanism does not establish
    today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
-   contradictions, and the accepted `findings` unchanged. Apply each finding only to its
-   stated scope and period; do not substitute one issue’s date or authority for another’s.
+   contradictions, impact radius and test recommendation, and the accepted `findings`
+   unchanged. Apply each finding only to its stated scope and period; do not substitute one issue’s date or authority for another’s.
    If a required start date is unresolved, report the affected finding and question before
    authoring that dated change. Report contradictory evidence without rewriting the accepted
    findings or turning it into a ticket question.
@@ -61,12 +61,22 @@ Report migration changes and the affected artifacts.
 Read the current PR description before editing it and preserve other authors' content.
 Session registration belongs on the ticket; do not add process history to the PR body.
 
-After pushing, hand off to Squadron. On its request, dispatch the workflow with its selected
-states/TICs, or post a comment in the fix PR's discussion beginning with
-`<!-- ratevariant-scope -->`, containing the head SHA, states, TICs, and rationale in the
-[documented JSON format](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope),
-then apply/reapply `ratevariant:run`. Return the automatic result comment to Squadron for
-evidence acceptance. GitHub Actions runs the database harness.
+## Impact radius and test recommendation
+
+When opening or adopting the fix PR, assess the actual diff, including data changes and
+changes inside shared procedures. Maintain an `Impact radius` section in the PR description
+with the affected behavior, states/TICs, risk level and rationale, and a recommendation to
+run the selected states/TICs or all eligible cases. Follow the coverage rules in
+[ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
+Return the same assessment in `impact_radius` so Squadron can accept or adjust the
+recommendation. Update it with each implementation edit, including corrections requested
+by audit; preserve other authors' PR content.
+
+After pushing, hand off to Squadron. On its request, dispatch `ratevariant-run.yml` against
+the fix PR branch with its selected `states` and `tics` inputs, following `ratevariant-testing`.
+Return the automatic result comment to Squadron for evidence acceptance. GitHub Actions
+runs the database harness. If dispatch is unavailable, report the tool or permission
+limitation to Squadron so it can arrange the run.
 
 Return `outcome: needs_human` and exact question-and-context pairs in `human_questions`
 only if implementation cannot safely finish without a person's answer. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise return

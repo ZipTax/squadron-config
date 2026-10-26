@@ -399,6 +399,9 @@ mission "rate_fix" {
       contradictions in the affected finding before accepting completed work.
       A missed applicable path within the diagnosis goes back to the fix owner, not to a human
       asked whether inconsistent checkout, import, or filing behavior is acceptable.
+      Require the fix owner’s impact_radius assessment and test recommendation from the actual
+      diff, maintained in the PR’s Impact radius section. Accept it when the rationale supports
+      the proposed coverage; otherwise ask the fix owner to resolve the specific gap.
 
       # Finish or pause
 
@@ -447,6 +450,11 @@ mission "rate_fix" {
         type        = "string"
         description = "What was changed, and where it diverges from the briefed diagnosis if it does."
         required    = true
+      }
+      field "impact_radius" {
+        type        = "string"
+        description = "Accepted fix-owner impact_radius assessment and test recommendation as JSON. Recover from the maintained PR Impact radius section when resuming an older report."
+        required    = false
       }
       field "diagnosis_contradicted" {
         type        = "string"
@@ -602,12 +610,15 @@ mission "rate_fix" {
       Devin session with relevant context to investigate. Evidence gathering does not change its
       file ownership, and you retain acceptance of the result.
 
-      Use txc_rate_audit to have Devin examine the actual diff, choose state/TIC coverage from
-      its findings, and request predictions, captures, and technical analysis. Delegate the
-      workflow trigger using that skill's dispatch or PR-comment/label instructions.
+      Use txc_rate_audit to assess the fix owner’s maintained Impact radius section and
+      impact_radius report, accepting or rejecting its test recommendation. Recover an older
+      report’s missing assessment from the fix owner. Request predictions, captures, and
+      technical analysis for the accepted coverage. Delegate the workflow trigger using the
+      repository’s ratevariant-testing dispatch instructions.
       Route code corrections to the fix owner and case corrections to the cases owner.
-      If a migration changes, have the cases owner update its
-      alteration too. Use session_lane when a request includes editing shared PR content.
+      When a correction changes the assessed impact, have the fix owner update its assessment
+      and recommendation. If a migration changes, have the cases owner update its alteration
+      too. Use session_lane when a request includes editing shared PR content.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
       Direct-entry context:

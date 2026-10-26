@@ -15,22 +15,17 @@ assurance.
 
 ## Choose and request the test coverage
 
-Ask an available Devin session to examine the actual PR diff and report the states/TICs
-it targets, including changes inside shared procedures. Use that evidence to choose the
-criteria and record a short rationale in the audit brief.
+Use the fix session's `impact_radius` report and the PR description's `Impact radius`
+section as the basis for each run. Accept or adjust its coverage recommendation and record
+the reason in the audit brief. Ask the fix owner to update the assessment when an audit
+finding changes the implementation or reveals a different scope; reuse the maintained
+assessment between changes.
 
-- Supply states and/or TICs whenever a diff targets them. This automatically provides
-  coverage for neighboring cases and guardrails. For example, Ohio plus a TIC runs all
-  cases including Ohio, plus any cases including that TIC: **state OR TIC**.
-- Leave both lists empty to run all cases when the change applies across states/TICs or
-  the examination identifies no state/TIC scope.
-
-Ask Devin to dispatch the workflow with the selected criteria when its tools support it.
-Otherwise ask it to post a comment in the fix PR's discussion, beginning with
-`<!-- ratevariant-scope -->` and containing the head SHA, states, TICs, and rationale in the
-[documented JSON format](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope),
-then apply/reapply `ratevariant:run`. A fix or cases session can perform these steps;
-Squadron owns evidence acceptance.
+Ask a fix or cases session to dispatch the workflow with the chosen criteria using
+[ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope),
+which owns the state/TIC selection rules and run mechanics. If the session cannot dispatch,
+use its reported tool or permission limitation to arrange execution through an operator
+with workflow access. Squadron owns evidence acceptance.
 
 ## Interpret the evidence
 

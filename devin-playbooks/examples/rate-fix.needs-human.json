@@ -35,5 +35,6 @@
         "The question in human_questions remains unresolved."
       ]
     }
-  ]
+  ],
+  "impact_radius": null
 }
