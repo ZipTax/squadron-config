@@ -59,9 +59,8 @@ and update the migration's mirroring alteration when needed.
 On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
 selected `states` and `tics` inputs, following
 [ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
-Return the automatic result comment and captures to Squadron for evidence acceptance.
-GitHub Actions runs the database harness. If dispatch is unavailable, report the tool or
-permission limitation to Squadron so it can arrange the run.
+Return the automatic result comment and captures to Squadron for review. If dispatch is
+unavailable, report the tool or permission limitation so Squadron can arrange the run.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
 answer is necessary to finish authoring safely. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise use `completed` and empty

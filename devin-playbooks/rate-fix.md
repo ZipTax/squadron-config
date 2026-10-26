@@ -38,7 +38,8 @@ conflict before affected work rather than guessing a procedure.
    today's production rows.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
    contradictions, impact radius and test recommendation, and the accepted `findings`
-   unchanged. Apply each finding only to its stated scope and period; do not substitute one issue’s date or authority for another’s.
+   unchanged. Apply each finding only to its stated scope and period; do not substitute
+   one issue’s date or authority for another’s.
    If a required start date is unresolved, report the affected finding and question before
    authoring that dated change. Report contradictory evidence without rewriting the accepted
    findings or turning it into a ticket question.
@@ -70,13 +71,12 @@ run the selected states/TICs or all eligible cases. Follow the coverage rules in
 [ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
 Return the same assessment in `impact_radius` so Squadron can accept or adjust the
 recommendation. Update it with each implementation edit, including corrections requested
-by audit; preserve other authors' PR content.
+by audit.
 
 After pushing, hand off to Squadron. On its request, dispatch `ratevariant-run.yml` against
 the fix PR branch with its selected `states` and `tics` inputs, following `ratevariant-testing`.
-Return the automatic result comment to Squadron for evidence acceptance. GitHub Actions
-runs the database harness. If dispatch is unavailable, report the tool or permission
-limitation to Squadron so it can arrange the run.
+Return the automatic result comment to Squadron for review. If dispatch is unavailable,
+report the tool or permission limitation so Squadron can arrange the run.
 
 Return `outcome: needs_human` and exact question-and-context pairs in `human_questions`
 only if implementation cannot safely finish without a person's answer. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise return

@@ -202,7 +202,7 @@
         "object",
         "null"
       ],
-      "description": "Fix owner’s assessment of the actual PR diff, maintained in the PR Impact radius section and refreshed when the fix changes. Null only when there is no change to assess.",
+      "description": "Assessment of the actual PR diff. Null only when there is no change to assess.",
       "properties": {
         "scope": {
           "type": "string",
@@ -245,7 +245,7 @@
             },
             "reason": {
               "type": "string",
-              "description": "Why these criteria cover the assessed impact. Supply states or TICs whenever the diff targets them; recommend all for changes across states/TICs or with no identifiable scope."
+              "description": "Why the recommended coverage addresses the assessed impact."
             }
           },
           "required": [
@@ -262,7 +262,7 @@
             "medium",
             "high"
           ],
-          "description": "Fix owner’s assessed regression risk, justified in risk_rationale."
+          "description": "Assessed regression risk, justified in risk_rationale."
         }
       },
       "required": [
