@@ -15,42 +15,29 @@ assurance.
 
 ## Choose and request the test coverage
 
-Before each run, inspect the actual diff at the current PR head and decide whether its
-state/TIC boundary is reliable. You own that risk decision; ask Devin for technical evidence
-when needed. Use the ticket as context, not as proof that the implementation is contained.
+Ask an available Devin session to examine the actual PR diff and report the states/TICs
+it targets, including changes inside shared procedures. Use that evidence to choose the
+criteria and record a short rationale in the audit brief.
 
-- Supply states and/or TICs when the diff preserves an explicit boundary, such as inserting
-  matrix rows for named states and products. Selection is **state OR TIC**: Ohio plus a TIC
-  runs Ohio cases for other TICs and that TIC's cases in other states.
-- Leave both lists empty to run all cases when scope is uncertain, shared calculation
-  behavior changes, or a state/TIC boundary itself changes.
-- Keep required positives and guardrails in the executed set. Check the selection report;
-  if a required guardrail is excluded, broaden the criteria or run all. New/modified cases
-  and cases with missing or invalid state/TIC data for a selected filter remain included
-  by the repository's selection rules.
+- Supply states and/or TICs whenever a diff targets them. This automatically provides
+  coverage for neighboring cases and guardrails. For example, Ohio plus a TIC runs all
+  cases including Ohio, plus any cases including that TIC: **state OR TIC**.
+- Leave both lists empty to run all cases when the change applies across states/TICs or
+  the examination identifies no state/TIC scope.
 
-Record the head SHA, selected states/TICs (or all), and a short rationale grounded in the
-diff. Explain what makes the boundary reliable and what regression coverage is excluded;
-a scoped pass does not establish behavior outside its selected coverage. After any push,
-reassess the decision and issue a request for the new head rather than reusing stale scope.
-
-Use the current `ratevariant-testing` skill for the run request contract. If the available
-Devin session can dispatch the workflow, delegate dispatch with the approved criteria.
-Otherwise have it write the structured, current-head scope request and apply/reapply
-`ratevariant:run`. The label alone does not carry the criteria. Delegating those mechanics
-to a fix or cases session does not transfer your risk decision or verdict to its author.
-Never ask the session to run staging-mutating harness commands itself.
-
-Check that the result comment records the requested criteria and current head before using
-its captures. Reuse evidence only when both head and executed coverage satisfy the current
-audit; request all cases if the evidence reveals effects beyond the chosen boundary.
+Ask Devin to dispatch the workflow with the selected criteria when its tools support it.
+Otherwise ask it to post a comment in the fix PR's discussion, beginning with
+`<!-- ratevariant-scope -->` and containing the head SHA, states, TICs, and rationale in the
+[documented JSON format](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope),
+then apply/reapply `ratevariant:run`. A fix or cases session can perform these steps;
+Squadron owns evidence acceptance.
 
 ## Interpret the evidence
 
 Require a compact report that establishes:
 
-- PR head, plan/run references, selection criteria/rationale, and the case set examined,
-  so an older run cannot approve a newer change.
+- Commit, selection criteria, and captures from the automatic GitHub result comment,
+  together with the scope rationale and case set examined.
 - Predictions from the actual diff and the affected findings’ scope, authority, and dates, followed by observed results and
   independently grounded expected values.
 - Coverage and agreement across applicable cart, import, and Reports/filing paths,

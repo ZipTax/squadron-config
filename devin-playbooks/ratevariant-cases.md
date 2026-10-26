@@ -57,13 +57,12 @@ On adoption, retain existing justified cases and complete the missing work. Afte
 pivot, compare the new plan/diff with existing cases, report valid/obsolete/missing coverage,
 and update the migration's mirroring alteration when needed.
 
-Do not independently run the harness or grade its result. On an explicit Squadron request,
-you may submit its approved current-head state/TIC criteria and rationale through workflow
-dispatch when available, or the scope comment plus `ratevariant:run` label, following
-`ratevariant-testing`. Return the exact-head result, recorded criteria, and captures. Do not
-choose a narrower scope yourself; a new push requires Squadron to reassess the decision.
-This is evidence collection, not permission to accept your own coverage. Never run commands
-that deploy to or mutate shared staging from the session.
+On Squadron's request, dispatch the workflow with its selected states/TICs, or post a
+comment in the fix PR's discussion beginning with `<!-- ratevariant-scope -->`, containing
+the head SHA, states, TICs, and rationale in the
+[documented JSON format](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope),
+then apply/reapply `ratevariant:run`. Return the automatic result comment and captures to
+Squadron for evidence acceptance. GitHub Actions runs the database harness.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
 answer is necessary to finish authoring safely. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise use `completed` and empty
