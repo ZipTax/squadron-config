@@ -196,6 +196,84 @@
     "fix_summary": {
       "type": "string",
       "description": "At most 150 words: what changed and the behavior it produces."
+    },
+    "impact_radius": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Assessment of the actual PR diff. Null only when there is no change to assess.",
+      "properties": {
+        "scope": {
+          "type": "string",
+          "description": "Behavior and paths the diff can affect, including neighboring behavior beyond the ticket."
+        },
+        "risk_rationale": {
+          "type": "string",
+          "description": "Why the affected behavior is bounded or broad, supported by the changed predicates, data, and shared paths."
+        },
+        "affected_states": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Affected state codes; empty when the change applies across states or has no identifiable state scope."
+        },
+        "affected_tics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Affected TIC identifiers; empty when the change applies across TICs or has no identifiable TIC scope."
+        },
+        "test_recommendation": {
+          "type": "object",
+          "properties": {
+            "states": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Recommended state filters, matched with TIC filters using OR."
+            },
+            "tics": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Recommended TIC filters. Both filter arrays empty means all eligible cases."
+            },
+            "reason": {
+              "type": "string",
+              "description": "Why the recommended coverage addresses the assessed impact."
+            }
+          },
+          "required": [
+            "states",
+            "tics",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "description": "Assessed regression risk, justified in risk_rationale."
+        }
+      },
+      "required": [
+        "scope",
+        "risk_level",
+        "risk_rationale",
+        "affected_states",
+        "affected_tics",
+        "test_recommendation"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -208,7 +286,8 @@
     "change_type",
     "files_changed",
     "roots_touched",
-    "fix_summary"
+    "fix_summary",
+    "impact_radius"
   ],
   "additionalProperties": false
 }

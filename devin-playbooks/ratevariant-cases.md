@@ -43,6 +43,11 @@ metadata; describe that prediction separately as an audit finding.
    dropping coverage or manufacturing eligibility. A guardrail whose input the procedure
    must reject in both arms sets `expects_failure: true` so the rejection is the capture
    under comparison instead of an unexplained failed case.
+   Tag each case with every relevant state and every item TIC, including freight and
+   multi-TIC inputs, using the repository's tag conventions. Keep the case description
+   focused on the behavior or situation. For Reports/filing inputs backed by existing
+   records, use tags supported by the data and report missing or incomplete metadata in
+   the handoff. These tags determine which existing cases participate in scoped runs.
 5. Validate with the repository's offline loader procedure, push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
@@ -51,10 +56,11 @@ On adoption, retain existing justified cases and complete the missing work. Afte
 pivot, compare the new plan/diff with existing cases, report valid/obsolete/missing coverage,
 and update the migration's mirroring alteration when needed.
 
-Do not independently run the harness or grade its result. On an explicit Squadron request,
-you may apply/reapply `ratevariant:run` and return the exact-head result and captures; this
-is evidence collection, not permission to accept your own coverage. Never run commands
-that deploy to or mutate shared staging from the session.
+On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
+selected `states` and `tics` inputs, following
+[ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
+Return the automatic result comment and captures to Squadron for review. If dispatch is
+unavailable, report the tool or permission limitation so Squadron can arrange the run.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
 answer is necessary to finish authoring safely. Never ask a question you have not first tried to answer yourself from the ticket, the code, the state's published material and rate lookup service, and every configured data tool (re-listed, not remembered). When a governed tool omits a field its data holds, extend the tool instead of asking for the value. Each pair's context names what was tried and what refused or lacked the data. Otherwise use `completed` and empty
