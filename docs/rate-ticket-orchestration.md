@@ -1,14 +1,15 @@
 # Rate-ticket orchestration
 
-This document proposes how Squadron, Devin, Jira, and a small bridge service should cooperate on
-long-running rate tickets. These tickets may pause for days while a tax or product question is
+The [Slack workflow](slack-rate-workflow.md) is the operator entry point. Squadron, Devin, Jira,
+and a small bridge service cooperate on long-running rate tickets. These tickets may pause for days while a tax or product question is
 answered. Keeping an agent call open during that pause is fragile, while restarting from the ticket
 alone causes the next run to repeat investigation and sometimes reach a different conclusion.
 
 The design therefore separates active work from durable coordination:
 
 - Devin holds the working context for one engineering lane.
-- Squadron owns decisions, routing, and the current case checkpoint.
+- Squadron owns decisions, routing, and the maintained case checkpoint.
+- Slack shows the editable case root, progress replies, and native human questions.
 - Jira is where people receive and answer product-level questions.
 - The bridge reliably wakes Squadron when Jira receives an explicit ready signal; it does not
   decide what work happens next or select a Devin session.
@@ -106,13 +107,11 @@ no-op selecting `record_learnings`, with the route rather than repeating the des
 Route conditions are natural-language choices evaluated by the commander, not executable scalar
 expressions. See [Routing](https://docs.squadron.sh/missions/routing).
 
-The destination mission declares what context it requires; the sending commander supplies it
-through `task_complete.mission_inputs`. A submitted output or completion summary does not
-populate that payload. Inputs with defaults are optional to the routing tool, so essential
-context needs a required input rather than an empty default. Squadron applies the same contract
-when preparing a bridge resume from the latest accepted state. The bridge forwards that payload;
-mission-specific fields and mappings belong in the missions, while reusable registration rules
-belong in the bridge skill.
+Before routing, save accepted findings and the next entry through `rate_case`. Supply the
+ticket, repository/base, and entry stage through `task_complete.mission_inputs`; the destination
+reads shared memory. Legacy report inputs remain available for recovery. Required case context
+must be recovered before the destination acts. Bridge launches also restore the saved mission
+thread ID through runtime launch metadata.
 
 Devin's attached schema and Squadron's task output remain separate contracts. The former reports
 lane work; the latter records the commander's accepted result and orchestration metadata. Removing
@@ -165,32 +164,18 @@ Squadron always collects the result in the same way: it sends work to the chosen
 uses the returned result and `check_session`. Whether the mission was already running or was just
 started by a Jira webhook is invisible to Devin.
 
-## When Squadron ends the mission
+## Human questions and ended waits
 
-Squadron should not remain open while waiting for a person. Squadron persists crash-recovery state,
-but a week-long tool call still depends on a process, network connection, plugin timeout, and model
-context remaining usable. A deliberate human wait is therefore a completed, checkpointed run—not
-an interrupted tool call.
+1. Screen the dependency through `question_screen` and save it in the case.
+2. Set the Slack root to Blocked on question through `case_slack`.
+3. Ask operator choices directly with `human.ask`. For product questions, have Devin post
+   on Jira first, then ask in Slack whether answers are ready there.
+4. Have Devin assess the answer and save its source before work continues.
+5. If the ask ends unresolved, retain the pending case. Jira waits can register bridge
+   recovery; operator waits resume through an operator-started run.
 
-When Devin reports `needs_human`, Squadron owns the blocking workflow:
-
-1. Validate that the missing information really requires a person.
-2. Record which session raised the question and which mission stage must reconsider it when Jira
-   receives new information. This does not preselect the session that will consume the answer.
-3. Ask a context-owning session to author the Jira question using the repository's ticket-writing
-   skill. Usually this is the session that raised it, but Squadron may choose another session with
-   better product context. Devin supplies the words because it can read the ticket and the
-   co-located guidance; Squadron decides that the question may be posted.
-4. Confirm the Jira comment exists, then register the blocker with the bridge.
-5. Write the current checkpoint, add the configured needs-information label, remove any stale
-   ready-for-Squadron label, and end the mission.
-
-The order matters. A label without a visible question leaves a ticket that appears blocked but gives
-the reader nothing to answer. A question without a registered blocker cannot reliably wake
-Squadron to evaluate the response.
-
-If any step fails, record the partial state and retry idempotently. Do not create a second question
-or a second Devin session to escape an uncertain result.
+The [blocked_run skill](../skills/blocked_run.md) owns the shared sequence. Bridge recovery
+starts after a live ask ends, so both paths cannot claim the same continuation.
 
 ## What the bridge does
 
@@ -348,8 +333,9 @@ next_entry:
   stage: audit
 ```
 
-Evidence stays in the systems that produced it: Jira, Devin session output, PRs, and ratevariant
-captures. Generalizable lessons move into repository skills or reference documentation through the
+Raw evidence stays in Jira, Devin, PRs, and ratevariant captures. Accepted per-issue findings
+and their references are retained in context so later missions use the same requirement.
+The case also retains the complete editable Slack message and its returned ID after closure. Generalizable lessons move into repository skills or reference documentation through the
 learning-capture process. Copying either into the checkpoint would create another version that can
 drift.
 

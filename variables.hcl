@@ -65,3 +65,13 @@ variable "bridge_registration_token" {
 variable "rate_ready_label" {
   default = "ReadyForSquadron"
 }
+
+variable "slack_bot_token" {
+  secret = true
+}
+
+variable "slack_app_token" {
+  secret = true
+}
+
+variable "slack_channel_id" {}

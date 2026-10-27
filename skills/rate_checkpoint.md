@@ -1,8 +1,7 @@
 # Read and write a rate ticket's current checkpoint
 
-The checkpoint is the current mission routing state for one Jira ticket. It is not Jira data, a
-transcript, or a history of prior states. Its purpose is to let a later mission continue from the
-latest decision without re-running finished work.
+The checkpoint holds the current case context, routing state, and editable Slack root for one
+Jira ticket. Later missions read it to continue accepted work. Use `rate_case` for field ownership.
 
 ## Read the current state
 
@@ -46,5 +45,11 @@ discussion remains in Jira, pull-request evidence remains in GitHub, and ratevar
 with the run. The checkpoint stores their identifiers and concise conclusions so those sources do
 not acquire a second, drifting copy.
 
-Delete the checkpoint when the case closes with no active blocker. Otherwise, a later mission may
-resume work that was already completed.
+At every stage boundary, save accepted context and the next entry before routing. Preserve
+complete accepted findings and the full Slack root text; keep bulky evidence in its source.
+The optional `context`, `slack`, `human_wait`, `case_state`, and lessons PR fields extend v1.
+Existing v1 files load unchanged; populate these fields when first used. Missing case_state
+means active. Old readers must be upgraded before they write these extended records.
+
+On closure, set `case_state: closed` and retain the record. Discovery reads closed records
+as history, so finished work is not automatically resumed and the Slack root remains editable.

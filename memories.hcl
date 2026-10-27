@@ -3,7 +3,7 @@ memory "rate_case_log" {
 }
 
 memory "rate_checkpoint" {
-  description = "Squadron's current routing state for one rate ticket, stored as `<TICKET>.yaml`. Read and write it only through the rate_checkpoint skill so schema_version and checkpoint_revision are handled consistently."
+  description = "Squadron's maintained case context, routing state, and Slack root message for one rate ticket, stored as `<TICKET>.yaml`. Read and write it only through the rate_checkpoint skill so schema_version and checkpoint_revision are handled consistently."
 }
 
 memory "rate_resume_state" {

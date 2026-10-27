@@ -34,6 +34,8 @@ mission "rate_finalize" {
   # work; the sentinel label is the stage's own, per blocked_run.
   memories = [memories.rate_case_log, memories.rate_checkpoint]
 
+  # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
+
   agents = [
     agents.session_scout,
     agents.taxcloud_legacy_sql_reviewer,
@@ -83,11 +85,13 @@ mission "rate_finalize" {
   input "close_reason" {
     type        = "string"
     description = "Why the case arrived here, in a phrase: 'fix audited SATISFACTORY and bruno regression authored', 'audit FIX_IS_NO_OP', 'proven but unsupported at available granularity', 'working as intended', or the stage a prior run blocked at. Context for asking the work sessions about their discoveries; no disposition by itself requires a learning writeback."
+    default     = ""
   }
 
   input "verdict" {
     type        = "string"
     description = "The verdict this case ends on, in the vocabulary of whichever mission sent it: DEFECT_PROVEN, WORKING_AS_INTENDED (rate_triage), SATISFACTORY, FIX_IS_NO_OP (rate_fix's audit)."
+    default     = ""
   }
 
   input "mechanism" {
@@ -111,6 +115,7 @@ mission "rate_finalize" {
   input "evidence" {
     type        = "string"
     description = "The evidence chain behind the verdict — each load-bearing claim with its basis and citation. What makes a recorded learning citable; an uncitable one is worse than none."
+    default     = ""
   }
 
   input "production_evidence" {
@@ -207,21 +212,20 @@ mission "rate_finalize" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
+      and save accepted state before routing. Use legacy inputs only to recover missing fields.
+
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
-      because ${inputs.close_reason}.
+      using the saved close reason.
 
       # Inspect the handoff
 
-      Have session_scout check supplied Devin ids: investigation ${inputs.investigation_session_id},
-      fix ${inputs.fix_session_id}, cases ${inputs.cases_session_id}, and Bruno ${inputs.bruno_session_id}.
+      Have session_scout check the investigation, fix, cases, and Bruno owners recorded in lanes.
       Use delegated_session's discovery guidance if an id is missing for known work. An unavailable
       session still contributes its report; it cannot answer follow-up questions. Do not create
       or message sessions here.
 
-      Accepted investigation findings:
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
+      Read context.findings from the case.
       If they are missing, the selected work stage recovers the report through delegated_session.
 
       # Select the entry
@@ -265,6 +269,9 @@ mission "rate_finalize" {
 
   task "verify_wai" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `verify_wai`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
 
@@ -276,11 +283,8 @@ mission "rate_finalize" {
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
       Use delegated_session for registration and follow-ups.
 
-      Use the issue scopes in the accepted findings below; re-derive the disputed behavior
+      Use the issue scopes in context.findings; re-derive the disputed behavior
       independently rather than treating the prior conclusions as proof.
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
 
       # Assess the result
 
@@ -291,7 +295,7 @@ mission "rate_finalize" {
       # Finish or pause
 
       On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
-      On WAI_REFUTED, allow the declared triage route only when ${inputs.wai_refire_count} < 1.
+      On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
       Preserve the prior reasoning and evidenced rebuttal as a challenge, not a predetermined
       answer. Ask Devin to annotate the prior comment as under investigation. At a repeated
       standoff, use blocked_run and rate_checkpoint to ask for the decision with both positions
@@ -326,7 +330,7 @@ mission "rate_finalize" {
     router {
       route {
         target    = missions.rate_triage
-        condition = "verdict == WAI_REFUTED AND wai_refire_count < 1 — return to triage for an independent re-investigation. Set wai_challenge to the prior reasoning and cited rebuttal, and increment wai_refire_count. Map the investigation owner to wip_investigation_session_id if messageable, or stale_investigation_session_id otherwise."
+        condition = "verdict == WAI_REFUTED AND the pre-increment stored wai_refire_count < 1 — return to triage for an independent re-investigation. Persist the cited challenge and increment wai_refire_count through rate_case; carry the ticket to triage."
       }
       # A repeated WAI refutation ends in the human-wait workflow described above.
       route {
@@ -346,24 +350,16 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `record_learnings`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
       worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
 
       # Context
 
-      The following is context for your requests. Do not infer lessons from it yourself.
-
-      Result: ${inputs.verdict}
-      Close reason: ${inputs.close_reason}
-      Mechanism: ${inputs.mechanism}
-      Fix PR: ${inputs.fix_pr_url}
-      Audit findings: ${inputs.audit_findings}
-      Disposition: ${inputs.disposition}
-
-      Per-issue investigation findings:
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
+      Read the verdict, close reason, diagnosis, complete findings, audit findings, and PRs
+      from the case. Ask sessions for lessons from their work.
       Recover missing report context through delegated_session before drawing on it.
 
       # Session selection and writeback details
@@ -389,7 +385,8 @@ mission "rate_finalize" {
       or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
 
       Use rate_checkpoint for ${inputs.issue}.yaml. Preserve unresolved work and any outstanding
-      questions from ${inputs.open_questions}; delete the checkpoint only when nothing remains.
+      questions from the case; mark it closed only when nothing remains. Publish the final
+      Slack status and all confirmed PRs, including lessons, and retain the root ID and text.
     EOT
     agents = [agents.learnings_curator]
 
@@ -421,7 +418,7 @@ mission "rate_finalize" {
       }
       field "checkpoint" {
         type        = "string"
-        description = "The ticket's current checkpoint, or 'none — file deleted' when the case closed."
+        description = "The retained case checkpoint and its active or closed state."
         required    = true
       }
     }
