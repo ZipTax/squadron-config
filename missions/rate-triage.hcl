@@ -20,6 +20,8 @@ mission "rate_triage" {
   # See docs/rate-ticket-orchestration.md for phase ownership and bridge rollout.
   memories = [memories.rate_checkpoint, memories.rate_resume_state]
 
+  # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
+
   agents = [
     agents.session_scout,
     agents.taxcloud_legacy_sql_investigator
@@ -107,15 +109,18 @@ mission "rate_triage" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
+      and save accepted state before routing. Use legacy inputs only to recover missing fields.
+
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
-      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}; WAI refire count:
-      ${inputs.wai_refire_count}.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
+      count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
       # Inspect existing work
 
-      Have session_scout read or migrate the checkpoint using rate_checkpoint and apply
-      delegated_session for candidate validation, resumability, and provenance.
+      Have session_scout read the ticket title for the root, then apply delegated_session
+      for candidate validation, resumability, and provenance.
       Read the Jira Devin Sessions field ${vars.jira_sessions_field} using getJiraIssue with
       cloudId "${vars.jira_cloud_id}". Extract its tag/URL lines from the ADF paragraphs. Only
       if that field is empty, absent, or refused, fall back to find_sessions(tags: ["${inputs.issue}"]).
@@ -125,7 +130,7 @@ mission "rate_triage" {
       # Assess ownership
 
       Honor explicit inputs: live override "${inputs.wip_investigation_session_id}", terminated
-      context override "${inputs.stale_investigation_session_id}", WAI challenge "${inputs.wai_challenge}".
+      context override "${inputs.stale_investigation_session_id}", WAI challenge "${inputs.wai_challenge}" or the saved context.wai_challenge.
       Otherwise keep the checkpoint's exact lane owner; discovery ranking is only for a lane
       without recorded ownership. Record other candidates and disagreements without blending
       reports. If indexes fail, check recorded ids and label unverified checkpoint facts recorded;
@@ -142,8 +147,8 @@ mission "rate_triage" {
       The selected work stage delegates interpretation of new answers; discovery does not decide
       whether a tax or product question is settled.
 
-      Prefer the checkpoint's downstream resume stage (develop, author_tests, audit, bruno_tests, or
-      record_learnings) when its verdict and required artifacts remain valid. Carry its state
+      For an active case, prefer its downstream resume stage (develop, author_tests, audit,
+      bruno_tests, or record_learnings) when its verdict and required artifacts remain valid. Carry its state
       and selected entry forward. If contradictory or incomplete, leave resume_stage blank and
       explain why investigation must reconsider the premise. Otherwise select one entry mode:
 
@@ -214,11 +219,11 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use the checkpoint and recorded reports for the accepted diagnosis, per-issue findings, evidence, artifacts, and lane owners. Map artifacts.fix_pr.url to existing_pr; develop may resume before a PR exists."
+        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use rate_case for the saved findings and owners."
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Recover the accepted verdict, close_reason, per-issue findings, evidence, outstanding questions, artifacts, and lane owners from the checkpoint and recorded reports. Map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url when present."
+        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Use rate_case for the saved findings and close reason."
       }
       route {
         target    = tasks.confirm_wai
@@ -252,6 +257,9 @@ mission "rate_triage" {
 
   task "start_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `start_investigation`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
       # Delegate to Devin
@@ -287,6 +295,9 @@ mission "rate_triage" {
 
   task "confirm_wai" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `confirm_wai`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
       # Delegate to Devin
@@ -329,6 +340,9 @@ mission "rate_triage" {
 
   task "continue_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `continue_investigation`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
       # Work with Devin
@@ -363,6 +377,9 @@ mission "rate_triage" {
 
   task "forward_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `forward_investigation`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
 
@@ -412,9 +429,12 @@ mission "rate_triage" {
 
   task "assess_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `assess_investigation`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Decide whether the investigation of ${inputs.issue} supports a disposition.
-      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}; WAI refire count:
-      ${inputs.wai_refire_count}.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
+      count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
       # Obtain and assess evidence
 
@@ -547,9 +567,7 @@ mission "rate_triage" {
         condition = <<-EOT
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
           AND disposition != 'unsupported at available granularity' — enter author_tests if
-          existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
-          including findings, production evidence, and existing work; map session_messageable to
-          investigation_messageable.
+          existing_pr has a messageable owner, or develop otherwise. Save findings through rate_case.
         EOT
       }
       route {
@@ -557,9 +575,8 @@ mission "rate_triage" {
         condition = <<-EOT
           outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
           AND disposition == 'unsupported at available granularity')) — enter verify_wai for
-          WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
-          naming that decision. Carry findings unchanged into rate_finalize. Use the accepted assessment; map session_messageable to
-          investigation_messageable, existing_pr to fix_pr_url, and unknowns to open_questions.
+          WORKING_AS_INTENDED or record_learnings for the unsupported result. Save findings and
+          the close reason through rate_case.
         EOT
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.

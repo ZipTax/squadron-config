@@ -50,7 +50,7 @@ tool diagnostics in the Devin report.
 Have Devin post the update and confirm its comment reference. If it revises a prior
 conclusion, ask Devin to annotate that earlier comment so readers see the changed status.
 For a blocking Jira evidence request, use blocked_run to confirm the comment, save state,
-and register the bridge wait. Missing production evidence may need a real ticket question. Ask for the data, access, or
+and ask the operator in Slack whether Jira answers are ready. Use the bridge fallback if that ask ends unresolved. Missing production evidence may need a real ticket question. Ask for the data, access, or
 decision that would settle it. If the evidence gap ends the work with no actionable request,
 have Devin post a finding explaining what remains unproven and why work stopped, and confirm
 the comment reference. Do not invent an answerer or present the missing evidence as proof

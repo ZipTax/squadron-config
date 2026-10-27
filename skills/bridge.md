@@ -6,7 +6,7 @@ blockers or place credentials in a checkpoint, Jira comment, or tool payload.
 
 ## Register the next round of waiting
 
-After confirming the Jira question, call save_rate_blocker with a blocker object containing:
+After the live human ask ends without a usable answer, confirm the saved Jira question and call save_rate_blocker with a blocker object containing:
 
 - `blocker_id`, `ticket`, and integer `generation` from the checkpoint;
 - `state: waiting`;
@@ -14,12 +14,11 @@ After confirming the Jira question, call save_rate_blocker with a blocker object
 - `resume_mission`: the mission that owns the remaining work;
 - `resume_entry_stage` and `resume_inputs`: the mission inputs needed for that entry.
 
-Build `resume_inputs` from the destination mission's declared inputs and the latest accepted
-state. Include its required inputs and the context needed at the selected entry stage, using
-completed task outputs and checkpoint state to update values that changed during the run.
-The bridge forwards this payload; it does not recover omitted context. Because resumption
-starts a new mission instance, copying only the original inputs can lose work completed since
-that instance began. The destination mission owns the input contract.
+Save the case through `rate_case`, then build `resume_inputs` from `issue`, `repo_url`,
+`base_branch`, and `entry_stage`. The destination reads the maintained memory. The launcher
+also needs `slack.mission_thread_id` restored as runtime launch metadata before events flow;
+this is a mission-chain identity, not a Slack message ID or mission input. Verify that the
+deployed bridge supports this contract before enabling cold Slack resumptions.
 
 Every new human wait increments generation, even when the question remains unchanged.
 An uncertain registration or label update retries the same generation and payload.

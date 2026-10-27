@@ -16,7 +16,7 @@ mission "rate_fix" {
   # Everything that touches the repo lives here — the fix, the A/B cases, the
   # adversarial audit that grades them, and the Bruno suite that locks the
   # result in. It never decides whether there is a defect: rate_triage proved
-  # that and passes the diagnosis in as inputs, so no stage here re-derives it.
+  # that and persists the diagnosis in shared case memory.
   #
   # Entered only by route, never by a human: from rate_triage's assessment (a
   # proven defect), or from its discovery when a prior run blocked inside this
@@ -50,6 +50,8 @@ mission "rate_fix" {
   # decisions or a Jira bridge wait for ticket evidence. A Jira wait records this
   # lane's next stage so rate_triage can resume without repeating finished work.
   memories = [memories.rate_checkpoint]
+
+  # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
 
   agents = [
     agents.session_scout,
@@ -102,21 +104,25 @@ mission "rate_fix" {
   input "mechanism" {
     type        = "string"
     description = "The proven mechanism from rate_triage: what is wrong and where expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both values. Briefing material for the fix and the cases; not to be re-derived here."
+    default     = ""
   }
 
   input "disposition" {
     type        = "string"
     description = "The remediation disposition rate_triage established: data/configuration change | procedure/function change | both. develop implements this and nothing wider."
+    default     = ""
   }
 
   input "affected_roots" {
     type        = "string"
     description = "Procedures/functions the defect implicates, and for a data defect the tables/rows. A briefing hint and a cross-check on coverage — NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
+    default     = ""
   }
 
   input "evidence" {
     type        = "string"
     description = "The investigation's evidence chain: each load-bearing claim with its basis (measured|traced) and citation. What the fix is implemented against, and what audit anchors its predictions in."
+    default     = ""
   }
 
   input "findings" {
@@ -214,57 +220,17 @@ mission "rate_fix" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
+      and save accepted state before routing. Use legacy inputs only to recover missing fields.
+
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
 
-      # Accepted investigation
-
-      ### Mechanism
-
-      ~~~~text
-      ${inputs.mechanism}
-      ~~~~
-
-      ### Disposition
-
-      ~~~~text
-      ${inputs.disposition}
-      ~~~~
-
-      ### Affected roots
-
-      ~~~~text
-      ${inputs.affected_roots}
-      ~~~~
-
-      ### Evidence
-
-      ~~~~text
-      ${inputs.evidence}
-      ~~~~
-
-      ### Investigation findings
-
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
-
-      ### Production observations
-
-      ~~~~text
-      ${inputs.production_evidence}
-      ~~~~
-
-      ### Legacy authority, when resuming an older report
-
-      ~~~~text
-      ${inputs.target_authority}
-      ~~~~
+      Read the diagnosis, complete findings, and cited evidence from the maintained case.
 
       # Inspect the handoff
 
-      Have the session_scout agent check the supplied Devin ids: fix ${inputs.fix_session_id},
-      cases ${inputs.cases_session_id}, and investigation ${inputs.investigation_session_id}.
+      Have session_scout check the investigation, fix, and cases owners recorded in lanes.
       Compare reported ownership and resumability with the handoff. Do not create or message
       Devin sessions here.
       %{ if inputs.checkpoint != "" ~}
@@ -332,62 +298,22 @@ mission "rate_fix" {
 
   task "develop" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `develop`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
       # Delegate to Devin
 
       Use delegated_session to resume the registered owner. When a new owner is needed, have the
       stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
-      and tags `["${inputs.issue}", "rate-fix"]`. Supply the following brief and relevant unresolved
-      gaps, preserving the labeled blocks for long values. Use the latest accepted findings
-      when upstream work has updated the supplied report. Recover missing or empty findings
+      and tags `["${inputs.issue}", "rate-fix"]`. Supply the case diagnosis, complete findings,
+      cited evidence, and relevant unresolved gaps. Recover missing or empty findings
       through delegated_session before implementing a scoped change.
 
       Base branch: ${inputs.base_branch}
-      Existing PR: ${inputs.existing_pr}
-      Fix branch: ${inputs.fix_branch}
-
-      ### Mechanism
-
-      ~~~~text
-      ${inputs.mechanism}
-      ~~~~
-
-      ### Disposition
-
-      ~~~~text
-      ${inputs.disposition}
-      ~~~~
-
-      ### Affected roots
-
-      ~~~~text
-      ${inputs.affected_roots}
-      ~~~~
-
-      ### Evidence
-
-      ~~~~text
-      ${inputs.evidence}
-      ~~~~
-
-      ### Investigation findings
-
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
-
-      ### Legacy authority for report recovery
-
-      ~~~~text
-      ${inputs.target_authority}
-      ~~~~
-
-      ### Production observations
-
-      ~~~~text
-      ${inputs.production_evidence}
-      ~~~~
+      Existing PR: `artifacts.fix_pr.url` from the case
+      Fix branch: `artifacts.fix_pr.branch` from the case
 
       An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
@@ -486,46 +412,24 @@ mission "rate_fix" {
 
   task "author_tests" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `author_tests`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
       # Delegate to Devin
 
-      Use develop's PR and branch when it ran; otherwise use ${inputs.existing_pr} and
-      ${inputs.fix_branch}. Resume the cases owner ${inputs.cases_session_id} or the checkpoint's
-      owner through delegated_session. If a replacement is needed, have the stage agent call
+      Read the fix PR/branch from artifacts and resume the cases owner in lanes through
+      delegated_session. If a replacement is needed, have the stage agent call
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
-      Supply the PR, prior coverage, outstanding questions, and these labeled blocks:
-
-      ### Mechanism
-
-      ~~~~text
-      ${inputs.mechanism}
-      ~~~~
-
-      ### Disposition
-
-      ~~~~text
-      ${inputs.disposition}
-      ~~~~
+      Supply the PR, prior coverage, outstanding questions, and the stored diagnosis.
 
       Devin selects situations and investigates fixtures using the playbook. Case YAML describes
       inputs, not expected outputs.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
-      Direct-entry context:
-
-      ### Investigation findings
-
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
-
-      Legacy authority for recovering older reports:
-      ~~~~text
-      ${inputs.target_authority}
-      ~~~~
 
       # Assess the result
 
@@ -598,14 +502,15 @@ mission "rate_fix" {
 
   task "audit" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `audit`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
       # Work with Devin
 
-      Use upstream results or the direct-entry context: PR ${inputs.existing_pr}, mode
-      ${inputs.cases_mode}, investigation ${inputs.investigation_session_id}, fix
-      ${inputs.fix_session_id}, and cases ${inputs.cases_session_id}. Have the stage agent check
-      available sessions and use send_message/check_session for bounded evidence requests.
+      Read the fix PR, cases mode, and lane owners from the case. Check available sessions
+      and use send_message/check_session for bounded evidence requests.
       Do not use code_qa. A missing investigation owner is not a reason to stop: ask an available
       Devin session with relevant context to investigate. Evidence gathering does not change its
       file ownership, and you retain acceptance of the result.
@@ -621,18 +526,6 @@ mission "rate_fix" {
       too. Use session_lane when a request includes editing shared PR content.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
-      Direct-entry context:
-
-      ### Investigation findings
-
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
-
-      Legacy authority for recovering older reports:
-      ~~~~text
-      ${inputs.target_authority}
-      ~~~~
 
       # Assess the evidence
 
@@ -709,12 +602,8 @@ mission "rate_fix" {
         target    = missions.rate_finalize
         condition = <<-EOT
           verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
-          Set close_reason = 'audit FIX_IS_NO_OP' and use this audit's verdict. Map
-          confirmed_findings to audit_findings; include its citations alongside the investigation
-          evidence, with each conclusion attributed. Carry findings unchanged into rate_finalize.
-          Use the latest artifacts, lane owners, and
-          open questions from completed work or resumed state; map existing_pr to fix_pr_url
-          when develop did not run.
+          Save close_reason = 'audit FIX_IS_NO_OP', attributed audit findings, and current
+          artifacts through rate_case.
         EOT
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
@@ -733,11 +622,14 @@ mission "rate_fix" {
 
   task "bruno_tests" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `bruno_tests`: read shared context, update Slack,
+      and save accepted state before returning or routing.
+
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
       # Delegate to Devin
 
-      Use the fix PR from develop or ${inputs.existing_pr}, branch ${inputs.fix_branch}.
+      Read the fix PR and branch from artifacts.fix_pr.
       Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
       have the stage agent call plugins.devin.code_develop with repo_url
       https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
@@ -747,18 +639,6 @@ mission "rate_fix" {
       Devin selects portable API scenarios and authors tests without making live API calls.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
-      Direct-entry context:
-
-      ### Investigation findings
-
-      ~~~~text
-      ${inputs.findings}
-      ~~~~
-
-      Legacy authority for recovering older reports:
-      ~~~~text
-      ${inputs.target_authority}
-      ~~~~
 
       # Assess the result
 
@@ -818,13 +698,8 @@ mission "rate_fix" {
         condition = <<-EOT
           outcome == completed — enter record_learnings with close_reason = 'fix audited
           SATISFACTORY and Bruno authoring completed' and verdict = SATISFACTORY.
-          Use the latest accepted outputs or resumed state. Map audit.confirmed_findings to
-          audit_findings and include its citations alongside the investigation evidence.
-          Carry findings unchanged into rate_finalize.
-          Combine audit.open_questions and this task's unwritten_scenarios into open_questions
-          without treating a coverage limit as a human blocker. Preserve the current PRs and
-          lane owners; map existing_pr to fix_pr_url
-          when develop did not run.
+          Save accepted findings, audit findings, PRs, and unwritten scenarios through rate_case.
+          Keep coverage limits separate from blocking questions.
         EOT
       }
       # `needs_human` has no route because bruno_tests records the blocker before returning.

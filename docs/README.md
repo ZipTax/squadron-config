@@ -5,6 +5,8 @@ not part of Squadron's general repository overview.
 
 - [Atlassian MCP login](atlassian-mcp-login.md) explains how to authorize the Atlassian integration
   used by agents that read or update Jira.
+- [Slack rate workflow](slack-rate-workflow.md) covers progress updates, operator questions,
+  Jira answers, shared case memory, and deployment prerequisites.
 - [Rate-ticket orchestration](rate-ticket-orchestration.md) explains the event-driven target for
   long-running rate work across Squadron, Devin, Jira, and a bridge service, including which
   contracts are already defined and which infrastructure remains to be built.

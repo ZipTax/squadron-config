@@ -61,12 +61,12 @@ skill "question_screen" {
 }
 
 skill "blocked_run" {
-  description  = "Load when a rate mission resumes from, or ends on, a question that only a person can answer. Screens human dependencies, uses native ask-human for operator decisions, and keeps Jira evidence waits separate from Squadron's routing state."
+  description  = "Load when a rate mission resumes from, or ends on, a question that only a person can answer. Screens questions, routes operator choices to native ask-human, and prompts in Slack for answers to Jira product questions."
   instructions = load("./skills/blocked_run.md")
 }
 
 skill "rate_checkpoint" {
-  description  = "Load when reading, migrating, updating, or deleting a rate ticket's current Squadron checkpoint. Defines schema validation and checkpoint_revision handling."
+  description  = "Load when reading, migrating, updating, or closing a rate ticket's current Squadron checkpoint. Defines schema validation and checkpoint_revision handling."
   instructions = load("./skills/rate_checkpoint.md")
 }
 
@@ -104,4 +104,15 @@ skill "bridge" {
   description = "Load to register or resolve a human wait through the bridge."
   instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nReady label: ${vars.rate_ready_label}"
   tools = [tools.save_rate_blocker]
+}
+
+
+skill "rate_case" {
+  description  = "Load at every rate stage to maintain shared case context and hand off by ticket instead of rebuilding mission inputs."
+  instructions = load("./skills/rate_case.md")
+}
+
+skill "case_slack" {
+  description  = "Load for rate-case status, result, and question updates in one Slack thread, using the saved root ID and complete message."
+  instructions = load("./skills/case_slack.md")
 }

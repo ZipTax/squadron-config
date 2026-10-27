@@ -5,6 +5,159 @@
   "description": "A complete coordination envelope may describe unfinished work: null lanes/artifacts, empty results/lists, and zero counters mean not yet established. Required keys do not imply completed stages.",
   "type": "object",
   "properties": {
+    "case_state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "closed"
+      ]
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "repo_url": {
+          "type": "string"
+        },
+        "base_branch": {
+          "type": "string"
+        },
+        "disposition": {
+          "type": "string"
+        },
+        "affected_roots": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "target_authority": {
+          "type": "string"
+        },
+        "cases_mode": {
+          "type": "string"
+        },
+        "audit_findings": {
+          "type": "string"
+        },
+        "open_questions": {
+          "type": "string"
+        },
+        "close_reason": {
+          "type": "string"
+        },
+        "wai_challenge": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Accepted per-issue findings, preserving the complete source report structure."
+        },
+        "report_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitation_class": {
+          "type": "string"
+        },
+        "impact_radius": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "slack": {
+      "type": "object",
+      "properties": {
+        "mission_thread_id": {
+          "type": "string"
+        },
+        "root_message_id": {
+          "type": "string"
+        },
+        "root_text": {
+          "type": "string"
+        },
+        "published_text": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "last_update": {
+          "type": "string"
+        },
+        "update_pending": {
+          "type": "boolean"
+        },
+        "root_post_pending": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mission_thread_id",
+        "root_message_id",
+        "root_text",
+        "published_text",
+        "status",
+        "update_pending",
+        "last_update"
+      ],
+      "additionalProperties": false
+    },
+    "human_wait": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "channel": {
+              "enum": [
+                "operator",
+                "jira"
+              ]
+            },
+            "state": {
+              "enum": [
+                "pending",
+                "resolved"
+              ]
+            },
+            "question": {
+              "type": "string"
+            },
+            "context": {
+              "type": "string"
+            },
+            "jira_comment_url": {
+              "type": "string"
+            },
+            "answer": {
+              "type": "string"
+            },
+            "answer_source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "channel",
+            "state",
+            "question",
+            "context",
+            "jira_comment_url",
+            "answer",
+            "answer_source"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
     "schema_version": {
       "const": 1,
       "description": "The checkpoint contract version. Readers must reject unknown versions instead of guessing at their meaning."
@@ -52,7 +205,8 @@
       "type": "object",
       "properties": {
         "fix_pr": { "$ref": "#/$defs/pull_request" },
-        "bruno_pr": { "$ref": "#/$defs/pull_request" }
+        "bruno_pr": { "$ref": "#/$defs/pull_request" },
+        "lessons_prs": { "type": "array", "items": { "$ref": "#/$defs/pull_request" } }
       },
       "required": ["fix_pr", "bruno_pr"],
       "additionalProperties": false

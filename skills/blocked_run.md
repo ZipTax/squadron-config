@@ -1,76 +1,53 @@
-# Stop and resume work that needs a person
+# Resolve a human dependency
 
-## Your responsibility
+Apply `question_screen` first. Use `rate_case` to save the question, context, and next
+entry in `human_wait`, then `case_slack` to show Blocked on question.
 
-Screen a proposed question before interrupting a person, then choose the channel that
-owns the decision. Squadron's native ask-human tool handles operator decisions. Jira and
-the bridge handle ticket evidence requests that must survive an ended run.
+## Operator choice
 
-## Check the question before choosing a channel
+1. Call `builtins.human.ask` with the ticket, decision, evidence checked, and supported
+   options. This covers mechanical choices, access coordination, and unresolved date choices.
+2. Pass the answer to the owning Devin session. Save its source and assess the returned
+   result before restoring the active Slack status. A scheduling choice is not tax authority.
+3. On timeout, cancellation, or `[no human available]`, retain pending state and report
+   the operator dependency. The next operator-started run resumes the recorded stage and
+   mission thread; create a Jira question only when a separate product dependency warrants it.
 
-Apply `question_screen` before arranging a human wait. A `needs_human` result alone does
-not prove that evidence was exhausted or that the remaining decision blocks progress.
+## Product question or inconsistency
 
-## Ask the operator for a decision
+1. Use `sme_writeback` to have Devin post the product question on Jira. Send facts and the
+   unresolved decision; Devin owns the wording. Confirm the comment reference.
+2. Save that reference in `human_wait` with `channel: jira`. Use `human.ask` to ask
+   “Have answers been provided on <Jira comment link>?” with the remaining question's
+   context. The Slack gateway posts it in the case thread while the root remains blocked.
+3. When the operator says answers are ready, have a context-owning Devin session read the
+   current ticket and assess each answer. Save accepted answers and sources. If a gap
+   remains, refine the existing Jira discussion and ask about the remaining dependency.
+4. If the ask ends without usable answers, save a bridge blocker and register it through
+   `bridge`, then end. Keep the root blocked. Register only after the live ask ends, so
+   the bridge and an active ask do not compete to resume the case.
 
-Use `builtins.human.ask` for an unresolved effective-date choice or other operator decision.
-First distinguish a date established by the ticket or applicable authority from a date
-that requires a choice; ask only for the latter. Include the ticket, the decision's effect,
-the evidence checked, and supported options. Do not delegate this question to Devin for
-Jira publication or register a duplicate Jira bridge wait.
+The bridge blocker stores its stable ID, generation, questions, raising session when
+known, comment references, and next mission/stage. Increment generation for a new wait;
+retry an uncertain registration with the same generation. Preserve partial state and
+retry only the incomplete operation so a lost response does not duplicate the question.
 
-Pass the answer to the owning session and preserve its source in that session's report
-so later stages do not ask again. An operator's scheduling choice does not establish tax
-law. If the tool times out, is cancelled, or returns `[no human available]`, keep the
-choice unresolved and report the blocked operator decision; do not invent an answer or
-silently move it to Jira. Preserve the session and next entry through `rate_checkpoint`
-without claiming a registered Jira blocker.
+## Resume through the bridge
 
-## Resume from the bridge
+1. Match the incoming blocker ID and generation to the checkpoint before side effects.
+   Stale or completed events end without routing. Reconcile interrupted `resume_in_flight`
+   work; a live owner keeps the event. Record acceptance before continuing.
+2. Remove the configured ready label with a label-remove operation to preserve other labels.
+3. Have Devin assess comments after `last_processed_comment_id`, using `question_screen`
+   for current evidence. Advance the marker and resolve the registered blocker through
+   `bridge` when its dependency is settled. Confirm acceptance before proceeding.
+4. If the answer remains insufficient, resolve the consumed bridge generation before
+   opening a new live ask; a later fallback registers a new generation. Keep the Slack root
+   blocked until a supported answer permits work.
 
-Load the bridge skill for the configured ready label. Match the supplied blocker ID and
-generation against the current checkpoint before side effects. A mismatch or a completed
-event ends this run without routing. An accepted event still marked resume_in_flight is
-interrupted work: reconcile its recorded progress rather than discarding it or repeating
-finished operations. Record a new event ID and resume_in_flight state through rate_checkpoint
-before continuing. A live owner of the same event must not run concurrently; leave it in charge.
-The bridge must reconcile run status before starting recovery.
+## Evidence gaps without an actionable question
 
-Remove the configured ready label using a label remove operation. Ordinary comments do not trigger a run;
-adding the ready label asks the bridge to dispatch the active waiting generation once.
-
-Ask an available Devin session with relevant context to read comments after
-blocker.last_processed_comment_id and assess the outstanding questions. Accept the
-supported assessment, advance the processed-comment marker, and either continue or refine
-the question. Resolve the blocker using the bridge skill only when its dependency is settled.
-Preserve unrelated labels with add/remove operations.
-
-## Prepare a Jira evidence wait
-
-After screening, when progress requires evidence or access from ticket participants:
-
-1. Establish the exact questions and context with Devin. Do not invent an answerer.
-2. Use sme_writeback to have Devin post the question on Jira. Reuse the existing discussion
-   for a refinement, and confirm the comment reference before treating posting as complete.
-3. Save the blocker, questions, raising session when known, comment references, and the
-   selected resume mission/stage through rate_checkpoint. Advance the blocker generation
-   for every new human wait, even if the question is unchanged. A retry of the same
-   registration preserves its generation.
-4. Register or revise that blocker using the bridge skill and confirm acceptance. Keep its stable
-   id and generation so retries update the same blocker instead of creating another.
-5. Remove any stale ready label, persist the current state, and end.
-
-The confirmed Jira comment tells the person what to answer; bridge registration tells the
-next delivery where to resume. If posting, registration, or a label change is uncertain,
-retain partial state and retry that operation without duplicating the question. Do not
-report a successfully registered wait until registration is confirmed.
-
-## Distinguish an evidence gap from its next action
-
-Insufficient production evidence may have a concrete Jira question: request data, access,
-or the decision needed to proceed. Use the human-wait workflow when that answer is required.
-Record insufficient_production_evidence when no supported production conclusion is possible;
-that finding does not itself prohibit a useful ticket question. If no actionable request
-remains and work ends, use sme_writeback to have Devin explain the gap and stopping reason
-on the ticket, then confirm the comment reference. Do not manufacture a question or claim
-the behavior is correct.
+Record `insufficient_production_evidence` when production supports no conclusion. If no
+useful request remains and work ends, have Devin explain the gap on Jira through
+`sme_writeback`, confirm the comment, and post the stopping reason in Slack. Preserve
+uncertainty and the saved continuation state.
