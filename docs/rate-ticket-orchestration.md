@@ -120,8 +120,8 @@ an objective's field list does not remove the need to collect and assess the Dev
 
 ## Why a case has several Devin sessions
 
-Investigation, implementation, ratevariant cases, and Bruno coverage require different repositories,
-evidence, and permissions. One session owns each lane so that a test author does not silently change
+Investigation, implementation, ratevariant cases, Bruno coverage, and learning writeback require
+different repositories, evidence, and permissions. One session owns each lane so that a test author does not silently change
 the fix and an implementer does not manufacture expectations from the current behavior.
 
 The lane registry records the exact owner:
@@ -132,6 +132,7 @@ The lane registry records the exact owner:
 | `fix` | Implement the diagnosis Squadron approved. |
 | `ratevariant-cases` | Author and maintain local A/B fixtures and alterations. |
 | `bruno-tests` | Author live-API regression coverage from settled expectations. |
+| `learning-writeback` | Record the ticket's accepted lessons in maintained guidance, one documentation PR per repository. |
 
 The checkpoint records each lane's exact owner. The independent WAI verifier is a verification
 session, not a replacement owner of the investigation lane. When new information arrives, Squadron chooses

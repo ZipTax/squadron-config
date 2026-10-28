@@ -56,12 +56,14 @@ implementation or acceptance testing, leave it unrecorded and report the missing
 
 Collect and assess the work sessions' proposals before dispatching a writeback. Use one Devin
 writeback session for the ticket, covering all accepted lessons across repositories. Recover
-and reuse an existing writeback session before starting one; save its ID with the ticket's
-workflow state. Send later lessons and revision requests to that session through `send_message`.
+and reuse an existing writeback session before starting one; save its ID in the checkpoint's
+`learning-writeback` lane. Send later lessons and revision requests to that session through
+`send_message`.
 
 When none exists, use delegated_session and devin_code with the task-supplied writeback playbook
 and `prompt_mode: "raw"`. Supply all accepted findings, originating sessions, evidence,
-intended future uses, destination repositories, base branches, and existing documentation PRs.
+intended future uses, destination repositories, base branches keyed by repository, and existing
+documentation PRs.
 The new session does not inherit that context. If the owner is unavailable, recover its work
 before replacing it; do not start parallel writeback sessions for the same ticket.
 

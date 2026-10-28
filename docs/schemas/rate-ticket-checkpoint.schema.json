@@ -34,7 +34,11 @@
         "investigation": { "$ref": "#/$defs/lane" },
         "fix": { "$ref": "#/$defs/lane" },
         "ratevariant-cases": { "$ref": "#/$defs/lane" },
-        "bruno-tests": { "$ref": "#/$defs/lane" }
+        "bruno-tests": { "$ref": "#/$defs/lane" },
+        "learning-writeback": {
+          "$ref": "#/$defs/lane",
+          "description": "The ticket's single learning-writeback owner. Optional so earlier version-1 checkpoints stay valid; absent or null means no writeback session exists yet."
+        }
       },
       "required": [
         "investigation",

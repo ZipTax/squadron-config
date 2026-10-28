@@ -2,8 +2,8 @@
 
 Own the ticket's learning writeback across all supplied repositories in this session. The brief
 supplies accepted findings, originating sessions and evidence, intended future uses, destination
-repositories, base branches, and existing documentation PRs. Do not invent lessons or reopen
-the underlying fix to produce them.
+repositories, base branches keyed by repository, and existing documentation PRs. Do not invent
+lessons or reopen the underlying fix to produce them.
 
 ## Check the evidence and destination
 
@@ -34,9 +34,9 @@ illustrates the intended clarity; use its approach, not its tax facts or a fixed
 
 - Verify the brief's claims, counts, and remedies before adopting its wording. Report where
   the evidence does not support the brief.
-- Lead with behavior after the fix or a repeatable remedy and its prerequisites. Keep the scope
-  supported by the evidence. Describe behavior and consequences; include implementation details
-  when needed to understand or verify them. Check against the final implementation; keep history
+- Lead with behavior after the fix or a repeatable remedy and its prerequisites. State the scope
+  as broadly as the evidence supports, and no broader. Describe behavior and consequences;
+  include implementation details when needed to understand or verify them. Check against the final implementation; keep history
   only when it explains the rule.
   Correct related obsolete guidance within scope instead of leaving contradictory instructions.
 - For example, write “TX remote sellers use ZIP5 unless a live override covers the ZIP, ZIP+4,
@@ -63,12 +63,16 @@ ticket registration. Those changes can invalidate the evidence supporting the le
 Do not post Jira comments, change ticket fields, deploy, or merge.
 
 Keep related lessons together in one documentation PR per repository, managed by this session.
-For new work, branch from that repository’s supplied base. Continue supplied documentation PR
-branches without force-pushing or creating duplicates. Read its current description and preserve other authors' content when updating it.
+For new work, branch from that repository’s supplied base, or its default branch when none is
+supplied. When a documentation PR already exists for a repository, continue its branch without
+force-pushing or creating a duplicate; if several are supplied for one repository, continue the
+oldest open one and report the others. Read the PR's current description and preserve other
+authors' content when updating it.
 Keep implementation PRs as evidence references, not writeback destinations.
 
-Review the diff with the SQL repository's `review-learning-pr` skill: a maintainer unfamiliar with the case must be able to explain the finding,
-its consequence, applicable conditions, and what remains unproven. Run applicable documentation
+Review each diff using the SQL repository's `review-learning-pr` checklist, reading it from that
+repository when it is not checked out: a maintainer unfamiliar with the case must be able to
+explain the finding, its consequence, applicable conditions, and what remains unproven. Run applicable documentation
 checks. Return every documentation PR URL in `destination_pr_urls`. Return `recorded` only when
 all accepted lessons are recorded or already documented and all changes are pushed. Return
 `blocked` if the assignment cannot be completed, with the failed step and what is needed.
