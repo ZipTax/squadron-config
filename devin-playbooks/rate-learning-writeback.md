@@ -2,8 +2,8 @@
 
 Own the ticket's learning writeback across all supplied repositories in this session. The brief
 supplies accepted findings, originating sessions and evidence, intended future uses, destination
-repositories, base branches keyed by repository, and existing documentation PRs. Do not invent
-lessons or reopen the underlying fix to produce them.
+repositories, base branches keyed by repository, and this ticket's existing documentation PRs.
+Do not invent lessons or reopen the underlying fix to produce them.
 
 ## Check the evidence and destination
 
@@ -64,9 +64,10 @@ Do not post Jira comments, change ticket fields, deploy, or merge.
 
 Keep related lessons together in one documentation PR per repository, managed by this session.
 For new work, branch from that repository’s supplied base, or its default branch when none is
-supplied. When a documentation PR already exists for a repository, continue its branch without
-force-pushing or creating a duplicate; if several are supplied for one repository, continue the
-oldest open one and report the others. Read the PR's current description and preserve other
+supplied. Consider only documentation PRs for the current ticket; never add lessons to another
+ticket's PR. When this ticket already has a documentation PR in a repository, continue its branch
+without force-pushing or creating a duplicate; if it has several there, continue the oldest open
+one and report the others. Read the PR's current description and preserve other
 authors' content when updating it.
 Keep implementation PRs as evidence references, not writeback destinations.
 

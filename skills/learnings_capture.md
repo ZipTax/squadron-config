@@ -62,8 +62,8 @@ and reuse an existing writeback session before starting one; save its ID in the 
 
 When none exists, use delegated_session and devin_code with the task-supplied writeback playbook
 and `prompt_mode: "raw"`. Supply all accepted findings, originating sessions, evidence,
-intended future uses, destination repositories, base branches keyed by repository, and existing
-documentation PRs.
+intended future uses, destination repositories, base branches keyed by repository, and the
+ticket's existing documentation PRs; do not supply documentation PRs from other tickets.
 The new session does not inherit that context. If the owner is unavailable, recover its work
 before replacing it; do not start parallel writeback sessions for the same ticket.
 
