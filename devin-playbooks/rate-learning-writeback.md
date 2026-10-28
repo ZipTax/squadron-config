@@ -1,9 +1,9 @@
-# Record an accepted rate-workflow lesson
+# Record accepted rate-workflow lessons
 
-Turn the supplied lesson into a focused documentation PR. The brief supplies the ticket,
-originating session and evidence, intended future use, destination repository, base branch,
-and any existing documentation PR. Use that evidence; do not invent a
-lesson or reopen the underlying fix to produce one.
+Own the ticket's learning writeback across all supplied repositories in this session. The brief
+supplies accepted findings, originating sessions and evidence, intended future uses, destination
+repositories, base branches, and existing documentation PRs. Do not invent lessons or reopen
+the underlying fix to produce them.
 
 ## Check the evidence and destination
 
@@ -13,7 +13,7 @@ that the finding is supported and adds useful guidance. If it is already documen
 missing or contradictory, return `blocked` with the precise gap; do not choose configuration
 values, run a new investigation, or turn an unresolved hypothesis into a rule.
 
-Select the relevant maintained guidance in the supplied repository using these rules:
+Select the relevant maintained guidance in the supplied repositories using these rules:
 
 | Lesson | Appropriate guidance |
 | --- | --- |
@@ -22,7 +22,7 @@ Select the relevant maintained guidance in the supplied repository using these r
 | Proven rate-audit precedent | SQL repository's `ratevariant-audit/references/case-law.md` |
 | Proven limitation with an established new-rate-engine deferral | SQL repository's `ratevariant-audit/references/limitations.md` |
 
-If the lesson belongs in another repository, report the mismatch rather than expanding the assignment.
+If a lesson belongs outside the supplied repositories, report the mismatch rather than expanding the assignment.
 A ticket's disposition alone does not justify an entry or establish an engine deferral.
 
 ## Write for the next maintainer
@@ -62,13 +62,14 @@ Change only the selected guidance files. Do not edit SQL, migrations, fixtures, 
 ticket registration. Those changes can invalidate the evidence supporting the lesson.
 Do not post Jira comments, change ticket fields, deploy, or merge.
 
-For new work, branch from the supplied base and open a separate documentation PR. When an
-existing documentation PR is supplied, continue its branch without force-pushing or creating
-a duplicate. Read its current description and preserve other authors' content when updating it.
+Keep related lessons together in one documentation PR per repository, managed by this session.
+For new work, branch from that repository’s supplied base. Continue supplied documentation PR
+branches without force-pushing or creating duplicates. Read its current description and preserve other authors' content when updating it.
 Keep implementation PRs as evidence references, not writeback destinations.
 
 Review the diff with the SQL repository's `review-learning-pr` skill: a maintainer unfamiliar with the case must be able to explain the finding,
 its consequence, applicable conditions, and what remains unproven. Run applicable documentation
-checks. Return `recorded` only after the scoped change is pushed to a reviewable PR. Return
+checks. Return every documentation PR URL in `destination_pr_urls`. Return `recorded` only when
+all accepted lessons are recorded or already documented and all changes are pushed. Return
 `blocked` if the assignment cannot be completed, with the failed step and what is needed.
 Use the attached schema and return without waiting for a person.

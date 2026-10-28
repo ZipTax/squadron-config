@@ -373,7 +373,8 @@ mission "rate_finalize" {
       supporting cases when assessing their proposals.
 
       Use `!rate-learning-writeback` as the writeback playbook and supply base branch
-      ${inputs.base_branch}. Title the new Devin session "${inputs.issue} — record <lesson>"
+      ${inputs.base_branch}. Use one writeback session for all accepted lessons across repositories, reusing any existing
+      owner. Title a new session "${inputs.issue} — record learnings"
       and tag it with `["${inputs.issue}", "learnings"]`.
 
       # Finish
@@ -412,6 +413,11 @@ mission "rate_finalize" {
       field "writeback_outcome" {
         type        = "string"
         description = "recorded | already_documented | blocked from the assessed rate-learning-writeback result, or not_requested when no proposal qualified. A blocked writeback is not a no-lessons result."
+        required    = true
+      }
+      field "destination_pr_urls" {
+        type        = "string"
+        description = "All documentation PR URLs returned by the ticket's single writeback session, as a JSON array."
         required    = true
       }
       field "destination_pr_url" {

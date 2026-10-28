@@ -6,5 +6,6 @@
   ],
   "destination_pr_url": "",
   "files_changed": [],
-  "reason": "The existing DEMO-100 entry already explains this check."
+  "reason": "The existing DEMO-100 entry already explains this check.",
+  "destination_pr_urls": []
 }

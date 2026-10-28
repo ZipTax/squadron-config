@@ -54,19 +54,23 @@ implementation or acceptance testing, leave it unrecorded and report the missing
 
 ## Delegate only accepted writebacks
 
-For an accepted proposal, use delegated_session and devin_code to start a separate session
-with the task-supplied writeback playbook and `prompt_mode: "raw"`. Supply the task context,
-originating session, accepted finding, evidence references, intended future use, destination
-repository, base branch, and any existing documentation PR. The new session does not inherit
-that context. Continue an existing writeback through send_message instead of creating another
-session or PR.
+Collect and assess the work sessions' proposals before dispatching a writeback. Use one Devin
+writeback session for the ticket, covering all accepted lessons across repositories. Recover
+and reuse an existing writeback session before starting one; save its ID with the ticket's
+workflow state. Send later lessons and revision requests to that session through `send_message`.
+
+When none exists, use delegated_session and devin_code with the task-supplied writeback playbook
+and `prompt_mode: "raw"`. Supply all accepted findings, originating sessions, evidence,
+intended future uses, destination repositories, base branches, and existing documentation PRs.
+The new session does not inherit that context. If the owner is unavailable, recover its work
+before replacing it; do not start parallel writeback sessions for the same ticket.
 
 The playbook owns documentation scope, destination checks, writing style, and delivery.
 Supply Devin with the finding, supporting evidence, and relevant constraints. Suggested wording
 is input to evaluate, not a requirement to copy. Collect Devin’s structured result and assess
 the actual diff:
 
-- `recorded`: accept only the supplied lesson, supported by cited evidence, in a documentation PR.
+- `recorded`: accept only the supplied lesson, supported by cited evidence, in the returned documentation PRs.
 - `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
 - `blocked`: report the failed step and what is needed, without treating failure as no lessons.
 
