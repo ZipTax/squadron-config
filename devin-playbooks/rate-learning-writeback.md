@@ -32,19 +32,26 @@ Read a relevant existing entry for style. The DEV-10223 entry in the SQL reposit
 [PR #288, commit 2c571e6](https://github.com/FedTax/txc-sqlserver-database/commit/2c571e6f1f06539a817f5c3081f4585256ad3249),
 illustrates the intended clarity; use its approach, not its tax facts or a fixed template.
 
-- Lead with behavior after the fix or a repeatable remedy and its prerequisites. Check against
-  the final implementation. Explain why it matters; keep history only when it explains the rule.
+- Treat the brief's rule text, counts, and remedies as claims to verify, not draft wording.
+  Write the rule yourself; report where the evidence does not support the brief.
+- Lead with behavior after the fix or a repeatable remedy and its prerequisites, at the widest
+  scope its mechanism supports and worded to survive a refactor. Name code objects, predicates,
+  or line numbers only when the reader must open them. Check against the final implementation. Explain why it matters; keep history only when it explains the rule.
   Correct related obsolete guidance within scope instead of leaving contradictory instructions.
 - For example, write “TX remote sellers use ZIP5 unless a live override covers the ZIP, ZIP+4,
   state, and date,” not “ZIP+4 overrides are ignored and need a code change” after that defect is fixed
   ([SQL PR #304](https://github.com/FedTax/txc-sqlserver-database/pull/304)).
 - Retain the conditions, period, and case facts needed to understand the evidence. Introduce
   participants before comparing values, and link the supporting ticket, PR, or commit rather
-  than reproducing row IDs, endpoint syntax, or session history without a practical reason.
+  than reproducing row IDs, endpoint syntax, timings, run IDs, snapshot-specific permissions,
+  or session history without a practical reason.
 - Preserve uncertainty and unmet requirements. Omitting a test whose expected value lacks
   authority leaves a coverage gap; documenting that omission does not satisfy the requirement.
+  Label evidence as direct coverage, supporting evidence, or hypothesis; a method that worked
+  once is an option, not a numbered procedure or time budget.
 - Use short, connected paragraphs for distinct findings. Avoid repeating the lesson as an
-  introduction, incident narrative, and closing rules list.
+  introduction, incident narrative, and closing rules list. Keep mechanics in one canonical
+  reference and point other guidance at it.
 
 Prefer a focused amendment to maintained guidance. Do not create a ticket-specific fix
 narrative or commit release status, deployment instructions, run logs, or coordination state.
@@ -60,7 +67,7 @@ existing documentation PR is supplied, continue its branch without force-pushing
 a duplicate. Read its current description and preserve other authors' content when updating it.
 Keep implementation PRs as evidence references, not writeback destinations.
 
-Review the diff: a maintainer unfamiliar with the case must be able to explain the finding,
+Review the diff with the SQL repository's `review-learning-pr` skill: a maintainer unfamiliar with the case must be able to explain the finding,
 its consequence, applicable conditions, and what remains unproven. Run applicable documentation
 checks. Return `recorded` only after the scoped change is pushed to a reviewable PR. Return
 `blocked` if the assignment cannot be completed, with the failed step and what is needed.
