@@ -33,8 +33,7 @@ Read a relevant existing entry for style. The DEV-10223 entry in the SQL reposit
 illustrates the intended clarity; use its approach, not its tax facts or a fixed template.
 
 - Verify the brief's claims, counts, and remedies before adopting its wording. Report where
-  the evidence does not support the brief; preserve user-approved wording unless a factual
-  correction is needed.
+  the evidence does not support the brief.
 - Lead with behavior after the fix or a repeatable remedy and its prerequisites. Keep the scope
   supported by the evidence. Describe behavior and consequences; include implementation details
   when needed to understand or verify them. Check against the final implementation; keep history

@@ -62,9 +62,9 @@ that context. Continue an existing writeback through send_message instead of cre
 session or PR.
 
 The playbook owns documentation scope, destination checks, writing style, and delivery.
-Supply the finding, supporting evidence, and relevant constraints. Suggested wording is input
-to review, not a requirement to copy. Preserve user-approved wording unless a factual correction
-is needed. Collect Devin’s structured result and assess the actual diff:
+Supply Devin with the finding, supporting evidence, and relevant constraints. Suggested wording
+is input to evaluate, not a requirement to copy. Collect Devin’s structured result and assess
+the actual diff:
 
 - `recorded`: accept only the supplied lesson, supported by cited evidence, in a documentation PR.
 - `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
