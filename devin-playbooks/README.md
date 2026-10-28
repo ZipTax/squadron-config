@@ -33,7 +33,7 @@ so in the description.
 | `!rate-fix` | `output/schema/**` and `scripts/**`; opening and labelling the fix PR | Re-derive the diagnosis, touch `tests/ratevariant-cases/**`, or interpret the A/B |
 | `!ratevariant-cases` | `tests/ratevariant-cases/**`, and the fixture/eligibility discovery behind it | Grade the run it enables, or encode expected outputs in case YAML or metadata |
 | `!bruno-regression` | V3 API regression scenarios for the settled behavior | Assert a figure with no authority behind it, or derive one from the system under test |
-| `!rate-learning-writeback` | Accepted rate-workflow lessons in selected maintained guidance; a separate documentation PR | Discover new lessons, change implementation or tests, or turn a ticket outcome into a fix narrative |
+| `!rate-learning-writeback` | The ticket's accepted rate-workflow lessons in selected maintained guidance; one documentation PR per repository, owned by the ticket's single writeback session | Discover new lessons, change implementation or tests, or turn a ticket outcome into a fix narrative |
 | `!txc-support` | Generic support: API/app, account, configuration, explaining behavior | Fix anything that changes how tax is calculated — those route into the flow above |
 
 Two splits look redundant and are not. Investigation is separate from the fix because evidence and

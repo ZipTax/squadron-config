@@ -372,8 +372,11 @@ mission "rate_finalize" {
       distinct Devin session through learnings_capture. Check rate_case_log for duplication or
       supporting cases when assessing their proposals.
 
-      Use `!rate-learning-writeback` as the writeback playbook and supply base branch
-      ${inputs.base_branch}. Title the new Devin session "${inputs.issue} — record <lesson>"
+      Use `!rate-learning-writeback` as the writeback playbook. Supply base branches as an object
+      keyed by repository URL: {"${inputs.repo_url}": "${inputs.base_branch}"} plus any other
+      destination repository; a blank or missing entry means that repository's default branch.
+      Use one writeback session for all accepted lessons across repositories, reusing the owner in
+      the checkpoint's learning-writeback lane. Title a new session "${inputs.issue} — record learnings"
       and tag it with `["${inputs.issue}", "learnings"]`.
 
       # Finish
@@ -401,7 +404,7 @@ mission "rate_finalize" {
       }
       field "recorded" {
         type        = "boolean"
-        description = "True only when the assessed rate-learning-writeback outcome is recorded and its documentation PR is verified."
+        description = "True only when the assessed rate-learning-writeback outcome is recorded and every returned documentation PR is verified."
         required    = true
       }
       field "learning" {
@@ -414,9 +417,14 @@ mission "rate_finalize" {
         description = "recorded | already_documented | blocked from the assessed rate-learning-writeback result, or not_requested when no proposal qualified. A blocked writeback is not a no-lessons result."
         required    = true
       }
+      field "destination_pr_urls" {
+        type        = "string"
+        description = "All documentation PR URLs returned by the ticket's single writeback session, as a JSON array."
+        required    = true
+      }
       field "destination_pr_url" {
         type        = "string"
-        description = "PR URL of the write-back, when one was made"
+        description = "First documentation PR URL, retained for compatibility; use destination_pr_urls for the full set."
         required    = false
       }
       field "checkpoint" {
