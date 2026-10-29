@@ -18,12 +18,20 @@ Select the relevant maintained guidance in the supplied repositories using these
 | Lesson | Appropriate guidance |
 | --- | --- |
 | Repository procedure, query trap, or configuration constraint | Relevant maintained repository skill or reference |
+| Case or alteration authoring step | SQL repository's `ratevariant-case-data` or `ratevariant-testing` skill |
 | Workflow boundary, evidence gate, or routing behavior | Corresponding workflow skill |
-| Proven rate-audit precedent | SQL repository's `ratevariant-audit/references/case-law.md` |
+| Reusable rate-audit precedent not already covered by maintained guidance | SQL repository's `ratevariant-audit/references/case-law.md` |
 | Proven limitation with an established new-rate-engine deferral | SQL repository's `ratevariant-audit/references/limitations.md` |
 
 If a lesson belongs outside the supplied repositories, report the mismatch rather than expanding the assignment.
 A ticket's disposition alone does not justify an entry or establish an engine deferral.
+
+Evaluate a destination, format, or wording suggested by the brief against these rules, and
+report material departures in `reason`.
+
+Find the durable part before writing: state in a sentence or two what a future session should do
+differently. Keep historical details only when they explain a reusable check, remedy, or
+constraint. What remains is often narrower than the brief.
 
 ## Write for the next maintainer
 
@@ -52,6 +60,15 @@ illustrates the intended clarity; use its approach, not its tax facts or a fixed
 - Use short, connected paragraphs for distinct findings. Avoid repeating the lesson as an
   introduction, incident narrative, and closing rules list. Keep mechanics in one canonical
   reference and point other guidance at it.
+- Record each lesson at the smallest size that carries it, in the closest existing section.
+  Named examples and cross-references are fine when they help; avoid mandatory case lists and
+  explaining the same lesson in more than one place. If a lesson grows past a short paragraph,
+  check whether it records history or more than one lesson.
+- For example, DEV-8752's brief proposed a case-law entry naming four required guardrail cases
+  and the run history of a ZIP+4 lookup that bypassed the override gate. The reusable lesson was
+  one bullet in `ratevariant-case-data`: model the correction in the table the tested branch
+  reads, and include no-override destinations as unchanged-behavior guardrails
+  ([SQL PR #353](https://github.com/FedTax/txc-sqlserver-database/pull/353)).
 
 Prefer a focused amendment to maintained guidance. Do not create a ticket-specific fix
 narrative or commit release status, deployment instructions, run logs, or coordination state.

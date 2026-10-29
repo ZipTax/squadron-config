@@ -38,6 +38,9 @@ Accept guidance about behavior after the fix or a repeatable remedy with clear p
 Check it against the final implementation; reject incident recaps and removed defects presented
 as current limitations. Include corrections to related obsolete guidance in the writeback scope.
 
+Reduce an accepted proposal to its durable part: what a future session should do differently.
+Keep historical details only when they explain a reusable check, remedy, or constraint.
+
 Identify the owning repository from the proposal. Use the writeback playbook supplied by
 the task to select the appropriate reference.
 
@@ -68,14 +71,15 @@ The new session does not inherit that context. If the owner is unavailable, reco
 before replacing it; do not start parallel writeback sessions for the same ticket.
 
 The playbook owns documentation scope, destination checks, writing style, and delivery.
-Supply Devin with the finding, supporting evidence, and relevant constraints. Suggested wording
-is input to evaluate, not a requirement to copy. Collect Devin’s structured result and assess
-the actual diff:
+Supply Devin with the finding, why it matters, supporting evidence, intended future use, and
+relevant constraints. Suggested destinations and wording are input to evaluate, not requirements
+to copy; label them as suggestions. Collect Devin’s structured result and assess the actual diff:
 
 - `recorded`: accept only the supplied lesson, supported by cited evidence, in the returned documentation PRs.
 - `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
 - `blocked`: report the failed step and what is needed, without treating failure as no lessons.
 
-Return specific deficiencies for revision. Report the work sessions asked, their proposals
+Return specific deficiencies for revision, including history that explains no reusable rule,
+repeated explanations, or scope broader than the evidence. Report the work sessions asked, their proposals
 or explicit “none” responses, unavailable responses, and the writeback outcome. If no proposal
 qualifies, finish without starting a writeback.
