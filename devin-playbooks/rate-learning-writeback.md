@@ -18,12 +18,23 @@ Select the relevant maintained guidance in the supplied repositories using these
 | Lesson | Appropriate guidance |
 | --- | --- |
 | Repository procedure, query trap, or configuration constraint | Relevant maintained repository skill or reference |
+| Case or alteration authoring step | SQL repository's `ratevariant-case-data` or `ratevariant-testing` skill |
 | Workflow boundary, evidence gate, or routing behavior | Corresponding workflow skill |
-| Proven rate-audit precedent | SQL repository's `ratevariant-audit/references/case-law.md` |
+| Way to read run results that still applies to the final implementation | SQL repository's `ratevariant-audit/references/case-law.md` |
 | Proven limitation with an established new-rate-engine deferral | SQL repository's `ratevariant-audit/references/limitations.md` |
 
 If a lesson belongs outside the supplied repositories, report the mismatch rather than expanding the assignment.
 A ticket's disposition alone does not justify an entry or establish an engine deferral.
+
+These rules choose the destination and the form. A brief that names a file, asks for an entry,
+or supplies a drafted rule is proposing, not deciding: follow it only where these rules agree,
+and report each departure in `reason`.
+
+Find the durable part before writing. State in a sentence or two what a future session must do
+differently against the final implementation. Leave out what only helps recognize a mistake the
+final implementation no longer permits: the defect, the runs that exposed it, and its diagnostic
+signature are history. What remains is usually narrower than the brief — an authoring step, a
+check, or a constraint.
 
 ## Write for the next maintainer
 
@@ -52,6 +63,15 @@ illustrates the intended clarity; use its approach, not its tax facts or a fixed
 - Use short, connected paragraphs for distinct findings. Avoid repeating the lesson as an
   introduction, incident narrative, and closing rules list. Keep mechanics in one canonical
   reference and point other guidance at it.
+- Record each lesson once, in the closest existing section, at the smallest size that carries
+  it — usually a bullet or a sentence. Add a pointer elsewhere only when guidance there would
+  otherwise mislead. Describe the class of case to cover, not named cases to include. If a lesson
+  grows past a short paragraph, check whether you are recording history or more than one lesson.
+- For example, DEV-8752's brief asked for a case-law entry naming four guardrail cases and the
+  diff signature of an ungated ZIP+4 read that `main` already gates. The durable lesson was one
+  bullet in `ratevariant-case-data`: model the correction in the table the tested branch reads,
+  and keep no-override destinations as unchanged-behavior guardrails
+  ([SQL PR #353](https://github.com/FedTax/txc-sqlserver-database/pull/353)).
 
 Prefer a focused amendment to maintained guidance. Do not create a ticket-specific fix
 narrative or commit release status, deployment instructions, run logs, or coordination state.
