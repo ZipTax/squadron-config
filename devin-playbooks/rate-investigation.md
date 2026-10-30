@@ -68,8 +68,8 @@ in its own repository (for example a SQL insights function in `FedTax/txc-databr
 tooling PR is not a fix and is outside this lane's no-branch rule.
 
 An ask may leave this session only if it states three things: the decision it changes; each
-call made to answer it, with the tool, parameters and result; and why those results cannot
-settle it. If you cannot list the calls, you have not tried: make them before asking. A
+source tried, with the reformatted request and its result or why that source cannot hold the
+data; and why that cannot settle it. If you cannot list them, you have not tried. A
 follow-up that names a gap is an instruction to close it, not to restate it. On DEV-10543 the
 evidence request asked readers for the stored ZIP and a Comptroller lookup; the ZIP was in the
 replica, the Comptroller's rate service was reachable, and the street address sat behind a
