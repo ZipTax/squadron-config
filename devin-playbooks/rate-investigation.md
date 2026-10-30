@@ -53,8 +53,9 @@ Answer every question yourself before anyone else sees it. This covers every ask
 for someone to run, and a question back to whoever briefed you. Try each source that could
 settle it: the ticket, the state's published material and rate lookup service, the repository,
 every configured MCP tool (re-list them; do not rely on an earlier listing), reachable
-snapshots, and the stored record. Trying a source means calling it. Deciding that it probably
-cannot answer is not trying.
+snapshots, and the stored record. Frame the question as the data you need, not the query you
+would run, then ask whether you can reformat it so a source returns that data. On DEV-8835 the
+question was "I need to run this query", not "I need this data", so no tool seemed to fit.
 
 A tool that does not take the input you would filter on is not a reason to ask. Find that
 input in another source, convert it into values the tool does take, and query those. On
