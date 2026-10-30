@@ -46,18 +46,34 @@ Top-level verdict fields summarize the
 primary issue; they do not replace the other findings. Do not ask a person to repeat an
 answer already on the ticket.
 
-Never ask a question you have not first tried to answer. This covers every ask: a
-`human_questions` entry, a closing artifact in `unknowns`, a ticket evidence request, and a
-question back to whoever briefed you. Try each source that could settle it: the ticket, the
-state's published material and rate lookup service, the repository, every configured MCP tool
-(re-list them; do not rely on an earlier listing), reachable snapshots, and the stored record.
-When a governed tool omits a field its data holds, open a PR extending the tool in its own
-repository (for example a SQL insights function in `FedTax/txc-databricks`); a tooling PR is
-not a fix and is outside this lane's no-branch rule. A question that survives names the
-decision it changes, what was tried, and why that cannot settle it. A follow-up naming a gap is
-an instruction to close it, not to restate it. On DEV-10543 the evidence request asked readers
-for the stored ZIP and a Comptroller lookup; the ZIP was in the replica, the Comptroller's rate
-service was reachable, and the street address sat behind a tool that did not select it.
+## Answer your own question first, every time
+
+Answer every question yourself before anyone else sees it. This covers every ask: a
+`human_questions` entry, a closing artifact in `unknowns`, a ticket evidence request, a query
+for someone to run, and a question back to whoever briefed you. Try each source that could
+settle it: the ticket, the state's published material and rate lookup service, the repository,
+every configured MCP tool (re-list them; do not rely on an earlier listing), reachable
+snapshots, and the stored record. Frame the question as the data you need, not the query you
+would run, then ask whether you can reformat it so a source returns that data. On DEV-8835 the
+question was "I need to run this query", not "I need this data", so no tool seemed to fit.
+
+A tool that does not take the input you would filter on is not a reason to ask. Find that
+input in another source, convert it into values the tool does take, and query those. On
+DEV-8835 the investigation asked a human to run a Missouri-wide query by district code because
+`nonssuta_rate_candidates` filters by ZIP, not by district. Missouri's boundary file lists the
+ZIP+4s inside every district, old and new, so querying those ZIPs could have answered it. A
+response cap or a slow tool is not a reason to ask either: narrow the calls, batch them, or
+page through. When a governed tool omits a field its data holds, open a PR extending the tool
+in its own repository (for example a SQL insights function in `FedTax/txc-databricks`); a
+tooling PR is not a fix and is outside this lane's no-branch rule.
+
+An ask may leave this session only if it states three things: the decision it changes; each
+source tried, with the reformatted request and its result or why that source cannot hold the
+data; and why that cannot settle it. If you cannot list them, you have not tried. A
+follow-up that names a gap is an instruction to close it, not to restate it. On DEV-10543 the
+evidence request asked readers for the stored ZIP and a Comptroller lookup; the ZIP was in the
+replica, the Comptroller's rate service was reachable, and the street address sat behind a
+tool that did not select it.
 
 ## Return the supported result
 
