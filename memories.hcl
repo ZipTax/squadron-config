@@ -9,3 +9,7 @@ memory "rate_checkpoint" {
 memory "rate_resume_state" {
   description = "Legacy read-only migration source for pre-checkpoint `<TICKET>.md` records. rate_triage reads this slot only when no rate_checkpoint file exists, converts the current state into schema_version 1 of the checkpoint, then deletes the legacy file. No stage writes new state here, so tickets already waiting are not abandoned during migration."
 }
+
+memory "slack_messages" {
+  description = "What each request's Slack posts contained, one folder per request key: `<KEY>/root.md` is the top-level message's current `text` and `blocks`, without the lines the gateway adds, and `<KEY>/thread.md` holds every thread post in order. Read and write it only through the slack_thread skill, so a later run can change part of a message without rebuilding it."
+}
