@@ -234,7 +234,6 @@ agent "learnings_curator" {
   ]
   skills      = [
     skills.question_screen,
-    skills.txc_staging_access,
     skills.delegated_session,
     skills.devin_code,
     skills.session_lane,
