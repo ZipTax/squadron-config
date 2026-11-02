@@ -1,16 +1,38 @@
-# Request staging snapshot evidence
+# Request TaxCloud data evidence
 
-1. Supply the data question and scope. Have Devin use `write-taxcloud-sql-query` and
-   `query-staging-snapshot` in the SQL repository for query mechanics and connection setup.
-2. For fixture gaps, have the cases owner use `ratevariant-case-data` to find an eligible
-   situation or explain the coverage limit. Identify substitute merchants as substitutes
-   so their results are not attributed to the reported transaction.
-3. Assess results against the dated FedTax/Reports copy. A measured mechanism remains
-   evidence about that snapshot; matching or missing rows do not establish current
-   production configuration.
-4. If access fails, have Devin check its environment wiring and identify the missing
-   capability. Use `blocked_run` for an operator dependency.
+## Your responsibility
 
-Ratevariant tests run against the dated staging snapshot. Shared staging changes follow
-repository PR workflows. Credentials and connection procedures stay with Devin's repository
-skills and secret mechanism.
+You supply the data question and scope, then judge whether the returned evidence supports
+the claim. Production-data access and interpretation belong to the Devin investigation or
+fix session through its playbook; Squadron does not need a production connection or tool catalog.
+
+## Work with Devin
+
+Ensure the Devin session uses
+`write-taxcloud-sql-query` and `query-staging-snapshot` in the SQL repository. Do not put
+credentials, connection settings, SQL templates, or copied query procedures in its brief.
+
+For case data gaps, ask the Devin session authoring cases to use ratevariant-case-data
+and find an eligible situation or explain the coverage limit. Let Devin select substitute
+merchants and investigate fixture requirements. A substitute must not be presented as the reported production transaction.
+
+Ratevariant tests run against the dated staging snapshot. Production observations can inform a diagnosis
+or fix, but they do not establish that the snapshot contains the records a test needs.
+
+## Interpret the evidence
+
+The dated FedTax/Reports snapshot proves facts about that copy. Its date alone does not
+invalidate a measured mechanism, but neither matching nor missing rows establish today's
+production configuration. Preserve a bounded production verification request when current
+rows matter; if the finding itself cannot be supported, retain the evidence gap.
+
+Governed production access, when available, is a separate observation source recorded in
+production_evidence. Do not assume it exists, describe staging as the only possible source,
+or treat production observations as a substitute for local SQL Server behavior proof.
+
+## Finish or pause
+
+If access fails, have the Devin session check its environment wiring and report the missing
+capability. Secrets remain in Devin's secret mechanism; use blocked_run for the resulting
+operator dependency. Shared staging mutations run
+through the repository's PR workflows, not ad hoc commands from a session.
