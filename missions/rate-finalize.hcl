@@ -268,8 +268,8 @@ mission "rate_finalize" {
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
       Use delegated_session for registration and follow-ups; record this owner in lanes.verification.
 
-      Use the issue scopes in context.findings; re-derive the disputed behavior
-      independently rather than treating the prior conclusions as proof.
+      Have the independent Devin session use the issue scopes in context.findings to
+      re-derive the disputed behavior rather than treating prior conclusions as proof.
 
       # Assess the result
 
