@@ -8,7 +8,7 @@ agent "codegen" {
     plugins.devin.check_session,
     plugins.devin.send_message
   ]
-  skills      = [skills.txc_production_evidence, skills.devin_code, skills.delegated_session, skills.evidence_gate, skills.session_lane]
+  skills      = [skills.devin_code, skills.delegated_session, skills.evidence_gate, skills.session_lane]
 }
 
 agent "quality_assurance" {
@@ -22,7 +22,7 @@ agent "quality_assurance" {
     plugins.devin.check_session,
     plugins.devin.send_message
   ]
-  skills      = [skills.txc_production_evidence, skills.devin_qa, skills.delegated_session, skills.evidence_gate, skills.verdict_loop]
+  skills      = [skills.devin_qa, skills.delegated_session, skills.evidence_gate, skills.verdict_loop]
 }
 
 agent "peer_review" {
@@ -36,7 +36,7 @@ agent "peer_review" {
     plugins.devin.check_session,
     plugins.devin.send_message
   ]
-  skills      = [skills.txc_production_evidence, skills.devin_review, skills.delegated_session, skills.evidence_gate]
+  skills      = [skills.devin_review, skills.delegated_session, skills.evidence_gate]
 }
 
 agent "peer_review_code_cleanup" {
@@ -50,7 +50,7 @@ agent "peer_review_code_cleanup" {
     plugins.devin.check_session,
     plugins.devin.send_message
   ]
-  skills      = [skills.txc_production_evidence, skills.devin_pr_cleanup]
+  skills      = [skills.devin_pr_cleanup]
 }
 
 agent "linear" {
