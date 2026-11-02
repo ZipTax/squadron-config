@@ -24,6 +24,5 @@ to `case_slack`; the mission selects when each update occurs.
 
 ## Finish
 
-Keep the case active through operator review. Use `review_followup` to establish completion
-before closing it, so pending verification and corrections remain actionable. Retain the checkpoint
-for reference or reuse. Read closed cases as history until work is explicitly reopened.
+Close the case when the calling task establishes its completion criteria. Retain the
+checkpoint for reference or reuse. Read closed cases as history until work is explicitly reopened.

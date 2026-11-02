@@ -139,7 +139,8 @@ Squadron delegates those findings to the existing owners and re-audits correctio
 correction needs another deployment, the operator deploys it and requests the next check.
 Results and pending work are posted in Slack.
 
-Use [review_followup](../skills/review_followup.md) for this loop. Review remains open until
+The `review_followup` task in [rate_finalize](../missions/rate-finalize.hcl) owns this loop.
+Review remains open until
 PRs merge and requested checks and corrections are settled, or the operator explicitly ends
 it. An interrupted wait retains the next action for resumption.
 

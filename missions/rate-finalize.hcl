@@ -429,14 +429,60 @@ mission "rate_finalize" {
 
   task "review_followup" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} and review_followup to keep this case available
-      for feedback until its PRs merge and requested checks are settled, or the operator ends
-      review. Apply the skill's post-deployment check when the operator reports a manual
-      staging deployment. Re-audit changed work and direct corrections to the recorded owners.
+      Keep ${inputs.issue} available for operator feedback, re-audit, and corrections until
+      its PRs merge and requested checks are settled, or the operator ends review.
+      Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
 
-      Use case_slack for Awaiting review, work updates, and the closing outcome.
-      Persist progress before each wait or session request. An interrupted wait leaves
-      this stage as the next entry so review can resume without repeating finished work.
+      # Collect current work and wait
+
+      1. Have the reviewer collect current PR states, heads, and session results through
+         delegated_session, including lessons PRs. On resume, reconcile the saved pending
+         action before resending work. If the completion criteria below are met, finish.
+      2. Save progress and next entry rate_finalize/review_followup before each wait or
+         session request. Set Slack status to Awaiting review.
+      3. Call builtins.human.ask without timeout_seconds: "What should I review or change?
+         Tell me when staging is deployed or the PRs are merged." Offer re-audit, staging
+         verification, merge check, and end review, with free text for detailed feedback.
+         Wait in this task; an interrupted ask retains active case state for resumption.
+
+      # Assess feedback and direct corrections
+
+      1. Save feedback and collect affected session results and PR heads, including changes
+         the operator requested directly from Devin. Ask for any unrecorded feedback.
+      2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
+         through delegated_session, preserving each owner's file lane.
+      3. Set status to Auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
+         changed work with fresh captures. Have the Bruno owner review automatic staging CI:
+         should-change tests fail before deployment and pass afterward; guardrails pass throughout.
+         Record assessed heads and evidence so an earlier pass cannot approve a later commit.
+      4. Use verdict_loop to bound corrections to 10 attempts per feedback round or two
+         attempts without improvement. Report unresolved findings at the limit. Preserve
+         prior counters and evidence across rounds. Post results in Slack and return to the ask.
+
+      Use blocked_run for an operator or product dependency, then resume this review task.
+      Merge and deployment decisions remain with the operator.
+
+      # Verify a reported staging deployment
+
+      1. Record which fix the operator deployed manually. Have the Bruno owner review a CI
+         run made after deployment; keep verification pending if fresh evidence is unavailable.
+      2. Compare results with the pre-deployment run. Both should-change tests and guardrails
+         should now pass. Investigate unchanged failures, new failures, or an unexpected lack
+         of change even when the SQL A/B audit was satisfactory.
+      3. Send discrepancies and CI evidence to the appropriate existing owners and re-audit
+         their corrections. A correction needing deployment waits for the operator's next
+         manual deployment before its post-deployment check.
+      4. Save the deployed fix reference, CI evidence, and pending work. Report results and
+         delegated follow-ups in Slack. Keep review open while verification or corrections remain.
+
+      # Finish or recover
+
+      On a merge check, confirm every case PR's state through the sessions. Report remaining
+      open PRs and return to the ask; obtain operator disposition for closed-unmerged PRs.
+      Close when all PRs are merged and requested checks and corrections are settled, or when
+      a no-PR case has an accepted disposition and no pending work. On explicit end review,
+      record remaining work and close by operator choice. An interruption leaves this stage
+      as the next entry rather than completing review.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 

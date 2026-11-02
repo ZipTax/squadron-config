@@ -211,7 +211,6 @@ agent "taxcloud_legacy_sql_reviewer" {
     skills.txc_rate_audit,
     skills.txc_staging_access,
     skills.verdict_loop,
-    skills.review_followup,
     skills.sme_writeback,
     skills.blocked_run, skills.bridge,
     skills.rate_case, skills.case_slack, skills.rate_checkpoint

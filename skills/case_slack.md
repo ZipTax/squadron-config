@@ -45,4 +45,4 @@ supporting links. Preserve existing PR links when a stage produces no new PR.
 Use Blocked on question for an unresolved dependency and Awaiting review for the final
 feedback prompt. The human-ask tool posts the question in the thread. When the calling
 stage accepts the answer, post its resolution and restore the supplied work status.
-Question ownership and assessment belong to `blocked_run` or `review_followup`.
+The calling task owns question assessment; `blocked_run` handles dependency questions.
