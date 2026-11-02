@@ -298,8 +298,7 @@ mission "rate_fix" {
 
   task "develop" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `develop`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status "Fixing".
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
@@ -412,8 +411,7 @@ mission "rate_fix" {
 
   task "author_tests" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `author_tests`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status "Testing".
 
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
@@ -502,8 +500,7 @@ mission "rate_fix" {
 
   task "audit" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `audit`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `audit`. Use case_slack with status "Auditing".
 
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
@@ -622,8 +619,7 @@ mission "rate_fix" {
 
   task "bruno_tests" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `bruno_tests`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `bruno_tests`. Use case_slack with status "Verifying (Bruno)".
 
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
@@ -636,20 +632,23 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
       Supply the ticket, PR, accepted audit results, investigation findings, and open questions.
-      Devin selects portable API scenarios and authors tests without making live API calls.
+      Devin authors and runs the regressions in staging only, following !bruno-regression.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
 
       # Assess the result
 
       Collect Devin's result with check_session. Require cited authority for assertions and an
-      explicit reason for unwritten scenarios. Changed scenarios may fail before deployment;
-      guardrails can already pass. Do not assume every snapshot case is portable to the API.
+      explicit reason for unwritten scenarios. Require staging execution evidence for the
+      tested fix version. Send failures to the owning sessions and reassess their results;
+      use an operator ask when staging deployment or access is needed.
 
       # Finish or pause
 
-      Completed work proceeds to finalization. For needs_human, use blocked_run and
-      rate_checkpoint with next entry bruno_tests.
+      Completed work proceeds to finalization. Bound technical corrections to 10 attempts or
+      two attempts without improvement, then report the remaining failures to the operator.
+      Save failed work with next entry bruno_tests so it can resume after direction.
+      For needs_human, use blocked_run and rate_checkpoint with next entry bruno_tests.
     EOT
     agents  = [agents.test_authoring_coordinator]
 
@@ -662,7 +661,7 @@ mission "rate_fix" {
 
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human — the Bruno lane's typed completion state."
+        description = "completed | failed | needs_human — completed requires passing staging validation; failed returns technical findings for correction."
         required    = true
       }
       field "human_questions" {
@@ -672,12 +671,17 @@ mission "rate_fix" {
       }
       field "bruno_session_id" {
         type        = "string"
-        description = "Devin session id from the Bruno authoring run"
+        description = "Devin session id that authored and ran the staging regressions"
         required    = true
       }
       field "bruno_pr_url" {
         type        = "string"
         description = "URL of the txc-bruno PR with the authored regression tests"
+        required    = true
+      }
+      field "validation" {
+        type        = "string"
+        description = "Bruno staging validation as JSON: status, tested fix version, and result reference. A completed stage requires passing tests against that version."
         required    = true
       }
       field "scenarios" {
@@ -696,13 +700,13 @@ mission "rate_fix" {
       route {
         target    = missions.rate_finalize
         condition = <<-EOT
-          outcome == completed — enter record_learnings with close_reason = 'fix audited
-          SATISFACTORY and Bruno authoring completed' and verdict = SATISFACTORY.
+          outcome == completed AND staging validation passed — enter record_learnings with close_reason = 'fix audited
+          SATISFACTORY and Bruno staging tests passed' and verdict = SATISFACTORY.
           Save accepted findings, audit findings, PRs, and unwritten scenarios through rate_case.
           Keep coverage limits separate from blocking questions.
         EOT
       }
-      # `needs_human` has no route because bruno_tests records the blocker before returning.
+      # Failed or blocked work retains bruno_tests as its next entry; only a pass advances.
     }
   }
 }

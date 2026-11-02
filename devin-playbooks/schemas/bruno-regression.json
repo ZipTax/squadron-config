@@ -5,9 +5,10 @@
       "type": "string",
       "enum": [
         "completed",
-        "needs_human"
+        "needs_human",
+        "failed"
       ],
-      "description": "Whether this lane completed its bounded work. Use needs_human only when the Bruno deliverable cannot safely finish without information or a decision that only a person can provide; deliberately unwritten scenarios can coexist with a completed outcome."
+      "description": "completed means staging regressions passed against the identified fix version; failed means execution found a defect needing correction; needs_human means an unresolved operator or product dependency."
     },
     "human_questions": {
       "type": "array",
@@ -15,10 +16,17 @@
       "items": {
         "type": "object",
         "properties": {
-          "question": { "type": "string" },
-          "context": { "type": "string" }
+          "question": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          }
         },
-        "required": ["question", "context"],
+        "required": [
+          "question",
+          "context"
+        ],
         "additionalProperties": false
       }
     },
@@ -75,14 +83,14 @@
       "items": {
         "type": "string"
       },
-      "description": "Scenarios deliberately not written, each with its reason: 'needs authority' (no authority established the expected value — pair it with an entry in open_questions) or 'covered by the A/B' (a V1 path, config-only behavior, or anything the endpoint cannot observe). The second is a decision, not a gap."
+      "description": "Scenarios deliberately not written, each with its reason: 'needs authority' (no authority established the expected value \u2014 pair it with an entry in open_questions) or 'covered by the A/B' (a V1 path, config-only behavior, or anything the endpoint cannot observe). The second is a decision, not a gap."
     },
     "authority_conflicts": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Where SME statement and state-published material disagree — escalate, never pick."
+      "description": "Where SME statement and state-published material disagree \u2014 escalate, never pick."
     },
     "open_questions": {
       "type": "array",
@@ -90,6 +98,41 @@
         "type": "string"
       },
       "description": "Questions a human must answer, each actionable on its own: the scenario, the exact figure needed, and the authority that would supply it. 'Needs confirmation' cannot be resumed by the next run."
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "environment": {
+          "type": "string",
+          "enum": [
+            "staging"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "not_run"
+          ]
+        },
+        "fix_version": {
+          "type": "string",
+          "description": "Deployed fix commit or build tested; empty until established."
+        },
+        "result_reference": {
+          "type": "string",
+          "description": "Execution report or session evidence; empty when no run occurred."
+        }
+      },
+      "required": [
+        "environment",
+        "status",
+        "fix_version",
+        "result_reference"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -98,7 +141,8 @@
     "pr_url",
     "branch",
     "scenarios",
-    "unwritten"
+    "unwritten",
+    "validation"
   ],
   "additionalProperties": false
 }

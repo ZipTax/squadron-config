@@ -5,6 +5,45 @@
   "description": "A complete coordination envelope may describe unfinished work: null lanes/artifacts, empty results/lists, and zero counters mean not yet established. Required keys do not imply completed stages.",
   "type": "object",
   "properties": {
+    "review": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string",
+          "enum": [
+            "awaiting_feedback",
+            "assessing",
+            "directing",
+            "verifying",
+            "complete"
+          ]
+        },
+        "feedback": {
+          "type": "string"
+        },
+        "pending_work": {
+          "type": "string"
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "assessed_heads": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "phase",
+        "feedback",
+        "pending_work",
+        "round",
+        "assessed_heads"
+      ],
+      "additionalProperties": false
+    },
     "case_state": {
       "type": "string",
       "enum": [
@@ -15,6 +54,41 @@
     "context": {
       "type": "object",
       "properties": {
+        "bruno_validation": {
+          "type": "object",
+          "properties": {
+            "environment": {
+              "type": "string",
+              "enum": [
+                "staging"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "passed",
+                "failed",
+                "blocked",
+                "not_run"
+              ]
+            },
+            "fix_version": {
+              "type": "string",
+              "description": "Deployed fix commit or build tested; empty until established."
+            },
+            "result_reference": {
+              "type": "string",
+              "description": "Execution report or session evidence; empty when no run occurred."
+            }
+          },
+          "required": [
+            "environment",
+            "status",
+            "fix_version",
+            "result_reference"
+          ],
+          "additionalProperties": false
+        },
         "repo_url": {
           "type": "string"
         },
@@ -187,7 +261,9 @@
         "investigation": { "$ref": "#/$defs/lane" },
         "fix": { "$ref": "#/$defs/lane" },
         "ratevariant-cases": { "$ref": "#/$defs/lane" },
-        "bruno-tests": { "$ref": "#/$defs/lane" }
+        "bruno-tests": { "$ref": "#/$defs/lane" },
+        "lessons": { "$ref": "#/$defs/lane" },
+        "verification": { "$ref": "#/$defs/lane" }
       },
       "required": [
         "investigation",

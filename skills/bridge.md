@@ -17,8 +17,8 @@ After the live human ask ends without a usable answer, confirm the saved Jira qu
 Save the case through `rate_case`, then build `resume_inputs` from `issue`, `repo_url`,
 `base_branch`, and `entry_stage`. The destination reads the maintained memory. The launcher
 also needs `slack.mission_thread_id` restored as runtime launch metadata before events flow;
-this is a mission-chain identity, not a Slack message ID or mission input. Verify that the
-deployed bridge supports this contract before enabling cold Slack resumptions.
+this identifies the related mission chain. Preserve it through the bridge launch so
+resumed questions and updates reach the same conversation.
 
 Every new human wait increments generation, even when the question remains unchanged.
 An uncertain registration or label update retries the same generation and payload.

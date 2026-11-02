@@ -29,10 +29,10 @@ so in the description.
 
 | Playbook | Owns | Must never |
 |---|---|---|
-| `!rate_investigation` | Proving cause from code and data; the ticket's product-level writeback | Branch, commit, open a PR, or edit a file — a diagnosis from a session that can also fix tends to stop at the first plausible cause |
+| `!rate_investigation` | Proving cause from code and data; the ticket's product-level writeback | Change the SQL implementation; production-tool extensions belong in `txc-databricks` under `prod-sql-insights` |
 | `!rate-fix` | `output/schema/**` and `scripts/**`; opening and labelling the fix PR | Re-derive the diagnosis, touch `tests/ratevariant-cases/**`, or interpret the A/B |
 | `!ratevariant-cases` | `tests/ratevariant-cases/**`, and the fixture/eligibility discovery behind it | Grade the run it enables, or encode expected outputs in case YAML or metadata |
-| `!bruno-regression` | V3 API regression scenarios for the settled behavior | Assert a figure with no authority behind it, or derive one from the system under test |
+| `!bruno-regression` | V3 API regressions and staging-only validation for the settled behavior | Assert a figure with no authority behind it, or derive one from the system under test |
 | `!rate-learning-writeback` | Accepted rate-workflow lessons in selected maintained guidance; a separate documentation PR | Discover new lessons, change implementation or tests, or turn a ticket outcome into a fix narrative |
 | `!txc-support` | Generic support: API/app, account, configuration, explaining behavior | Fix anything that changes how tax is calculated — those route into the flow above |
 
@@ -82,7 +82,7 @@ it does not establish the truth of the underlying verdict. See
 The task's output schema already tells its commander which fields to submit, so the objective
 does not need a second field list. Keep the work and acceptance criteria in the objective or
 skills, and the field meaning and source in the output description. See the
-[mission authoring guidance](../docs/rate-ticket-orchestration.md#what-belongs-in-a-task-objective-versus-its-output).
+[mission authoring guidance](../docs/rate-ticket-orchestration.md#keep-responsibilities-separate).
 
 Field names line up with the mission's task `output` blocks in the mission file that owns that stage (`missions/rate-triage.hcl`, `missions/rate-fix.hcl`, `missions/rate-finalize.hcl`) —
 `verdict`, `evidence_complete`, `working_as_intended`, `disposition`, `mechanism`, `affected_roots`,
@@ -110,7 +110,7 @@ to screen questions and choose their channel. Operator decisions, including unre
 effective-date choices, use Squadron's native ask-human tool. Ticket evidence requests use
 a context-owning question author, a confirmed Jira comment, and a saved bridge resume entry. On resumption, the selected session interprets the new answer and
 Squadron decides the route. Playbooks must not tell Devin to load those Squadron-only skills.
-The [orchestration plan](../docs/rate-ticket-orchestration.md) defines the bridge delivery contract assumed by the blocking instructions;
+The [orchestration guide](../docs/rate-ticket-orchestration.md) defines the bridge delivery contract assumed by the blocking instructions;
 editing a playbook does not deploy the bridge or wire its tools and event inputs.
 
 ## How to avoid a second procedure
@@ -121,7 +121,7 @@ supplies the ticket, artifacts, established evidence, and the remaining task. It
 repeat the playbook or prescribe a calculation, fixture, or ticket paragraph.
 
 Repository instructions govern mechanics within the delegated lane. They do not implicitly
-expand the lane into implementation, deployment, or live test execution. Explicitly name any
+expand the lane into implementation, deployment, or production test execution. Explicitly name any
 scoped adaptation in the playbook; an unanticipated conflict or missing skill must be reported
 before the affected work. Do not add a blanket “playbook wins” rule that hides future drift.
 
@@ -134,7 +134,7 @@ expanded it; no such mechanism is configured here.
 
 The coordinated SQL repository change adds `author-tax-migration`, permits combined data/code
 remedies and optional production observations, separates harness retrieval from audit acceptance,
-and allows actionable production-evidence requests on Jira. Merge [SQL PR #240](https://github.com/FedTax/txc-sqlserver-database/pull/240) before
+and routes production-tool gaps through prod-sql-insights. Merge [SQL PR #240](https://github.com/FedTax/txc-sqlserver-database/pull/240) before
 publishing these mirrors so Devin can resolve `author-tax-migration` in its checkout.
 
 The Bruno playbook retains its authoring procedure until a dedicated repository skill exists;

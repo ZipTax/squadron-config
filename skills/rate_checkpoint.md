@@ -1,7 +1,7 @@
 # Read and write a rate ticket's current checkpoint
 
 The checkpoint holds the current case context, routing state, and editable Slack root for one
-Jira ticket. Later missions read it to continue accepted work. Use `rate_case` for field ownership.
+Jira ticket. Later missions read it to continue accepted work. Use the schema for field definitions and `rate_case` for handoffs.
 
 ## Read the current state
 
@@ -45,11 +45,23 @@ discussion remains in Jira, pull-request evidence remains in GitHub, and ratevar
 with the run. The checkpoint stores their identifiers and concise conclusions so those sources do
 not acquire a second, drifting copy.
 
-At every stage boundary, save accepted context and the next entry before routing. Preserve
-complete accepted findings and the full Slack root text; keep bulky evidence in its source.
-The optional `context`, `slack`, `human_wait`, `case_state`, and lessons PR fields extend v1.
-Existing v1 files load unchanged; populate these fields when first used. Missing case_state
-means active. Old readers must be upgraded before they write these extended records.
+Preserve complete accepted findings and the full Slack root text. Missing `case_state`
+means active; populate optional fields as their work is reached.
+
+## Map accepted results
+
+- Keep verdict, mechanism, production observations, owners, artifacts, and counters in
+  their schema fields; decode JSON findings into `context.findings`.
+- Map `confirmed_findings` to `context.audit_findings`, coverage limits to
+  `context.open_questions`, and writeback PRs to `artifacts.lessons_prs`.
+- Record report references in `context.report_references` and Bruno execution results
+  in `context.bruno_validation`.
+- For input recovery, map `existing_pr`/`fix_pr_url` to `artifacts.fix_pr`,
+  `bruno_pr_url` to `artifacts.bruno_pr`, and session IDs to their lanes.
+
+Record final-review progress in `review`: the current feedback, assessed PR heads, and
+next action. Save it before asking for feedback and before directing session work so an
+interrupted review resumes from the recorded operation.
 
 On closure, set `case_state: closed` and retain the record. Discovery reads closed records
 as history, so finished work is not automatically resumed and the Slack root remains editable.

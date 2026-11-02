@@ -74,8 +74,8 @@ class SlackCaseContract(unittest.TestCase):
             for task in blocks(config['task']).values():
                 for ref in task['agents']:
                     agent = agents[ref.removeprefix('${agents.').removesuffix('}')]
-                    self.assertTrue({'${builtins.human.ask}', '${builtins.gateway.post}', '${builtins.gateway.edit}'} <= set(agent['tools']))
-                    self.assertTrue({'${skills.rate_case}', '${skills.case_slack}'} <= set(agent['skills']))
+                    self.assertLessEqual({'${builtins.human.ask}', '${builtins.gateway.post}', '${builtins.gateway.edit}'}, set(agent['tools']))
+                    self.assertLessEqual({'${skills.rate_case}', '${skills.case_slack}'}, set(agent['skills']))
 
 
 if __name__ == '__main__':

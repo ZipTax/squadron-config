@@ -20,7 +20,7 @@
         "needs_human",
         "insufficient_production_evidence"
       ],
-      "description": "How Squadron exposes a production-evidence gap. needs_human means a person can supply the missing evidence; insufficient_production_evidence records that no supported production conclusion is available."
+      "description": "How Squadron handles a production-evidence gap. needs_human includes operator deployment/access needs after tool recovery or a product decision; insufficient_production_evidence records that no supported production conclusion is available."
     },
     "claim": {
       "type": "string",

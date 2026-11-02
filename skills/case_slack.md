@@ -1,15 +1,14 @@
 # Keep the case visible in Slack
 
-Use this skill at stage changes, accepted results, questions, and close-out. The runtime
-must provide mission-thread routing, `builtins.gateway.post` returning a message ID,
-`builtins.gateway.edit`, and Slack delivery of `builtins.human.ask`.
+Publish the status or result supplied by the mission. Read the saved message before
+editing it so the latest cause and PR links are preserved.
 
 ## Start or update the root
 
 1. Read the current case memory so an update preserves the latest cause, status, and PRs.
-2. On first triage, read the ticket title, save the desired text with `root_post_pending: true`,
+2. When the case has no root, read the ticket title, save the desired text with `root_post_pending: true`,
    and post one root with `root: true`. Save the returned ID immediately in `slack.root_message_id`, together with the full text and
-   the runtime's mission thread ID; clear `root_post_pending`. Investigation reuses this root.
+   the runtime's mission thread ID; clear `root_post_pending`. Later updates reuse this root.
 3. For later updates, merge only the changed facts into the saved full text. Persist the
    desired `root_text` with `update_pending: true`, then call `gateway.edit` with the saved
    ID and complete text. On success, save `published_text` and clear `update_pending`.
@@ -35,31 +34,15 @@ PRs:
 • <https://github.com/ZipTax/squadron-config/pull/67|lessons>
 ```
 
-## Status by work stage
+## Status and results
 
-| Stage | Status |
-| --- | --- |
-| discover_sessions (new case) | :mag: Triaging |
-| start/continue/forward investigation, confirm_wai, assess_investigation | :mag: Investigating |
-| develop; audit corrections assigned to the fix owner | :hammer: Fixing |
-| author_tests; audit corrections assigned to the cases owner | :test_tube: Testing |
-| audit (assessing returned evidence) | :microscope: Auditing |
-| verify_wai | :mag: Verifying working-as-intended |
-| bruno_tests | :test_tube: Preparing Bruno verification |
-| record_learnings | :memo: Recording lessons |
-| pending human question | :question: Blocked on question |
-| closed case | :white_check_mark: Review ready, or the evidenced WAI/unsupported outcome |
-
-The Bruno lane authors regressions without live execution. State “authored; live tests
-not run” in its result reply. Review ready means PRs are ready for review, not deployed.
-When no lesson qualifies, report that result and keep existing PR links.
+Use the mission's status with a suitable emoji, for example `:hammer: Fixing`,
+`:microscope: Auditing`, or `:eyes: Awaiting review`. Report the supplied outcome and
+supporting links. Preserve existing PR links when a stage produces no new PR.
 
 ## Questions
 
-Use `blocked_run` to screen and choose the question's channel. Save the question and
-resume stage, edit the root to Blocked on question, then call `human.ask`. The gateway
-posts that question in the same Slack thread; it is the question update, so a second
-identical post is unnecessary. Jira questions include the confirmed comment link and ask
-whether answers are ready there. A Slack acknowledgement triggers assessment, not acceptance
-of a tax or product answer. After assessment resolves the dependency, save the answer/source,
-post a short resolution reply, and restore the active stage's status.
+Use Blocked on question for an unresolved dependency and Awaiting review for the final
+feedback prompt. The human-ask tool posts the question in the thread. When the calling
+stage accepts the answer, post its resolution and restore the supplied work status.
+Question ownership and assessment belong to `blocked_run` or `review_followup`.

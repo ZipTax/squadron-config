@@ -74,4 +74,4 @@ variable "slack_app_token" {
   secret = true
 }
 
-variable "slack_channel_id" {}
+variable "default_slack_channel_id" {}

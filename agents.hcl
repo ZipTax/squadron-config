@@ -109,7 +109,7 @@ agent "session_scout" {
     mcp.atlassian.getJiraIssue,
     mcp.atlassian.editJiraIssue
   ]
-  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_case, skills.case_slack, skills.rate_checkpoint]
+  skills      = [skills.question_screen, skills.txc_staging_access, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_case, skills.case_slack, skills.rate_checkpoint]
 }
 
 agent "taxcloud_legacy_sql_investigator" {
@@ -179,6 +179,7 @@ agent "test_authoring_coordinator" {
   ]
   skills      = [
     skills.question_screen,
+    skills.txc_staging_access,
     skills.delegated_session,
     skills.session_lane,
     skills.evidence_gate,
@@ -210,6 +211,7 @@ agent "taxcloud_legacy_sql_reviewer" {
     skills.txc_rate_audit,
     skills.txc_staging_access,
     skills.verdict_loop,
+    skills.review_followup,
     skills.sme_writeback,
     skills.blocked_run, skills.bridge,
     skills.rate_case, skills.case_slack, skills.rate_checkpoint
@@ -232,6 +234,7 @@ agent "learnings_curator" {
   ]
   skills      = [
     skills.question_screen,
+    skills.txc_staging_access,
     skills.delegated_session,
     skills.devin_code,
     skills.session_lane,

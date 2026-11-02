@@ -116,3 +116,8 @@ skill "case_slack" {
   description  = "Load for rate-case status, result, and question updates in one Slack thread, using the saved root ID and complete message."
   instructions = load("./skills/case_slack.md")
 }
+
+skill "review_followup" {
+  description  = "Load at final review to accept operator feedback, re-audit changes, and direct existing sessions until PRs merge or review is ended."
+  instructions = load("./skills/review_followup.md")
+}

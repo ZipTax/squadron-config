@@ -1,6 +1,7 @@
 # Resolve a human dependency
 
-Apply `question_screen` first. Use `rate_case` to save the question, context, and next
+Apply `question_screen` first. Production-tool and access gaps follow `txc_staging_access`
+before the operator ask. Use `rate_case` to save the question, context, and next
 entry in `human_wait`, then `case_slack` to show Blocked on question.
 
 ## Operator choice
@@ -45,9 +46,8 @@ retry only the incomplete operation so a lost response does not duplicate the qu
    opening a new live ask; a later fallback registers a new generation. Keep the Slack root
    blocked until a supported answer permits work.
 
-## Evidence gaps without an actionable question
+## Report unresolved findings
 
-Record `insufficient_production_evidence` when production supports no conclusion. If no
-useful request remains and work ends, have Devin explain the gap on Jira through
-`sme_writeback`, confirm the comment, and post the stopping reason in Slack. Preserve
-uncertainty and the saved continuation state.
+Record `insufficient_production_evidence` when the available data supports no conclusion.
+Use the operator path for tool deployment or access. If work ends, have Devin explain
+the product-level uncertainty through `sme_writeback`, then report the outcome in Slack.

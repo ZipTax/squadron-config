@@ -22,5 +22,11 @@
     "Filing-code attribution is covered by A/B; this V3 endpoint does not expose filing codes."
   ],
   "authority_conflicts": [],
-  "open_questions": []
+  "open_questions": [],
+  "validation": {
+    "environment": "staging",
+    "status": "passed",
+    "fix_version": "demo-fix-build-200",
+    "result_reference": "https://example.invalid/results/staging-200"
+  }
 }

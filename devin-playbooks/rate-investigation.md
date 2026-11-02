@@ -1,8 +1,7 @@
 # Investigate a rate ticket
 
 Establish whether the reported behavior is a defect, and identify its mechanism and viable
-remedy. Work in `FedTax/txc-sqlserver-database` without changing repository files, opening a
-branch, or implementing a fix. A separate fix session uses your evidence, so the diagnosis
+remedy. Investigate `FedTax/txc-sqlserver-database` read-only; implementation belongs to the fix lane. A separate fix session uses your evidence, so the diagnosis
 must stand on its own.
 
 ## Load the procedure where it is maintained
@@ -15,7 +14,9 @@ When production data is needed, read
 `FedTax/txc-databricks/.claude/skills/prod-sql-insights/SKILL.md` and follow it to discover
 and use the configured Databricks MCP tools. That skill owns tool selection, replica
 freshness, completeness checks, and evidence reporting because these depend on the deployed
-queries. Report unavailable tools or unresolved data gaps; replica results are not live
+queries. Follow its tool-extension procedure in txc-databricks when needed, and return
+the resulting deployment/access dependency for Squadron to ask the operator. This does
+not authorize changes to the SQL fix. Report unresolved data gaps; replica results are not live
 SQL Server observations.
 Register with `registering-on-the-ticket` under `rate-investigation`.
 

@@ -109,8 +109,8 @@ mission "rate_triage" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
-      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
-      and save accepted state before routing. Use legacy inputs only to recover missing fields.
+      Apply rate_case for ${inputs.issue}. Use case_slack with Triaging for a new case;
+      retain the recorded status on resumption. Save accepted state before routing.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
@@ -148,7 +148,7 @@ mission "rate_triage" {
       whether a tax or product question is settled.
 
       For an active case, prefer its downstream resume stage (develop, author_tests, audit,
-      bruno_tests, or record_learnings) when its verdict and required artifacts remain valid. Carry its state
+      bruno_tests, record_learnings, or review_followup) when its verdict and required artifacts remain valid. Carry its state
       and selected entry forward. If contradictory or incomplete, leave resume_stage blank and
       explain why investigation must reconsider the premise. Otherwise select one entry mode:
 
@@ -171,7 +171,7 @@ mission "rate_triage" {
       }
       field "resume_stage" {
         type        = "string"
-        description = "develop | author_tests | audit | bruno_tests | record_learnings, when the checkpoint's accepted result and the selected stage's required artifacts remain usable. develop can resume before a PR exists. Blank when the recorded state cannot support resumption."
+        description = "develop | author_tests | audit | bruno_tests | record_learnings | review_followup, when the checkpoint's accepted result and the selected stage's required artifacts remain usable. develop can resume before a PR exists. Blank when the recorded state cannot support resumption."
         required    = false
       }
       field "investigation_session_id" {
@@ -223,7 +223,7 @@ mission "rate_triage" {
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Use rate_case for the saved findings and close reason."
+        condition = "resume_stage is record_learnings or review_followup — set entry_stage = resume_stage. Use rate_case for the saved findings and close reason."
       }
       route {
         target    = tasks.confirm_wai
@@ -257,8 +257,7 @@ mission "rate_triage" {
 
   task "start_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `start_investigation`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status "Investigating".
 
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
@@ -295,8 +294,7 @@ mission "rate_triage" {
 
   task "confirm_wai" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `confirm_wai`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status "Investigating".
 
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
@@ -340,8 +338,7 @@ mission "rate_triage" {
 
   task "continue_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `continue_investigation`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status "Investigating".
 
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
@@ -377,8 +374,7 @@ mission "rate_triage" {
 
   task "forward_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `forward_investigation`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status "Investigating".
 
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
@@ -429,8 +425,7 @@ mission "rate_triage" {
 
   task "assess_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `assess_investigation`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status "Investigating".
 
       Decide whether the investigation of ${inputs.issue} supports a disposition.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
@@ -455,11 +450,9 @@ mission "rate_triage" {
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
-      For needs_human, use blocked_run and rate_checkpoint. If a production evidence gap ends
-      the work without an actionable request, record insufficient_production_evidence and have
-      Devin post a ticket update explaining what remains unproven and why work stopped, using
-      sme_writeback. Send facts only; Devin writes the comment. Confirm the comment reference; do not invent a question or claim nobody
-      can resolve the gap unless the evidence establishes that.
+      Use txc_staging_access for production-tool gaps and blocked_run for the resulting
+      operator dependency. Use sme_writeback for supported product findings or questions.
+      Preserve insufficient_production_evidence when the data cannot support a conclusion.
     EOT
     agents = [agents.taxcloud_legacy_sql_investigator]
 

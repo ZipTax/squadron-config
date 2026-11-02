@@ -12,26 +12,8 @@ mission "rate_finalize" {
     }
   }
 
-  # Last of the three rate missions: rate_triage -> rate_fix -> rate_finalize.
-  # Both terminals live here, because both are the same act — deciding what this
-  # case leaves behind. Either the conclusion was "nothing is broken", which gets
-  # verified independently before anyone believes it, or the case is closed and
-  # what it taught (if anything) gets written somewhere the next case reads.
-  #
-  # Entered only by route: from rate_triage (working-as-intended, or a proven
-  # defect this engine cannot express) or from rate_fix (the A/B settled, with or
-  # without Bruno coverage behind it).
-  #
-  # Routed graph (Squadron is acyclic — no backward edges):
-  #   enter_finalize --router--> verify_wai       (a working-as-intended claim to check)
-  #                         \--> record_learnings (ask work sessions for worthwhile lessons)
-  #   verify_wai     --router--> missions.rate_triage (WAI refuted, capped at one re-fire)
-  #                         \--> tasks.record_learnings (WAI confirmed)
-  #
-  # Objective convention (same as the other two): "You"/"# You do" is this
-  # Squadron stage, "the session"/"# Brief the session" is text for the Devin
-  # task. Every Jira comment, query and write-back PR here is a Devin session's
-  # work; the sentinel label is the stage's own, per blocked_run.
+  # Finalization verifies WAI claims, records lessons, and keeps operator review open.
+  # Review feedback is handled within review_followup so existing lane owners stay available.
   memories = [memories.rate_case_log, memories.rate_checkpoint]
 
   # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
@@ -79,7 +61,7 @@ mission "rate_finalize" {
 
   input "entry_stage" {
     type        = "string"
-    description = "verify_wai | record_learnings — which terminal this case needs. verify_wai only on an unverified working-as-intended conclusion; record_learnings for every other close-out, including a confirmed one."
+    description = "verify_wai | record_learnings | review_followup. Resume review_followup for operator feedback after lessons."
   }
 
   input "close_reason" {
@@ -180,7 +162,7 @@ mission "rate_finalize" {
 
   input "bruno_session_id" {
     type        = "string"
-    description = "The Bruno authoring session, for the learnings ask. Blank when Bruno did not run."
+    description = "The Bruno session, for the learnings ask. Blank when Bruno did not run."
     default     = ""
   }
 
@@ -230,15 +212,15 @@ mission "rate_finalize" {
 
       # Select the entry
 
-      Choose verify_wai for a working-as-intended claim not yet independently checked; otherwise
-      choose record_learnings. Do not repeat a completed verification.
+      Resume review_followup when the checkpoint records an unfinished review. Otherwise
+      select verify_wai for an unverified WAI claim, or record_learnings for accepted work.
     EOT
     agents = [agents.session_scout]
 
     output {
       field "entry_stage" {
         type        = "string"
-        description = "verify_wai | record_learnings — the terminal this case takes."
+        description = "verify_wai | record_learnings | review_followup — the next finalization stage."
         required    = true
       }
       field "reachable_sessions" {
@@ -249,6 +231,10 @@ mission "rate_finalize" {
     }
 
     router {
+      route {
+        target    = tasks.review_followup
+        condition = "entry_stage == review_followup — resume operator review using the saved feedback and current session results."
+      }
       route {
         target    = tasks.verify_wai
         condition = "entry_stage == verify_wai — the investigation concluded the system is already correct and nobody has checked that independently yet."
@@ -269,8 +255,7 @@ mission "rate_finalize" {
 
   task "verify_wai" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `verify_wai`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `verify_wai`. Use case_slack with status "Verifying working-as-intended".
 
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
@@ -281,7 +266,7 @@ mission "rate_finalize" {
       on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} — verify working-as-intended,
       and tags `["${inputs.issue}", "verify-wai"]`. Have Devin use the repository's investigate-tax-behavior
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
-      Use delegated_session for registration and follow-ups.
+      Use delegated_session for registration and follow-ups; record this owner in lanes.verification.
 
       Use the issue scopes in context.findings; re-derive the disputed behavior
       independently rather than treating the prior conclusions as proof.
@@ -350,8 +335,7 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `record_learnings`: read shared context, update Slack,
-      and save accepted state before returning or routing.
+      Apply rate_case for ${inputs.issue} at `record_learnings`. Use case_slack with status "Recording lessons".
 
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
       worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
@@ -370,7 +354,8 @@ mission "rate_finalize" {
 
       Use `!rate-learning-writeback` as the writeback playbook and supply base branch
       ${inputs.base_branch}. Title the new Devin session "${inputs.issue} — record <lesson>"
-      and tag it with `["${inputs.issue}", "learnings"]`.
+      and tag it with `["${inputs.issue}", "learnings"]`. Record the owner in lanes.lessons
+      so operator review can direct later documentation corrections to it.
 
       # Finish
 
@@ -384,13 +369,17 @@ mission "rate_finalize" {
       blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
       or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
 
-      Use rate_checkpoint for ${inputs.issue}.yaml. Preserve unresolved work and any outstanding
-      questions from the case; mark it closed only when nothing remains. Publish the final
-      Slack status and all confirmed PRs, including lessons, and retain the root ID and text.
+      Save the lessons outcome and all confirmed PRs through rate_checkpoint. When this
+      work is settled, leave the case active and hand it to review_followup.
     EOT
     agents = [agents.learnings_curator]
 
     output {
+      field "ready_for_review" {
+        type        = "boolean"
+        description = "True when lesson assessment/writeback is settled, including no qualifying lessons, and no unresolved dependency prevents review."
+        required    = true
+      }
       field "session_findings" {
         type        = "string"
         description = "Each distinct work session asked and its response reference, proposed lessons or explicit none, and any unavailable response. Attribute proposals recovered from recorded reports."
@@ -419,6 +408,38 @@ mission "rate_finalize" {
       field "checkpoint" {
         type        = "string"
         description = "The retained case checkpoint and its active or closed state."
+        required    = true
+      }
+    }
+    router {
+      route {
+        target    = tasks.review_followup
+        condition = "ready_for_review == true — keep the case active for operator feedback and merge checks."
+      }
+    }
+  }
+
+  task "review_followup" {
+    objective = <<-EOT
+      Apply rate_case for ${inputs.issue} and review_followup to keep this case available
+      for feedback until its PRs merge or the operator ends review. Re-audit changed work
+      and direct corrections to the recorded session owners.
+
+      Use case_slack for Awaiting review, work updates, and the closing outcome.
+      Persist progress before each wait or session request. An interrupted wait leaves
+      this stage as the next entry so review can resume without repeating finished work.
+    EOT
+    agents = [agents.taxcloud_legacy_sql_reviewer]
+
+    output {
+      field "outcome" {
+        type        = "string"
+        description = "merged | closed_by_operator | no_prs | interrupted. interrupted retains active case state and review_followup as the next entry."
+        required    = true
+      }
+      field "summary" {
+        type        = "string"
+        description = "Accepted review outcome, assessed PR heads, evidence references, and any remaining work."
         required    = true
       }
     }
