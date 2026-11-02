@@ -25,8 +25,9 @@
   "open_questions": [],
   "validation": {
     "environment": "staging",
-    "status": "passed",
-    "fix_version": "demo-fix-build-200",
-    "result_reference": "https://example.invalid/results/staging-200"
+    "deployment_state": "before_fix",
+    "should_change": "failed",
+    "guardrails": "passed",
+    "result_reference": "https://example.invalid/bruno/actions/runs/200"
   }
 }

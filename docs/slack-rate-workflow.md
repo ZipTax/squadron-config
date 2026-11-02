@@ -11,7 +11,8 @@
 
 Investigation results are posted in product language on the ticket. The Slack message is
 updated for progress, with questions or more detailed updates posted in a thread.
-Bruno tests the fix in the staging environment only.
+Bruno tests the fix in the staging environment only. CI runs the tests automatically:
+should-change tests fail before deployment and pass afterward; guardrails pass throughout.
 
 Missions record and exchange information via a shared checkpoint file, which is retained
 upon completion for reference or reuse.

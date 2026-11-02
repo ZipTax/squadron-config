@@ -32,7 +32,7 @@ so in the description.
 | `!rate_investigation` | Proving cause from code and data; the ticket's product-level writeback | Change the SQL implementation; production-tool extensions belong in `txc-databricks` under `prod-sql-insights` |
 | `!rate-fix` | `output/schema/**` and `scripts/**`; opening and labelling the fix PR | Re-derive the diagnosis, touch `tests/ratevariant-cases/**`, or interpret the A/B |
 | `!ratevariant-cases` | `tests/ratevariant-cases/**`, and the fixture/eligibility discovery behind it | Grade the run it enables, or encode expected outputs in case YAML or metadata |
-| `!bruno-regression` | V3 API regressions and staging-only validation for the settled behavior | Assert a figure with no authority behind it, or derive one from the system under test |
+| `!bruno-regression` | Authoring V3 regressions and reviewing automatic staging CI results against deployment state | Assert a figure with no authority behind it, or derive one from the system under test |
 | `!rate-learning-writeback` | Accepted rate-workflow lessons in selected maintained guidance; a separate documentation PR | Discover new lessons, change implementation or tests, or turn a ticket outcome into a fix narrative |
 | `!txc-support` | Generic support: API/app, account, configuration, explaining behavior | Fix anything that changes how tax is calculated — those route into the flow above |
 

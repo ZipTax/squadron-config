@@ -56,6 +56,7 @@
       "properties": {
         "bruno_validation": {
           "type": "object",
+          "description": "Automatic staging CI results assessed against fix deployment state. Before deployment, should-change failures are expected; afterward those tests pass. Guardrails pass throughout.",
           "properties": {
             "environment": {
               "type": "string",
@@ -63,28 +64,41 @@
                 "staging"
               ]
             },
-            "status": {
+            "deployment_state": {
+              "type": "string",
+              "enum": [
+                "before_fix",
+                "after_fix",
+                "unknown"
+              ]
+            },
+            "should_change": {
+              "type": "string",
+              "enum": [
+                "failed",
+                "passed",
+                "mixed",
+                "not_run"
+              ]
+            },
+            "guardrails": {
               "type": "string",
               "enum": [
                 "passed",
                 "failed",
-                "blocked",
                 "not_run"
               ]
             },
-            "fix_version": {
-              "type": "string",
-              "description": "Deployed fix commit or build tested; empty until established."
-            },
             "result_reference": {
               "type": "string",
-              "description": "Execution report or session evidence; empty when no run occurred."
+              "description": "CI run or report supporting the observed results; empty until available."
             }
           },
           "required": [
             "environment",
-            "status",
-            "fix_version",
+            "deployment_state",
+            "should_change",
+            "guardrails",
             "result_reference"
           ],
           "additionalProperties": false

@@ -24,7 +24,9 @@ for updates. This is a review loop, not a Jira evidence blocker.
 2. Send investigation questions, fix changes, cases, Bruno changes, and lessons to their
    recorded owners through `delegated_session`. Preserve each session's file lane.
 3. Set the status to Auditing and re-audit changed work with `evidence_gate`, `ab_audit`, and `txc_rate_audit`. Obtain new
-   captures for affected changes; have the Bruno owner run affected tests in staging.
+   captures for affected changes; have the Bruno owner review automatic staging CI results
+   against deployment state: should-change tests fail before deployment and pass afterward;
+   guardrails pass throughout.
    Record the assessed heads and evidence so a prior pass cannot approve a later commit.
 4. Report the result and return to the feedback ask. Use `verdict_loop` to bound automated
    corrections to 10 attempts per feedback round or two attempts without improvement;

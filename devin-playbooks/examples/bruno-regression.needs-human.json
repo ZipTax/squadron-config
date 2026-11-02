@@ -26,8 +26,9 @@
   ],
   "validation": {
     "environment": "staging",
-    "status": "not_run",
-    "fix_version": "",
+    "deployment_state": "unknown",
+    "should_change": "not_run",
+    "guardrails": "not_run",
     "result_reference": ""
   }
 }

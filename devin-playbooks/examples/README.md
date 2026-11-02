@@ -55,8 +55,8 @@ because no cases were authored. It does not imply that a loader test was run and
 [Completed Bruno suite](bruno-regression.completed.json): fictional DEMO-200 establishes
 an exemption and a taxable neighbor. Both API assertions have stated authority. Filing-code
 attribution remains deliberately unwritten because the endpoint does not expose it; that
-is a coverage decision, not a human blocker. The validation result identifies the tested
-staging build and passing execution report.
+is a coverage decision, not a human blocker. The CI result records passing guardrails and failing should-change tests before
+deployment. This completes the stage; those same assertions pass after the fix deploys.
 
 [Bruno needing a person](bruno-regression.needs-human.json): the exemption assertion exists
 in a PR, but its required before-date boundary assertion lacks authority. The result retains

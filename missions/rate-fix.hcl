@@ -632,16 +632,17 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
       Supply the ticket, PR, accepted audit results, investigation findings, and open questions.
-      Devin authors and runs the regressions in staging only, following !bruno-regression.
+      Devin authors and reviews the regressions following !bruno-regression; CI runs them in staging.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
 
       # Assess the result
 
       Collect Devin's result with check_session. Require cited authority for assertions and an
-      explicit reason for unwritten scenarios. Require staging execution evidence for the
-      tested fix version. Send failures to the owning sessions and reassess their results;
-      use an operator ask when staging deployment or access is needed.
+      explicit reason for unwritten scenarios. Assess CI results against deployment state:
+      should-change tests fail before deployment and pass afterward; guardrails pass in both.
+      Expected pre-deployment failures demonstrate the regression and allow this stage to finish.
+      Send unexpected results to the owning sessions for assessment and correction.
 
       # Finish or pause
 
@@ -661,7 +662,7 @@ mission "rate_fix" {
 
       field "outcome" {
         type        = "string"
-        description = "completed | failed | needs_human — completed requires passing staging validation; failed returns technical findings for correction."
+        description = "completed | failed | needs_human - completed means authored tests and reviewed CI results match deployment state; expected pre-deployment failures are successful completion."
         required    = true
       }
       field "human_questions" {
@@ -671,7 +672,7 @@ mission "rate_fix" {
       }
       field "bruno_session_id" {
         type        = "string"
-        description = "Devin session id that authored and ran the staging regressions"
+        description = "Devin session id that authored the regressions and reviewed CI results"
         required    = true
       }
       field "bruno_pr_url" {
@@ -681,7 +682,7 @@ mission "rate_fix" {
       }
       field "validation" {
         type        = "string"
-        description = "Bruno staging validation as JSON: status, tested fix version, and result reference. A completed stage requires passing tests against that version."
+        description = "Bruno CI results as JSON: staging deployment state, should-change results, guardrail results, and evidence reference."
         required    = true
       }
       field "scenarios" {
@@ -700,13 +701,13 @@ mission "rate_fix" {
       route {
         target    = missions.rate_finalize
         condition = <<-EOT
-          outcome == completed AND staging validation passed — enter record_learnings with close_reason = 'fix audited
-          SATISFACTORY and Bruno staging tests passed' and verdict = SATISFACTORY.
+          outcome == completed - enter record_learnings with close_reason = 'fix audited
+          SATISFACTORY and Bruno CI results match deployment state' and verdict = SATISFACTORY.
           Save accepted findings, audit findings, PRs, and unwritten scenarios through rate_case.
           Keep coverage limits separate from blocking questions.
         EOT
       }
-      # Failed or blocked work retains bruno_tests as its next entry; only a pass advances.
+      # Failed or blocked work retains bruno_tests as its next entry; expected pre-deployment failures allow completion.
     }
   }
 }

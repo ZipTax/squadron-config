@@ -8,7 +8,7 @@
         "needs_human",
         "failed"
       ],
-      "description": "completed means staging regressions passed against the identified fix version; failed means execution found a defect needing correction; needs_human means an unresolved operator or product dependency."
+      "description": "completed means authoring and review are finished: CI guardrails pass and should-change tests fail before fix deployment or pass afterward. failed means unexpected results need correction; needs_human means an unresolved operator or product question."
     },
     "human_questions": {
       "type": "array",
@@ -83,14 +83,14 @@
       "items": {
         "type": "string"
       },
-      "description": "Scenarios deliberately not written, each with its reason: 'needs authority' (no authority established the expected value \u2014 pair it with an entry in open_questions) or 'covered by the A/B' (a V1 path, config-only behavior, or anything the endpoint cannot observe). The second is a decision, not a gap."
+      "description": "Scenarios deliberately not written, each with its reason: 'needs authority' (no authority established the expected value - pair it with an entry in open_questions) or 'covered by the A/B' (a V1 path, config-only behavior, or anything the endpoint cannot observe). The second is a decision, not a gap."
     },
     "authority_conflicts": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Where SME statement and state-published material disagree \u2014 escalate, never pick."
+      "description": "Where SME statement and state-published material disagree - escalate, never pick."
     },
     "open_questions": {
       "type": "array",
@@ -101,6 +101,7 @@
     },
     "validation": {
       "type": "object",
+      "description": "Automatic staging CI results assessed against fix deployment state. Before deployment, should-change failures are expected; afterward those tests pass. Guardrails pass throughout.",
       "properties": {
         "environment": {
           "type": "string",
@@ -108,28 +109,41 @@
             "staging"
           ]
         },
-        "status": {
+        "deployment_state": {
+          "type": "string",
+          "enum": [
+            "before_fix",
+            "after_fix",
+            "unknown"
+          ]
+        },
+        "should_change": {
+          "type": "string",
+          "enum": [
+            "failed",
+            "passed",
+            "mixed",
+            "not_run"
+          ]
+        },
+        "guardrails": {
           "type": "string",
           "enum": [
             "passed",
             "failed",
-            "blocked",
             "not_run"
           ]
         },
-        "fix_version": {
-          "type": "string",
-          "description": "Deployed fix commit or build tested; empty until established."
-        },
         "result_reference": {
           "type": "string",
-          "description": "Execution report or session evidence; empty when no run occurred."
+          "description": "CI run or report supporting the observed results; empty until available."
         }
       },
       "required": [
         "environment",
-        "status",
-        "fix_version",
+        "deployment_state",
+        "should_change",
+        "guardrails",
         "result_reference"
       ],
       "additionalProperties": false

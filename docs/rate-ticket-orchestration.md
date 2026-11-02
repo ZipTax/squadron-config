@@ -39,7 +39,7 @@ establish that the evidence supports its conclusion. The
 | Investigation | Establish the mechanism, scope, authority, and supporting evidence |
 | Fix | Implement the accepted remedy |
 | Ratevariant cases | Supply A/B fixtures and captures |
-| Bruno | Test the fix in staging |
+| Bruno | Author regressions and review automatic staging CI results |
 | Lessons | Propose supported, reusable guidance |
 
 Squadron owns audit acceptance. It obtains analysis and captures from the appropriate

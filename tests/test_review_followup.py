@@ -39,9 +39,13 @@ class ReviewFollowupContract(unittest.TestCase):
             report = json.loads(path.read_text())
             validator.validate(report)
             if report['outcome'] == 'completed':
-                self.assertEqual(report['validation']['status'], 'passed')
-                self.assertTrue(report['validation']['fix_version'])
+                self.assertEqual(report['validation']['deployment_state'], 'before_fix')
+                self.assertEqual(report['validation']['should_change'], 'failed')
+                self.assertEqual(report['validation']['guardrails'], 'passed')
                 self.assertTrue(report['validation']['result_reference'])
+                after_deploy = copy.deepcopy(report)
+                after_deploy['validation'].update(deployment_state='after_fix', should_change='passed')
+                validator.validate(after_deploy)
             invalid = copy.deepcopy(report)
             invalid['validation']['environment'] = 'production'
             self.assertFalse(validator.is_valid(invalid))
