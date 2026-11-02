@@ -25,7 +25,7 @@ mission "rate_finalize" {
   ]
 
   # ---------------------------------------------------------------------------
-  # Inputs - the typed handoff from rate_triage or rate_fix. Task outputs do not
+  # Inputs — the typed handoff from rate_triage or rate_fix. Task outputs do not
   # cross a mission boundary, so the close-out's material is declared here.
   # ---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ mission "rate_finalize" {
 
   input "evidence" {
     type        = "string"
-    description = "The evidence chain behind the verdict - each load-bearing claim with its basis and citation. What makes a recorded learning citable; an uncitable one is worse than none."
+    description = "The evidence chain behind the verdict — each load-bearing claim with its basis and citation. What makes a recorded learning citable; an uncitable one is worse than none."
     default     = ""
   }
 
@@ -179,9 +179,9 @@ mission "rate_finalize" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task - enter_finalize. The mission's only startable task: a cross-mission
+  # Task — enter_finalize. The mission's only startable task: a cross-mission
   # route starts every dependency-free task, so the two terminals cannot both be
-  # startable - one stage reads entry_stage and routes. It also establishes which
+  # startable — one stage reads entry_stage and routes. It also establishes which
   # sessions are still reachable, which is exactly what record_learnings' ask and
   # verify_wai's re-fire both depend on. Read-only.
   # ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ mission "rate_finalize" {
       }
       field "reachable_sessions" {
         type        = "string"
-        description = "Each session for this ticket - id, lane, state, and whether it can still be messaged. This is what the terminal stage's asks are addressed to."
+        description = "Each session for this ticket — id, lane, state, and whether it can still be messaged. This is what the terminal stage's asks are addressed to."
         required    = true
       }
     }
@@ -237,18 +237,18 @@ mission "rate_finalize" {
       }
       route {
         target    = tasks.verify_wai
-        condition = "entry_stage == verify_wai - the investigation concluded the system is already correct and nobody has checked that independently yet."
+        condition = "entry_stage == verify_wai — the investigation concluded the system is already correct and nobody has checked that independently yet."
       }
       route {
         target    = tasks.record_learnings
-        condition = "entry_stage == record_learnings - the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so ask its work sessions whether they have worthwhile discoveries to preserve."
+        condition = "entry_stage == record_learnings — the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so ask its work sessions whether they have worthwhile discoveries to preserve."
       }
     }
   }
 
   # ---------------------------------------------------------------------------
-  # Task - verify_wai. Reached only when the investigation concluded working-as-intended.
-  # No PR, nothing to A/B - skeptically re-examine the claim. On a refute, re-fire
+  # Task — verify_wai. Reached only when the investigation concluded working-as-intended.
+  # No PR, nothing to A/B — skeptically re-examine the claim. On a refute, re-fire
   # the chain at rate_triage once (capped by wai_refire_count). Dynamic target
   # (no depends_on).
   # ---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ mission "rate_finalize" {
       # Delegate to Devin
 
       Have the stage agent create a fresh read-only Devin session through plugins.devin.code_develop
-      on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} - verify working-as-intended,
+      on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} — verify working-as-intended,
       and tags `["${inputs.issue}", "verify-wai"]`. Have Devin use the repository's investigate-tax-behavior
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
       Use delegated_session for registration and follow-ups; record this owner in lanes.verification.
@@ -320,14 +320,14 @@ mission "rate_finalize" {
       # A repeated WAI refutation ends in the human-wait workflow described above.
       route {
         target    = tasks.record_learnings
-        condition = "verdict == WAI_CONFIRMED - the ticket was a misunderstanding; a recurring misunderstanding is worth recording."
+        condition = "verdict == WAI_CONFIRMED — the ticket was a misunderstanding; a recurring misunderstanding is worth recording."
       }
     }
 
   }
 
   # ---------------------------------------------------------------------------
-  # Task - record_learnings. The chain's terminal. Reached from enter_finalize
+  # Task — record_learnings. The chain's terminal. Reached from enter_finalize
   # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.
@@ -356,7 +356,7 @@ mission "rate_finalize" {
       keyed by repository URL: {"${inputs.repo_url}": "${inputs.base_branch}"} plus any other
       destination repository; a blank or missing entry means that repository's default branch.
       Use one writeback session for all accepted lessons across repositories, reusing the owner in
-      the checkpoint's learning-writeback lane. Title a new session "${inputs.issue} - record learnings"
+      the checkpoint's learning-writeback lane. Title a new session "${inputs.issue} — record learnings"
       and tag it with `["${inputs.issue}", "learnings"]`.
       Record that owner so operator review can direct later documentation corrections to it.
 

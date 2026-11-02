@@ -31,7 +31,7 @@ result identifies the existing branch and changed files, without claiming test e
 changed payload is undecided, so no implementation or PR exists. Empty artifact fields and
 `change_type: none` describe that state without inventing a deliverable.
 
-`findings` preserves each issue's scope, authority, and start-date decision through
+`findings` preserves each issue’s scope, authority, and start-date decision through
 implementation. The replay examples need no dated tax correction. The
 [multiple-issue investigation](rate-investigation.multiple-issues.json) retains two supported
 corrections with different dates while a third issue still needs an answer. That blocking

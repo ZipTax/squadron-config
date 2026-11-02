@@ -13,7 +13,7 @@ mission "rate_fix" {
   }
 
   # Second of the three rate missions: rate_triage -> rate_fix -> rate_finalize.
-  # Everything that touches the repo lives here - the fix, the A/B cases, the
+  # Everything that touches the repo lives here — the fix, the A/B cases, the
   # adversarial audit that grades them, and the Bruno suite that locks the
   # result in. It never decides whether there is a defect: rate_triage proved
   # that and persists the diagnosis in shared case memory.
@@ -22,7 +22,7 @@ mission "rate_fix" {
   # proven defect), or from its discovery when a prior run blocked inside this
   # lane and the case resumes at the stage it stopped at.
   #
-  # Routed graph (Squadron is acyclic - no backward edges):
+  # Routed graph (Squadron is acyclic — no backward edges):
   #   enter_fix   --router--> develop      (write the fix, or adopt a PR whose session died)
   #                      \--> author_tests (a live fix PR only lacks A/B coverage)
   #                      \--> audit        (fix and cases both exist; resume the judgment)
@@ -61,7 +61,7 @@ mission "rate_fix" {
   ]
 
   # ---------------------------------------------------------------------------
-  # Inputs - the typed handoff from rate_triage. This mission cannot read that
+  # Inputs — the typed handoff from rate_triage. This mission cannot read that
   # one's task outputs, so anything a stage here needs is declared: what is not
   # carried across does not exist.
   # ---------------------------------------------------------------------------
@@ -98,12 +98,12 @@ mission "rate_fix" {
 
   input "entry_stage" {
     type        = "string"
-    description = "develop | author_tests | audit | bruno_tests - which stage this run starts at. develop on a normal proven defect (or to adopt a PR whose session is gone); author_tests when a live fix PR only lacks coverage; audit or bruno_tests only when resuming a run that blocked there with its state intact."
+    description = "develop | author_tests | audit | bruno_tests — which stage this run starts at. develop on a normal proven defect (or to adopt a PR whose session is gone); author_tests when a live fix PR only lacks coverage; audit or bruno_tests only when resuming a run that blocked there with its state intact."
   }
 
   input "mechanism" {
     type        = "string"
-    description = "The proven mechanism from rate_triage: what is wrong and where expected and actual part ways - the object(s)/symbol(s), the input that reaches them, and both values. Briefing material for the fix and the cases; not to be re-derived here."
+    description = "The proven mechanism from rate_triage: what is wrong and where expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both values. Briefing material for the fix and the cases; not to be re-derived here."
     default     = ""
   }
 
@@ -115,7 +115,7 @@ mission "rate_fix" {
 
   input "affected_roots" {
     type        = "string"
-    description = "Procedures/functions the defect implicates, and for a data defect the tables/rows. A briefing hint and a cross-check on coverage - NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
+    description = "Procedures/functions the defect implicates, and for a data defect the tables/rows. A briefing hint and a cross-check on coverage — NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
     default     = ""
   }
 
@@ -127,7 +127,7 @@ mission "rate_fix" {
 
   input "findings" {
     type        = "string"
-    description = "Devin's per-issue findings array as JSON. Recover from the accepted investigation report on resume."
+    description = "Devin’s per-issue findings array as JSON. Recover from the accepted investigation report on resume."
     default     = ""
   }
 
@@ -151,7 +151,7 @@ mission "rate_fix" {
 
   input "investigation_messageable" {
     type        = "bool"
-    description = "Whether investigation_session_id can still be messaged. False means the verdict was carried forward from a terminated session, and the delegated_session rules for an unmessageable session apply - the evidence question goes to the cases session, which has the snapshot."
+    description = "Whether investigation_session_id can still be messaged. False means the verdict was carried forward from a terminated session, and the delegated_session rules for an unmessageable session apply — the evidence question goes to the cases session, which has the snapshot."
     default     = false
   }
 
@@ -169,7 +169,7 @@ mission "rate_fix" {
 
   input "fix_branch" {
     type        = "string"
-    description = "That PR's head branch - every later session pushes to it. Blank when develop opens the PR."
+    description = "That PR's head branch — every later session pushes to it. Blank when develop opens the PR."
     default     = ""
   }
 
@@ -204,10 +204,10 @@ mission "rate_fix" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task - enter_fix. The mission's only startable task, and the only reason it
+  # Task — enter_fix. The mission's only startable task, and the only reason it
   # exists is that a cross-mission route starts every dependency-free task: four
   # entry points cannot all be startable, so one stage reads entry_stage and
-  # routes. It is cheap and not pointless - it confirms the lane's sessions are
+  # routes. It is cheap and not pointless — it confirms the lane's sessions are
   # actually in the state the handoff claims before a stage commits to them.
   # Read-only: creates no session, sends no message.
   # ---------------------------------------------------------------------------
@@ -255,7 +255,7 @@ mission "rate_fix" {
     output {
       field "entry_stage" {
         type        = "string"
-        description = "develop | author_tests | audit | bruno_tests - the stage this run actually enters at, which is the input unless a dead session forced a correction: a dead fix session moves the entry to develop, a dead cases session to author_tests."
+        description = "develop | author_tests | audit | bruno_tests — the stage this run actually enters at, which is the input unless a dead session forced a correction: a dead fix session moves the entry to develop, a dead cases session to author_tests."
         required    = true
       }
       field "lane_state" {
@@ -265,7 +265,7 @@ mission "rate_fix" {
       }
       field "handoff_discrepancies" {
         type        = "string"
-        description = "Anything the handoff claimed that the read contradicts - a session reported live that is terminated, a PR that is closed, a branch that is gone. Blank when it all lined up."
+        description = "Anything the handoff claimed that the read contradicts — a session reported live that is terminated, a PR that is closed, a branch that is gone. Blank when it all lined up."
         required    = false
       }
     }
@@ -273,25 +273,25 @@ mission "rate_fix" {
     router {
       route {
         target    = tasks.develop
-        condition = "entry_stage == develop - no fix exists yet and this run writes it, or one exists whose owning session is gone and develop adopts it."
+        condition = "entry_stage == develop — no fix exists yet and this run writes it, or one exists whose owning session is gone and develop adopts it."
       }
       route {
         target    = tasks.author_tests
-        condition = "entry_stage == author_tests - the fix PR exists with a live owner and what is missing is A/B coverage of it, either because no cases were ever written or because the session that wrote them is gone and this stage adopts them."
+        condition = "entry_stage == author_tests — the fix PR exists with a live owner and what is missing is A/B coverage of it, either because no cases were ever written or because the session that wrote them is gone and this stage adopts them."
       }
       route {
         target    = tasks.audit
-        condition = "entry_stage == audit - fix and cases both exist AND both sessions can still be messaged, so the run re-enters at the judgment rather than rebuilding what it is judging."
+        condition = "entry_stage == audit — fix and cases both exist AND both sessions can still be messaged, so the run re-enters at the judgment rather than rebuilding what it is judging."
       }
       route {
         target    = tasks.bruno_tests
-        condition = "entry_stage == bruno_tests - the A/B is settled and only the API regression coverage was outstanding, usually on an expected value a human had to supply."
+        condition = "entry_stage == bruno_tests — the A/B is settled and only the API regression coverage was outstanding, usually on an expected value a human had to supply."
       }
     }
   }
 
   # ---------------------------------------------------------------------------
-  # Task - develop. Implementation only. The mission is only entered on a proven
+  # Task — develop. Implementation only. The mission is only entered on a proven
   # defect, so it never has to decide whether there IS a defect. Dynamic target
   # (no depends_on); routes into author_tests only when the lane reports completed.
   # ---------------------------------------------------------------------------
@@ -324,8 +324,8 @@ mission "rate_fix" {
       contradictions in the affected finding before accepting completed work.
       A missed applicable path within the diagnosis goes back to the fix owner, not to a human
       asked whether inconsistent checkout, import, or filing behavior is acceptable.
-      Require the fix owner's impact_radius assessment and test recommendation from the actual
-      diff, maintained in the PR's Impact radius section. Accept it when the rationale supports
+      Require the fix owner’s impact_radius assessment and test recommendation from the actual
+      diff, maintained in the PR’s Impact radius section. Accept it when the rationale supports
       the proposed coverage; otherwise ask the fix owner to resolve the specific gap.
 
       # Finish or pause
@@ -338,7 +338,7 @@ mission "rate_fix" {
     output {
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human - the fix lane's typed completion state."
+        description = "completed | needs_human — the fix lane's typed completion state."
         required    = true
       }
       field "human_questions" {
@@ -368,7 +368,7 @@ mission "rate_fix" {
       }
       field "develop_session_id" {
         type        = "string"
-        description = "Devin session id that owns the fix - the one it wrote, or the existing PR it adopted. author_tests forwards it as fix_session_id, and audit resumes it via send_message during the audit loop."
+        description = "Devin session id that owns the fix — the one it wrote, or the existing PR it adopted. author_tests forwards it as fix_session_id, and audit resumes it via send_message during the audit loop."
         required    = true
       }
       field "development_summary" {
@@ -388,7 +388,7 @@ mission "rate_fix" {
       }
       field "findings" {
         type        = "string"
-        description = "Devin's per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
+        description = "Devin’s per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
         required    = false
       }
     }
@@ -403,7 +403,7 @@ mission "rate_fix" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task - author_tests. Reached only on the applies path, so it always has real
+  # Task — author_tests. Reached only on the applies path, so it always has real
   # work (no self-skip). Authors the ratevariant cases/alteration, then hands off
   # to audit. Dynamic target (no depends_on); routes into audit only when the lane reports
   # completed.
@@ -445,7 +445,7 @@ mission "rate_fix" {
     output {
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human - the case-authoring lane's typed completion state."
+        description = "completed | needs_human — the case-authoring lane's typed completion state."
         required    = true
       }
       field "human_questions" {
@@ -490,10 +490,10 @@ mission "rate_fix" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task - audit. Pure A/B. Reached only from author_tests (send_to). Runs the
+  # Task — audit. Pure A/B. Reached only from author_tests (send_to). Runs the
   # ratevariant A/B, interrogates the captures, and loops precise fixes into the
   # sessions that own them. The audit method lives in the ab_audit /
-  # txc_rate_audit / evidence_gate / verdict_loop skills the agent composes -
+  # txc_rate_audit / evidence_gate / verdict_loop skills the agent composes —
   # this objective is only this case's parameters. Dynamic target (no
   # depends_on); routes to bruno_tests on SATISFACTORY.
   # ---------------------------------------------------------------------------
@@ -512,11 +512,11 @@ mission "rate_fix" {
       Devin session with relevant context to investigate. Evidence gathering does not change its
       file ownership, and you retain acceptance of the result.
 
-      Use txc_rate_audit to assess the fix owner's maintained Impact radius section and
+      Use txc_rate_audit to assess the fix owner’s maintained Impact radius section and
       impact_radius report, accepting or rejecting its test recommendation. Recover an older
-      report's missing assessment from the fix owner. Request predictions, captures, and
+      report’s missing assessment from the fix owner. Request predictions, captures, and
       technical analysis for the accepted coverage. Delegate the workflow trigger using the
-      repository's ratevariant-testing dispatch instructions.
+      repository’s ratevariant-testing dispatch instructions.
       Route code corrections to the fix owner and case corrections to the cases owner.
       When a correction changes the assessed impact, have the fix owner update its assessment
       and recommendation. If a migration changes, have the cases owner update its alteration
@@ -593,12 +593,12 @@ mission "rate_fix" {
     router {
       route {
         target    = tasks.bruno_tests
-        condition = "verdict == SATISFACTORY - the fix is settled and correct, so author the Bruno regression suite."
+        condition = "verdict == SATISFACTORY — the fix is settled and correct, so author the Bruno regression suite."
       }
       route {
         target    = missions.rate_finalize
         condition = <<-EOT
-          verdict == FIX_IS_NO_OP - skip Bruno and enter record_learnings.
+          verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
           Save close_reason = 'audit FIX_IS_NO_OP', attributed audit findings, and current
           artifacts through rate_case.
         EOT
@@ -611,8 +611,8 @@ mission "rate_fix" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task - bruno_tests. Reached only on audit's SATISFACTORY verdict, so the
-  # red/green API tests are written against a settled, correct fix - never one
+  # Task — bruno_tests. Reached only on audit's SATISFACTORY verdict, so the
+  # red/green API tests are written against a settled, correct fix — never one
   # still looping. Dynamic target (no depends_on); hands the closed case to
   # rate_finalize.
   # ---------------------------------------------------------------------------
@@ -701,7 +701,7 @@ mission "rate_fix" {
       route {
         target    = missions.rate_finalize
         condition = <<-EOT
-          outcome == completed - enter record_learnings with close_reason = 'fix audited
+          outcome == completed — enter record_learnings with close_reason = 'fix audited
           SATISFACTORY and Bruno CI results match deployment state' and verdict = SATISFACTORY.
           Save accepted findings, audit findings, PRs, and unwritten scenarios through rate_case.
           Keep coverage limits separate from blocking questions.

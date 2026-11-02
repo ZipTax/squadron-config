@@ -26,7 +26,7 @@ skill "devin_txc_playbook" {
 }
 
 # ---------------------------------------------------------------------------
-# Generic, composable skills. No repo, product, or domain assumptions - usable
+# Generic, composable skills. No repo, product, or domain assumptions — usable
 # by any mission that delegates work to sessions and gates on their verdicts.
 # ---------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ skill "evidence_gate" {
 }
 
 skill "delegated_session" {
-  description  = "Load when you do your work through a Devin session rather than yourself - you hold no credentials. Covers create-once/resume-after (code_develop then send_message, never a second session), reading results with check_session, and the finding/evidence/location re-brief format."
+  description  = "Load when you do your work through a Devin session rather than yourself — you hold no credentials. Covers create-once/resume-after (code_develop then send_message, never a second session), reading results with check_session, and the finding/evidence/location re-brief format."
   instructions = load("./skills/delegated_session.md")
 }
 
@@ -86,12 +86,12 @@ skill "learnings_capture" {
 # ---------------------------------------------------------------------------
 
 skill "txc_rate_audit" {
-  description  = "Load with ab_audit when auditing a TaxCloud tax-rate change. What to demand back from the auditing session - cart/import/Reports-ETL agreement, TransactionsWide filing codes not just the rate, decomposed expected values - plus a pointer to the repo's ratevariant-audit skill and its case-law index, which hold the procedure and the precedents."
+  description  = "Load with ab_audit when auditing a TaxCloud tax-rate change. What to demand back from the auditing session — cart/import/Reports-ETL agreement, TransactionsWide filing codes not just the rate, decomposed expected values — plus a pointer to the repo's ratevariant-audit skill and its case-law index, which hold the procedure and the precedents."
   instructions = load("./skills/txc_rate_audit.md")
 }
 
 skill "rate_investigation" {
-  description  = "Load when starting, continuing, or judging a tax-rate investigation. The brief every investigating session gets - read-only lane, limitations check, routing verdict, Jira writeback - and the gates its result must pass before anything routes on it."
+  description  = "Load when starting, continuing, or judging a tax-rate investigation. The brief every investigating session gets — read-only lane, limitations check, routing verdict, Jira writeback — and the gates its result must pass before anything routes on it."
   instructions = load("./skills/rate_investigation.md")
 }
 

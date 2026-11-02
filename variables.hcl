@@ -11,7 +11,7 @@ variable "claude_routine_trigger_id" {
 }
 
 variable "devin_api_key" {
-  secret = true  # Mask value in output - service user token (cog_ prefix)
+  secret = true  # Mask value in output — service user token (cog_ prefix)
 }
 
 variable "github_token" {
@@ -40,7 +40,7 @@ variable "jira_sessions_field" {
   # textarea, so it reads back as ADF rather than a plain string.
   #
   # Override with `squadron vars set jira_sessions_field customfield_NNNNN` if the
-  # field is ever rebuilt - a field id that does not exist reads as an absent field,
+  # field is ever rebuilt — a field id that does not exist reads as an absent field,
   # silently.
   default = "customfield_11724"
 }
