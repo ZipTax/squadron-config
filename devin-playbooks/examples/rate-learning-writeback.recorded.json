@@ -8,5 +8,8 @@
   "files_changed": [
     ".claude/skills/ratevariant-audit/references/case-law.md"
   ],
-  "reason": "Added the filing-boundary coverage lesson to the maintained audit reference."
+  "reason": "Added the filing-boundary coverage lesson to the maintained audit reference.",
+  "destination_pr_urls": [
+    "https://example.invalid/pull/102"
+  ]
 }

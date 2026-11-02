@@ -25,7 +25,7 @@ mission "rate_finalize" {
   ]
 
   # ---------------------------------------------------------------------------
-  # Inputs — the typed handoff from rate_triage or rate_fix. Task outputs do not
+  # Inputs - the typed handoff from rate_triage or rate_fix. Task outputs do not
   # cross a mission boundary, so the close-out's material is declared here.
   # ---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ mission "rate_finalize" {
 
   input "evidence" {
     type        = "string"
-    description = "The evidence chain behind the verdict — each load-bearing claim with its basis and citation. What makes a recorded learning citable; an uncitable one is worse than none."
+    description = "The evidence chain behind the verdict - each load-bearing claim with its basis and citation. What makes a recorded learning citable; an uncitable one is worse than none."
     default     = ""
   }
 
@@ -179,9 +179,9 @@ mission "rate_finalize" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — enter_finalize. The mission's only startable task: a cross-mission
+  # Task - enter_finalize. The mission's only startable task: a cross-mission
   # route starts every dependency-free task, so the two terminals cannot both be
-  # startable — one stage reads entry_stage and routes. It also establishes which
+  # startable - one stage reads entry_stage and routes. It also establishes which
   # sessions are still reachable, which is exactly what record_learnings' ask and
   # verify_wai's re-fire both depend on. Read-only.
   # ---------------------------------------------------------------------------
@@ -220,12 +220,12 @@ mission "rate_finalize" {
     output {
       field "entry_stage" {
         type        = "string"
-        description = "verify_wai | record_learnings | review_followup — the next finalization stage."
+        description = "verify_wai | record_learnings | review_followup - the next finalization stage."
         required    = true
       }
       field "reachable_sessions" {
         type        = "string"
-        description = "Each session for this ticket — id, lane, state, and whether it can still be messaged. This is what the terminal stage's asks are addressed to."
+        description = "Each session for this ticket - id, lane, state, and whether it can still be messaged. This is what the terminal stage's asks are addressed to."
         required    = true
       }
     }
@@ -233,22 +233,22 @@ mission "rate_finalize" {
     router {
       route {
         target    = tasks.review_followup
-        condition = "entry_stage == review_followup — resume operator review using the saved feedback and current session results."
+        condition = "entry_stage == review_followup - resume operator review using the saved feedback and current session results."
       }
       route {
         target    = tasks.verify_wai
-        condition = "entry_stage == verify_wai — the investigation concluded the system is already correct and nobody has checked that independently yet."
+        condition = "entry_stage == verify_wai - the investigation concluded the system is already correct and nobody has checked that independently yet."
       }
       route {
         target    = tasks.record_learnings
-        condition = "entry_stage == record_learnings — the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so ask its work sessions whether they have worthwhile discoveries to preserve."
+        condition = "entry_stage == record_learnings - the case is closed (fixed and audited, a no-op fix, a proven-but-unsupported mechanism, or a confirmed working-as-intended), so ask its work sessions whether they have worthwhile discoveries to preserve."
       }
     }
   }
 
   # ---------------------------------------------------------------------------
-  # Task — verify_wai. Reached only when the investigation concluded working-as-intended.
-  # No PR, nothing to A/B — skeptically re-examine the claim. On a refute, re-fire
+  # Task - verify_wai. Reached only when the investigation concluded working-as-intended.
+  # No PR, nothing to A/B - skeptically re-examine the claim. On a refute, re-fire
   # the chain at rate_triage once (capped by wai_refire_count). Dynamic target
   # (no depends_on).
   # ---------------------------------------------------------------------------
@@ -263,7 +263,7 @@ mission "rate_finalize" {
       # Delegate to Devin
 
       Have the stage agent create a fresh read-only Devin session through plugins.devin.code_develop
-      on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} — verify working-as-intended,
+      on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} - verify working-as-intended,
       and tags `["${inputs.issue}", "verify-wai"]`. Have Devin use the repository's investigate-tax-behavior
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
       Use delegated_session for registration and follow-ups; record this owner in lanes.verification.
@@ -315,19 +315,19 @@ mission "rate_finalize" {
     router {
       route {
         target    = missions.rate_triage
-        condition = "verdict == WAI_REFUTED AND the pre-increment stored wai_refire_count < 1 — return to triage for an independent re-investigation. Persist the cited challenge and increment wai_refire_count through rate_case; carry the ticket to triage."
+        condition = "verdict == WAI_REFUTED AND the pre-increment stored wai_refire_count < 1 - return to triage for an independent re-investigation. Persist the cited challenge and increment wai_refire_count through rate_case; carry the ticket to triage."
       }
       # A repeated WAI refutation ends in the human-wait workflow described above.
       route {
         target    = tasks.record_learnings
-        condition = "verdict == WAI_CONFIRMED — the ticket was a misunderstanding; a recurring misunderstanding is worth recording."
+        condition = "verdict == WAI_CONFIRMED - the ticket was a misunderstanding; a recurring misunderstanding is worth recording."
       }
     }
 
   }
 
   # ---------------------------------------------------------------------------
-  # Task — record_learnings. The chain's terminal. Reached from enter_finalize
+  # Task - record_learnings. The chain's terminal. Reached from enter_finalize
   # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.
@@ -352,10 +352,13 @@ mission "rate_finalize" {
       distinct Devin session through learnings_capture. Check rate_case_log for duplication or
       supporting cases when assessing their proposals.
 
-      Use `!rate-learning-writeback` as the writeback playbook and supply base branch
-      ${inputs.base_branch}. Title the new Devin session "${inputs.issue} — record <lesson>"
-      and tag it with `["${inputs.issue}", "learnings"]`. Record the owner in lanes.lessons
-      so operator review can direct later documentation corrections to it.
+      Use `!rate-learning-writeback` as the writeback playbook. Supply base branches as an object
+      keyed by repository URL: {"${inputs.repo_url}": "${inputs.base_branch}"} plus any other
+      destination repository; a blank or missing entry means that repository's default branch.
+      Use one writeback session for all accepted lessons across repositories, reusing the owner in
+      the checkpoint's learning-writeback lane. Title a new session "${inputs.issue} - record learnings"
+      and tag it with `["${inputs.issue}", "learnings"]`.
+      Record that owner so operator review can direct later documentation corrections to it.
 
       # Finish
 
@@ -387,7 +390,7 @@ mission "rate_finalize" {
       }
       field "recorded" {
         type        = "boolean"
-        description = "True only when the assessed rate-learning-writeback outcome is recorded and its documentation PR is verified."
+        description = "True only when the assessed rate-learning-writeback outcome is recorded and every returned documentation PR is verified."
         required    = true
       }
       field "learning" {
@@ -400,9 +403,14 @@ mission "rate_finalize" {
         description = "recorded | already_documented | blocked from the assessed rate-learning-writeback result, or not_requested when no proposal qualified. A blocked writeback is not a no-lessons result."
         required    = true
       }
+      field "destination_pr_urls" {
+        type        = "string"
+        description = "All documentation PR URLs returned by the ticket's single writeback session, as a JSON array."
+        required    = true
+      }
       field "destination_pr_url" {
         type        = "string"
-        description = "PR URL of the write-back, when one was made"
+        description = "First documentation PR URL, retained for compatibility; use destination_pr_urls for the full set."
         required    = false
       }
       field "checkpoint" {
@@ -414,7 +422,7 @@ mission "rate_finalize" {
     router {
       route {
         target    = tasks.review_followup
-        condition = "ready_for_review == true — keep the case active for operator feedback and merge checks."
+        condition = "ready_for_review == true - keep the case active for operator feedback and merge checks."
       }
     }
   }

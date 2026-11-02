@@ -8,7 +8,7 @@
         "already_documented",
         "blocked"
       ],
-      "description": "recorded means a scoped documentation change is pushed to a reviewable PR; already_documented means cited maintained guidance covers the lesson; blocked means the assignment could not be completed."
+      "description": "recorded means all accepted lessons are recorded or already documented and all changes are pushed; already_documented means all lessons were already covered; blocked means some assigned work remains incomplete."
     },
     "learning": {
       "type": "string",
@@ -23,7 +23,7 @@
     },
     "destination_pr_url": {
       "type": "string",
-      "description": "Documentation PR URL; empty if no PR exists. A partial PR does not establish recorded."
+      "description": "First documentation PR URL, retained for compatibility; empty if none exists. Use destination_pr_urls for the full set."
     },
     "files_changed": {
       "type": "array",
@@ -35,6 +35,13 @@
     "reason": {
       "type": "string",
       "description": "What was recorded, where the lesson is already documented, or the failed step and evidence or decision needed to proceed."
+    },
+    "destination_pr_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "All documentation PR URLs for this ticket writeback, across repositories; empty when none exist."
     }
   },
   "required": [
@@ -43,7 +50,8 @@
     "evidence",
     "destination_pr_url",
     "files_changed",
-    "reason"
+    "reason",
+    "destination_pr_urls"
   ],
   "additionalProperties": false
 }

@@ -14,7 +14,8 @@
     },
     "fix": null,
     "ratevariant-cases": null,
-    "bruno-tests": null
+    "bruno-tests": null,
+    "learning-writeback": null
   },
   "production_evidence": [],
   "artifacts": {

@@ -6,5 +6,6 @@
   ],
   "destination_pr_url": "",
   "files_changed": [],
-  "reason": "The supplied capture shows totals only; a capture of filing boundaries is needed to support the claimed boundary difference."
+  "reason": "The supplied capture shows totals only; a capture of filing boundaries is needed to support the claimed boundary difference.",
+  "destination_pr_urls": []
 }

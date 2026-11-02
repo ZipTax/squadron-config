@@ -28,7 +28,7 @@ mission "rate_triage" {
   ]
 
   # ---------------------------------------------------------------------------
-  # Inputs — a Slack bot or the Jira automation fires this mission with a ticket
+  # Inputs - a Slack bot or the Jira automation fires this mission with a ticket
   # key. This is the chain's front door; rate_fix and rate_finalize are entered
   # by route with the case state filled in, not by a human.
   # ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ mission "rate_triage" {
 
   input "wai_challenge" {
     type        = "string"
-    description = "Optional authoritative challenge from a prior run — a working-as-intended conclusion that rate_finalize's verify_wai refuted, with the rebuttal and an instruction to re-investigate skeptically and annotate the prior Jira comment. Present = discovery routes to confirm_wai. Blank on a first run."
+    description = "Optional authoritative challenge from a prior run - a working-as-intended conclusion that rate_finalize's verify_wai refuted, with the rebuttal and an instruction to re-investigate skeptically and annotate the prior Jira comment. Present = discovery routes to confirm_wai. Blank on a first run."
     default     = ""
   }
 
@@ -181,7 +181,7 @@ mission "rate_triage" {
       }
       field "session_state" {
         type        = "string"
-        description = "That session's state as check_session reports it, and whether it can still be messaged — this is what separates continue from forward. Blank on start."
+        description = "That session's state as check_session reports it, and whether it can still be messaged - this is what separates continue from forward. Blank on start."
         required    = false
       }
       field "prior_verdict" {
@@ -206,12 +206,12 @@ mission "rate_triage" {
       }
       field "sessions_found" {
         type        = "string"
-        description = "The sessions found for this ticket — id, stage tag, state, and which source named it (the ticket's Devin Sessions field or the tag search) — and one line on why the chosen one was chosen over the others. Where a read was refused rather than empty, say so instead of reporting no history."
+        description = "The sessions found for this ticket - id, stage tag, state, and which source named it (the ticket's Devin Sessions field or the tag search) - and one line on why the chosen one was chosen over the others. Where a read was refused rather than empty, say so instead of reporting no history."
         required    = true
       }
       field "history_provenance" {
         type        = "string"
-        description = "How you came to know this ticket's session history, always stated: read (a source answered — the ticket's sessions field, the tag search, or both — and the session reads went through; name which, since a field-only read cannot see sessions that predate it), recorded (every source was refused and you fell back to the checkpoint's ids and states — name what was refused), or none (refused with no checkpoint to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and it is an operational fact about our run rather than a finding about the tax behavior."
+        description = "How you came to know this ticket's session history, always stated: read (a source answered - the ticket's sessions field, the tag search, or both - and the session reads went through; name which, since a field-only read cannot see sessions that predate it), recorded (every source was refused and you fell back to the checkpoint's ids and states - name what was refused), or none (refused with no checkpoint to fall back on, so the mode is start and was chosen blind). Downstream needs this, because a verdict reached without knowing whether another session is already on the ticket carries that caveat, and it is an operational fact about our run rather than a finding about the tax behavior."
         required    = true
       }
     }
@@ -219,38 +219,38 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use rate_case for the saved findings and owners."
+        condition = "resume_stage is develop, author_tests, audit or bruno_tests - set entry_stage = resume_stage. Use rate_case for the saved findings and owners."
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage is record_learnings or review_followup — set entry_stage = resume_stage. Use rate_case for the saved findings and close reason."
+        condition = "resume_stage is record_learnings or review_followup - set entry_stage = resume_stage. Use rate_case for the saved findings and close reason."
       }
       route {
         target    = tasks.confirm_wai
-        condition = "entry_mode == confirm_wai — a prior working-as-intended conclusion is under challenge, so it gets an independent re-investigation rather than a resumption of the session that reached it."
+        condition = "entry_mode == confirm_wai - a prior working-as-intended conclusion is under challenge, so it gets an independent re-investigation rather than a resumption of the session that reached it."
       }
       route {
         target    = tasks.continue_investigation
-        condition = "entry_mode == continue — a messageable investigation session exists for this ticket, so it continues in that session; a new one would re-derive its context and may answer differently."
+        condition = "entry_mode == continue - a messageable investigation session exists for this ticket, so it continues in that session; a new one would re-derive its context and may answer differently."
       }
       route {
         target    = tasks.forward_investigation
-        condition = "entry_mode == forward — an investigation session exists but is terminated/archived, so its findings are carried into a fresh session instead of being re-derived from zero."
+        condition = "entry_mode == forward - an investigation session exists but is terminated/archived, so its findings are carried into a fresh session instead of being re-derived from zero."
       }
       route {
         target    = tasks.start_investigation
-        condition = "entry_mode == start — nothing has investigated this ticket, so start fresh."
+        condition = "entry_mode == start - nothing has investigated this ticket, so start fresh."
       }
     }
 
   }
 
   # ---------------------------------------------------------------------------
-  # Tasks — the four investigation entries. Dynamic targets (no depends_on), so
+  # Tasks - the four investigation entries. Dynamic targets (no depends_on), so
   # only the one discover_sessions routes to runs. They differ ONLY in how the
   # session is obtained; the brief they give it and the gates its result must
   # pass are shared, and live in the rate_investigation skill. Each pushes into
-  # assess_investigation, which owns the verdict and the routing — conditional
+  # assess_investigation, which owns the verdict and the routing - conditional
   # fan-in, so the verdict schema and the four downstream routes exist once
   # instead of four times drifting apart.
   # ---------------------------------------------------------------------------
@@ -323,7 +323,7 @@ mission "rate_triage" {
     output {
       field "investigation_session_id" {
         type        = "string"
-        description = "Devin session id of the fresh re-investigation — not the challenged session."
+        description = "Devin session id of the fresh re-investigation - not the challenged session."
         required    = true
       }
       field "result" {
@@ -359,12 +359,12 @@ mission "rate_triage" {
     output {
       field "investigation_session_id" {
         type        = "string"
-        description = "The session that was continued — the same id discover_sessions identified, never a new one."
+        description = "The session that was continued - the same id discover_sessions identified, never a new one."
         required    = true
       }
       field "result" {
         type        = "string"
-        description = "What the session concluded: verdict, mechanism, evidence, unknowns — whether it was already there on the read or came from the follow-up."
+        description = "What the session concluded: verdict, mechanism, evidence, unknowns - whether it was already there on the read or came from the follow-up."
         required    = true
       }
     }
@@ -403,7 +403,7 @@ mission "rate_triage" {
       }
       field "session_messageable" {
         type        = "boolean"
-        description = "Whether the returned session can still be messaged. False when the terminated session's verdict stood and its id is what is being returned — downstream stages must then treat the report as the whole record instead of sending to a dead session."
+        description = "Whether the returned session can still be messaged. False when the terminated session's verdict stood and its id is what is being returned - downstream stages must then treat the report as the whole record instead of sending to a dead session."
         required    = true
       }
       field "result" {
@@ -417,8 +417,8 @@ mission "rate_triage" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — assess_investigation. Conditional fan-in from whichever entry ran, so
-  # the gates, the verdict schema and the downstream routes exist exactly once —
+  # Task - assess_investigation. Conditional fan-in from whichever entry ran, so
+  # the gates, the verdict schema and the downstream routes exist exactly once -
   # a verdict means the same thing regardless of how the case came in. Judges an
   # investigation it did not run; no session is created here either.
   # ---------------------------------------------------------------------------
@@ -459,7 +459,7 @@ mission "rate_triage" {
     output {
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human — copied from the Devin result after applying the distinction between a blocking human dependency and a non-blocking follow-up."
+        description = "completed | needs_human - copied from the Devin result after applying the distinction between a blocking human dependency and a non-blocking follow-up."
         required    = true
       }
       field "human_questions" {
@@ -489,12 +489,12 @@ mission "rate_triage" {
       }
       field "mechanism" {
         type        = "string"
-        description = "What is wrong and where expected and actual part ways — the object(s)/symbol(s), the input that reaches them, and both values. May legitimately be several sites in one object rather than a single line."
+        description = "What is wrong and where expected and actual part ways - the object(s)/symbol(s), the input that reaches them, and both values. May legitimately be several sites in one object rather than a single line."
         required    = false
       }
       field "affected_roots" {
         type        = "string"
-        description = "Procedures/functions the defect appears to implicate, and for a data defect the tables/rows. A briefing hint for the fix and a cross-check on coverage — NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
+        description = "Procedures/functions the defect appears to implicate, and for a data defect the tables/rows. A briefing hint for the fix and a cross-check on coverage - NOT the coverage checklist, which the ratevariant plan comment derives from the callgraph at the head SHA."
         required    = false
       }
       field "evidence" {
@@ -509,7 +509,7 @@ mission "rate_triage" {
       }
       field "findings" {
         type        = "string"
-        description = "Devin’s per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
+        description = "Devin's per-issue findings array, serialized as JSON and preserved unchanged from the accepted report; recover from that report on resume."
         required    = false
       }
       field "unknowns" {
@@ -559,7 +559,7 @@ mission "rate_triage" {
         target    = missions.rate_fix
         condition = <<-EOT
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
-          AND disposition != 'unsupported at available granularity' — enter author_tests if
+          AND disposition != 'unsupported at available granularity' - enter author_tests if
           existing_pr has a messageable owner, or develop otherwise. Save findings through rate_case.
         EOT
       }
@@ -567,7 +567,7 @@ mission "rate_triage" {
         target    = missions.rate_finalize
         condition = <<-EOT
           outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
-          AND disposition == 'unsupported at available granularity')) — enter verify_wai for
+          AND disposition == 'unsupported at available granularity')) - enter verify_wai for
           WORKING_AS_INTENDED or record_learnings for the unsupported result. Save findings and
           the close reason through rate_case.
         EOT

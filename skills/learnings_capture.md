@@ -38,6 +38,9 @@ Accept guidance about behavior after the fix or a repeatable remedy with clear p
 Check it against the final implementation; reject incident recaps and removed defects presented
 as current limitations. Include corrections to related obsolete guidance in the writeback scope.
 
+Reduce an accepted proposal to its durable part: what a future session should do differently.
+Keep historical details only when they explain a reusable check, remedy, or constraint.
+
 Identify the owning repository from the proposal. Use the writeback playbook supplied by
 the task to select the appropriate reference.
 
@@ -54,20 +57,29 @@ implementation or acceptance testing, leave it unrecorded and report the missing
 
 ## Delegate only accepted writebacks
 
-For an accepted proposal, use delegated_session and devin_code to start a separate session
-with the task-supplied writeback playbook and `prompt_mode: "raw"`. Supply the task context,
-originating session, accepted finding, evidence references, intended future use, destination
-repository, base branch, and any existing documentation PR. The new session does not inherit
-that context. Continue an existing writeback through send_message instead of creating another
-session or PR.
+Collect and assess the work sessions' proposals before dispatching a writeback. Use one Devin
+writeback session for the ticket, covering all accepted lessons across repositories. Recover
+and reuse an existing writeback session before starting one; save its ID in the checkpoint's
+`learning-writeback` lane. Send later lessons and revision requests to that session through
+`send_message`.
+
+When none exists, use delegated_session and devin_code with the task-supplied writeback playbook
+and `prompt_mode: "raw"`. Supply all accepted findings, originating sessions, evidence,
+intended future uses, destination repositories, base branches keyed by repository, and the
+ticket's existing documentation PRs; do not supply documentation PRs from other tickets.
+The new session does not inherit that context. If the owner is unavailable, recover its work
+before replacing it; do not start parallel writeback sessions for the same ticket.
 
 The playbook owns documentation scope, destination checks, writing style, and delivery.
-Let Devin author the prose. Collect its structured result and assess the actual diff:
+Supply Devin with the finding, why it matters, supporting evidence, intended future use, and
+relevant constraints. Suggested destinations and wording are input to evaluate, not requirements
+to copy; label them as suggestions. Collect Devin’s structured result and assess the actual diff:
 
-- `recorded`: accept only the supplied lesson, supported by cited evidence, in a documentation PR.
+- `recorded`: accept only the supplied lesson, supported by cited evidence, in the returned documentation PRs.
 - `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
 - `blocked`: report the failed step and what is needed, without treating failure as no lessons.
 
-Return specific deficiencies for revision. Report the work sessions asked, their proposals
+Return specific deficiencies for revision, including history that explains no reusable rule,
+repeated explanations, or scope broader than the evidence. Report the work sessions asked, their proposals
 or explicit “none” responses, unavailable responses, and the writeback outcome. If no proposal
 qualifies, finish without starting a writeback.

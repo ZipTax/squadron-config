@@ -24,7 +24,7 @@ message a Devin session directly, ask Squadron to re-audit so it can collect tha
 latest work and reassess the change. Each round returns to the same review prompt flow.
 Use its Answer control; ordinary Slack replies are conversation, not answers to Squadron.
 
-“Awaiting review” means the work is ready for your feedback. It does not mean the changes
+"Awaiting review" means the work is ready for your feedback. It does not mean the changes
 have been merged. You can also explicitly end the review and retain the case for later use.
 
 For Slack credentials and channel selection, see [Slack setup](slack-setup.md).

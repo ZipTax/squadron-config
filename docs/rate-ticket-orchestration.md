@@ -40,7 +40,7 @@ establish that the evidence supports its conclusion. The
 | Fix | Implement the accepted remedy |
 | Ratevariant cases | Supply A/B fixtures and captures |
 | Bruno | Author regressions and review automatic staging CI results |
-| Lessons | Propose supported, reusable guidance |
+| Lessons | Record accepted, durable guidance through one writeback owner, with one documentation PR per repository |
 
 Squadron owns audit acceptance. It obtains analysis and captures from the appropriate
 sessions, sends corrections to their owners, and reassesses the returned evidence. An

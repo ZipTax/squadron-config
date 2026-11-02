@@ -19,7 +19,7 @@ entry in `human_wait`, then `case_slack` to show Blocked on question.
 1. Use `sme_writeback` to have Devin post the product question on Jira. Send facts and the
    unresolved decision; Devin owns the wording. Confirm the comment reference.
 2. Save that reference in `human_wait` with `channel: jira`. Use `human.ask` to ask
-   “Have answers been provided on <Jira comment link>?” with the remaining question's
+   "Have answers been provided on <Jira comment link>?" with the remaining question's
    context. The Slack gateway posts it in the case thread while the root remains blocked.
 3. When the operator says answers are ready, have a context-owning Devin session read the
    current ticket and assess each answer. Save accepted answers and sources. If a gap

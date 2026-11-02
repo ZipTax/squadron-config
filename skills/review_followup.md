@@ -11,8 +11,8 @@ for updates. This is a review loop, not a Jira evidence blocker.
    below are already met, finish without opening another question.
 2. Save `next_entry` as `rate_finalize/review_followup` and the current review progress.
 3. Set Slack status to Awaiting review and call `builtins.human.ask` without
-   `timeout_seconds`: “What should I review or change? Tell me when the PRs are merged.”
-   Offer “Re-audit current work”, “Check whether PRs are merged”, and “End review”.
+   `timeout_seconds`: "What should I review or change? Tell me when the PRs are merged."
+   Offer "Re-audit current work", "Check whether PRs are merged", and "End review".
    The Other answer accepts detailed feedback, including work requested directly from Devin.
 4. Wait for the answer in this task. An interrupted or unavailable ask retains active
    case state for resumption at this stage; it does not complete review.
@@ -38,10 +38,10 @@ After it is settled, return to this review loop. Keep merge decisions with the o
 
 ## Finish or recover
 
-- On “check merged”, confirm all case PRs are merged through the sessions. If any remain
+- On "check merged", confirm all case PRs are merged through the sessions. If any remain
   open, report which and return to the ask. A closed-unmerged PR needs operator disposition.
 - When all PRs are merged, record that outcome and close the case. A case with no PRs
   can close when its accepted disposition leaves no pending work.
-- On an explicit “end review”, record remaining work and close the review by operator choice.
+- On an explicit "end review", record remaining work and close the review by operator choice.
 - On resume, reconcile the saved pending action with session results before resending work.
   Recover unrecorded direct feedback by asking the operator; never claim it was assessed.

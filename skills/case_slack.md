@@ -22,16 +22,16 @@ and saved desired text; keep pending state until delivery is confirmed. Gateway 
 remain visible in the case record and mission result; they do not imply successful delivery.
 
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
-about 25–30 words, stating uncertainty until established. List only PRs that exist.
+about 25-30 words, stating uncertainty until established. List only PRs that exist.
 
 ```text
 *DEV-1234: Incorrect tax rate in Austin, TX*
 Cause: The remote seller needs a ZIP+4 override because the current address match selects the wrong local rate. The fix targets the affected location and effective period.
 Status: :hammer: Fixing
 PRs:
-• <https://github.com/ZipTax/txc-sqlserver-database/pull/123|txc-sqlserver-database fix>
-• <https://github.com/ZipTax/txc-bruno/pull/45|bruno tests>
-• <https://github.com/ZipTax/squadron-config/pull/67|lessons>
+- <https://github.com/ZipTax/txc-sqlserver-database/pull/123|txc-sqlserver-database fix>
+- <https://github.com/ZipTax/txc-bruno/pull/45|bruno tests>
+- <https://github.com/ZipTax/squadron-config/pull/67|lessons>
 ```
 
 ## Status and results
