@@ -14,8 +14,8 @@ Connection settings belong in [Slack setup](slack-setup.md) and
 1. **Investigate.** Establish the cause, scope, and supporting authority. Post the results
    in product language on Jira. A working-as-intended conclusion receives an independent
    check; a proven defect proceeds to a proposed fix.
-2. **Propose and test the fix.** The fix owner implements the accepted remedy. The
-   ratevariant-cases owner supplies A/B coverage. Squadron audits the evidence for
+2. **Propose and test the fix.** The fix Devin session implements the accepted remedy. The
+   ratevariant-cases session supplies A/B coverage. Squadron audits the evidence for
    directional correctness and regressions, directing corrections to the appropriate owner.
 3. **Add API regressions.** The Bruno owner authors and reviews tests; CI runs them in
    staging. Before deployment, should-change tests fail and guardrails pass. Those expected
@@ -28,8 +28,10 @@ Connection settings belong in [Slack setup](slack-setup.md) and
    Squadron has the Bruno owner review fresh CI results: should-change tests now pass and
    guardrails remain passing. Unchanged or new failures return to investigation and correction.
 
-The Slack root shows the cause, status, and PRs. Detailed progress and questions appear in
-its thread. Updating Slack preserves the product-language investigation results on Jira.
+Product-level updates, such as investigation results, are recorded on the Jira ticket.
+Similarly, so are questions about the product like tax behavior or merchant setup.
+Slack provides status updates and collects artifacts like PR links, operational questions
+such as data access, tool timeouts, or rote mechanics like "what date should this change start on".
 
 ## Keep work with its owner
 
@@ -63,15 +65,16 @@ The session that raised a question may differ from the owner best placed to act 
 | Mission | Work to perform, acceptance criteria, entry points, and routing decisions |
 | Squadron skill | Repeated coordination: session reuse, evidence assessment, questions, and checkpoint handling |
 | Devin playbook | The session's assignment, repository skill entry points, and report contract |
-| Repository skill | Investigation, SQL, fixture selection, test mechanics, and writing procedures |
+| Repository skill | Reusable or portable mechanical instruction needed to complete tasks, such as data access, test construction, etc |
 | Schema | Field definitions, required values, and result structure |
 
-Squadron requests evidence and assesses it. Devin reads repository code, derives predictions,
-selects test data, and interprets captures using repository guidance. Keep those procedures
-with Devin so the orchestrator does not maintain a competing copy or improvise missing analysis.
+Squadron requests evidence and assesses it. Devin own the full contextual understanding by
+reading repository code, deriving predictions, selecting test data, and interpreting captures
+using repository guidance. Keep those procedures with Devin so the orchestrator does not overreach,
+misinterpret results, create a competing copy, or improvise missing analysis.
 
-For published prose, Squadron supplies facts, purpose, and constraints; the context-owning
-Devin session writes for the ticket or repository audience. See the
+When publishing updates, Squadron supplies facts, purpose, and constraints; the context-owning
+Devin session writes for the ticket or external audience. See the
 [playbook guide](../devin-playbooks/README.md) for maintaining and publishing playbooks.
 
 ## Keep task objectives and outputs distinct
