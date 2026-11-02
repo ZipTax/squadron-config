@@ -170,6 +170,6 @@ for proof that behavior is correct.
 
 For a data gap, the owner first tries other tools or another way to obtain the answer.
 When necessary, extend `prod-sql-insights` and raise an operator dependency for access or
-deployment. See [production evidence coordination](../skills/txc_staging_access.md).
+deployment. See [production evidence coordination](../skills/txc_production_evidence.md).
 Jira questions remain focused on product decisions. If evidence cannot support a conclusion,
 retain that limitation instead of inferring a verdict.

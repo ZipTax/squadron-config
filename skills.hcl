@@ -100,6 +100,11 @@ skill "txc_staging_access" {
   instructions = load("./skills/txc_staging_access.md")
 }
 
+skill "txc_production_evidence" {
+  description  = "Load when requesting production evidence or resolving a production-tool gap. Delegate query mechanics to prod-sql-insights and route access or deployment needs to the operator."
+  instructions = load("./skills/txc_production_evidence.md")
+}
+
 skill "bridge" {
   description = "Load to register or resolve a human wait through the bridge."
   instructions = "${load("./skills/bridge.md")}\nConfigured bridge URL: ${vars.bridge_url}\nReady label: ${vars.rate_ready_label}"

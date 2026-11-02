@@ -1,6 +1,6 @@
 # Resolve a human dependency
 
-Apply `question_screen` first. Production-tool and access gaps follow `txc_staging_access`
+Apply `question_screen` first. Production-tool and access gaps follow `txc_production_evidence`
 before the operator ask. Use `rate_case` to save the question, context, and next
 entry in `human_wait`, then `case_slack` to show Blocked on question.
 

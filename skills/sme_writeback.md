@@ -22,7 +22,7 @@ ready-made body bypasses it. DEV-10202 shows the cost: two Squadron-drafted bodi
 procedure names, query receipts, and run caveats were posted as written, and the
 ticket's readers could not use them. Use delegated_session for the tool interaction.
 
-Production-tool and access gaps use `txc_staging_access` and an operator ask. Ticket
+Production-tool and access gaps use `txc_production_evidence` and an operator ask. Ticket
 updates explain product findings or request product decisions. Keep query mechanics and
 connection diagnostics with the investigating session.
 
@@ -49,6 +49,6 @@ connection diagnostics with the investigating session.
 Have Devin post the update and confirm its comment reference. If it revises a prior
 conclusion, ask Devin to annotate that earlier comment so readers see the changed status.
 For a blocking product question, use `blocked_run` to save the confirmed comment and ask
-in Slack whether answers are ready. Use `txc_staging_access` for a production-data gap
+in Slack whether answers are ready. Use `txc_production_evidence` for a production-data gap
 before requesting human input. If the investigation ends with an unresolved finding,
 have Devin explain its product consequence and uncertainty on the ticket.

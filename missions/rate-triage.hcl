@@ -450,7 +450,7 @@ mission "rate_triage" {
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
-      Use txc_staging_access for production-tool gaps and blocked_run for the resulting
+      Use txc_production_evidence for production-tool gaps and blocked_run for the resulting
       operator dependency. Use sme_writeback for supported product findings or questions.
       Preserve insufficient_production_evidence when the data cannot support a conclusion.
     EOT

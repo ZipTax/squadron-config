@@ -24,7 +24,7 @@ attachment is an access or evidence gap, not proof that the ticket lacks an answ
 Have Devin also identify any relevant code, available data, or published authority that
 can settle the question, and have it attempt each one: the state's rate lookup service,
 every configured data tool re-listed rather than remembered, and the stored record. A
-missing report field does not establish a human dependency. For a governed production-tool gap, use `txc_staging_access` to obtain the tool change
+missing report field does not establish a human dependency. For a governed production-tool gap, use `txc_production_evidence` to obtain the tool change
 and route deployment or access to the operator. Request the
 missing research before escalating, and use an answer already found instead of asking a
 person to confirm it. A closing artifact Devin names is a candidate question, not a ticket

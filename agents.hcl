@@ -85,6 +85,7 @@ agent "taxcloud_support_engineer" {
     skills.session_lane,
     skills.evidence_gate,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.sme_writeback
   ]
 }
@@ -132,6 +133,7 @@ agent "taxcloud_legacy_sql_investigator" {
     skills.evidence_gate,
     skills.rate_investigation,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.sme_writeback,
     skills.blocked_run, skills.bridge,
     skills.rate_case, skills.case_slack, skills.rate_checkpoint
@@ -158,6 +160,7 @@ agent "taxcloud_legacy_sql_implementer" {
     skills.session_lane,
     skills.evidence_gate,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.blocked_run, skills.bridge,
     skills.rate_case, skills.case_slack, skills.rate_checkpoint
   ]
@@ -180,6 +183,7 @@ agent "test_authoring_coordinator" {
   skills      = [
     skills.question_screen,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.delegated_session,
     skills.session_lane,
     skills.evidence_gate,
@@ -210,6 +214,7 @@ agent "taxcloud_legacy_sql_reviewer" {
     skills.ab_audit,
     skills.txc_rate_audit,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.verdict_loop,
     skills.sme_writeback,
     skills.blocked_run, skills.bridge,
