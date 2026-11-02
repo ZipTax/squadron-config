@@ -24,6 +24,6 @@ to `case_slack`; the mission selects when each update occurs.
 
 ## Finish
 
-Keep the case active through operator review. Mark it closed when PRs are merged or the
-operator explicitly ends the review, with remaining work recorded. Retain the checkpoint
+Keep the case active through operator review. Use `review_followup` to establish completion
+before closing it, so pending verification and corrections remain actionable. Retain the checkpoint
 for reference or reuse. Read closed cases as history until work is explicitly reopened.

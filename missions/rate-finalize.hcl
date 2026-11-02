@@ -430,8 +430,9 @@ mission "rate_finalize" {
   task "review_followup" {
     objective = <<-EOT
       Apply rate_case for ${inputs.issue} and review_followup to keep this case available
-      for feedback until its PRs merge or the operator ends review. Re-audit changed work
-      and direct corrections to the recorded session owners.
+      for feedback until its PRs merge and requested checks are settled, or the operator ends
+      review. Apply the skill's post-deployment check when the operator reports a manual
+      staging deployment. Re-audit changed work and direct corrections to the recorded owners.
 
       Use case_slack for Awaiting review, work updates, and the closing outcome.
       Persist progress before each wait or session request. An interrupted wait leaves

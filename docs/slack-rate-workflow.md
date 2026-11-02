@@ -7,7 +7,9 @@
    on Jira, then tell Squadron that the answers are ready.
 4. At review, send feedback or request another audit through the review prompt. Squadron
    checks the current work and directs corrections to the existing sessions.
-5. When the PRs are merged, tell Squadron to check their status and finish the case.
+5. After you deploy to staging, tell Squadron through the review prompt. It reviews fresh
+   Bruno CI results, delegates unexpected results for correction, and updates Slack.
+6. When the PRs are merged and requested checks are settled, tell Squadron to finish the case.
 
 Investigation results are posted in product language on the ticket. The Slack message is
 updated for progress, with questions or more detailed updates posted in a thread.

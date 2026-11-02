@@ -11,8 +11,9 @@ for updates. This is a review loop, not a Jira evidence blocker.
    below are already met, finish without opening another question.
 2. Save `next_entry` as `rate_finalize/review_followup` and the current review progress.
 3. Set Slack status to Awaiting review and call `builtins.human.ask` without
-   `timeout_seconds`: "What should I review or change? Tell me when the PRs are merged."
-   Offer "Re-audit current work", "Check whether PRs are merged", and "End review".
+   `timeout_seconds`: "What should I review or change? Tell me when staging is deployed or the PRs are merged."
+   Offer "Re-audit current work", "Check staging deployment", "Check whether PRs are merged",
+   and "End review".
    The Other answer accepts detailed feedback, including work requested directly from Devin.
 4. Wait for the answer in this task. An interrupted or unavailable ask retains active
    case state for resumption at this stage; it does not complete review.
@@ -36,11 +37,28 @@ for updates. This is a review loop, not a Jira evidence blocker.
 Use `blocked_run` for an actual operator/product dependency discovered during review.
 After it is settled, return to this review loop. Keep merge decisions with the operator.
 
+## Check a staging deployment
+
+1. When the operator reports a manual staging deployment, record which fix was deployed
+   and have the Bruno owner review a CI run made after that deployment. If no fresh run
+   is available, keep verification pending and report the missing evidence.
+2. Compare should-change and guardrail results with the pre-deployment run. Both should
+   pass now. Unchanged failures, new failures, or an unexpected lack of change require
+   investigation, even when the SQL A/B audit was satisfactory.
+3. Delegate the discrepancy and CI evidence to the existing investigation, fix, case,
+   or Bruno owner as appropriate. Re-audit returned corrections through the feedback
+   loop above. A correction requiring deployment waits for the operator's next manual
+   deployment before its post-deployment check.
+4. Post the result, delegated follow-ups, and remaining work in Slack. Save the deployed
+   fix reference and CI evidence with review progress. Keep review open while a reported
+   deployment has unresolved verification or corrections.
+
 ## Finish or recover
 
 - On "check merged", confirm all case PRs are merged through the sessions. If any remain
   open, report which and return to the ask. A closed-unmerged PR needs operator disposition.
-- When all PRs are merged, record that outcome and close the case. A case with no PRs
+- When all PRs are merged and no requested verification or corrections remain, record
+  that outcome and close the case. A case with no PRs
   can close when its accepted disposition leaves no pending work.
 - On an explicit "end review", record remaining work and close the review by operator choice.
 - On resume, reconcile the saved pending action with session results before resending work.
