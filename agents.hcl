@@ -85,6 +85,7 @@ agent "taxcloud_support_engineer" {
     skills.session_lane,
     skills.evidence_gate,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.sme_writeback
   ]
 }
@@ -102,12 +103,14 @@ agent "session_scout" {
   role        = "You inspect session indexes, recorded ownership, and session state to recommend continuation or recovery. You do not create or message work sessions, investigate the underlying issue, or infer domain conclusions from activity metadata. Apply only the coordination writes explicitly assigned by the mission."
   tools       = [
     builtins.human.ask,
+    builtins.gateway.post,
+    builtins.gateway.edit,
     plugins.devin.find_sessions,
     plugins.devin.check_session,
     mcp.atlassian.getJiraIssue,
     mcp.atlassian.editJiraIssue
   ]
-  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_checkpoint]
+  skills      = [skills.question_screen, skills.delegated_session, skills.blocked_run, skills.bridge, skills.rate_case, skills.case_slack, skills.rate_checkpoint]
 }
 
 agent "taxcloud_legacy_sql_investigator" {
@@ -117,6 +120,8 @@ agent "taxcloud_legacy_sql_investigator" {
   tools       = [
     mcp.atlassian.getJiraIssue,
     builtins.human.ask,
+    builtins.gateway.post,
+    builtins.gateway.edit,
     plugins.devin.code_develop,
     plugins.devin.check_session,
     plugins.devin.send_message,
@@ -128,9 +133,10 @@ agent "taxcloud_legacy_sql_investigator" {
     skills.evidence_gate,
     skills.rate_investigation,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.sme_writeback,
     skills.blocked_run, skills.bridge,
-    skills.rate_checkpoint
+    skills.rate_case, skills.case_slack, skills.rate_checkpoint
   ]
 }
 
@@ -141,6 +147,8 @@ agent "taxcloud_legacy_sql_implementer" {
   tools       = [
     mcp.atlassian.getJiraIssue,
     builtins.human.ask,
+    builtins.gateway.post,
+    builtins.gateway.edit,
     plugins.devin.code_develop,
     plugins.devin.check_session,
     plugins.devin.send_message,
@@ -152,8 +160,9 @@ agent "taxcloud_legacy_sql_implementer" {
     skills.session_lane,
     skills.evidence_gate,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.blocked_run, skills.bridge,
-    skills.rate_checkpoint
+    skills.rate_case, skills.case_slack, skills.rate_checkpoint
   ]
 }
 
@@ -164,6 +173,8 @@ agent "test_authoring_coordinator" {
   tools       = [
     mcp.atlassian.getJiraIssue,
     builtins.human.ask,
+    builtins.gateway.post,
+    builtins.gateway.edit,
     plugins.devin.code_develop,
     plugins.devin.check_session,
     plugins.devin.send_message,
@@ -171,11 +182,13 @@ agent "test_authoring_coordinator" {
   ]
   skills      = [
     skills.question_screen,
+    skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.delegated_session,
     skills.session_lane,
     skills.evidence_gate,
     skills.blocked_run, skills.bridge,
-    skills.rate_checkpoint
+    skills.rate_case, skills.case_slack, skills.rate_checkpoint
   ]
 }
 
@@ -186,6 +199,8 @@ agent "taxcloud_legacy_sql_reviewer" {
   tools       = [
     mcp.atlassian.getJiraIssue,
     builtins.human.ask,
+    builtins.gateway.post,
+    builtins.gateway.edit,
     plugins.devin.code_develop,
     plugins.devin.check_session,
     plugins.devin.send_message,
@@ -199,10 +214,11 @@ agent "taxcloud_legacy_sql_reviewer" {
     skills.ab_audit,
     skills.txc_rate_audit,
     skills.txc_staging_access,
+    skills.txc_production_evidence,
     skills.verdict_loop,
     skills.sme_writeback,
     skills.blocked_run, skills.bridge,
-    skills.rate_checkpoint
+    skills.rate_case, skills.case_slack, skills.rate_checkpoint
   ]
 }
 
@@ -213,6 +229,8 @@ agent "learnings_curator" {
   tools       = [
     mcp.atlassian.getJiraIssue,
     builtins.human.ask,
+    builtins.gateway.post,
+    builtins.gateway.edit,
     plugins.devin.code_develop,
     plugins.devin.check_session,
     plugins.devin.send_message,
@@ -226,6 +244,6 @@ agent "learnings_curator" {
     skills.evidence_gate,
     skills.learnings_capture,
     skills.blocked_run, skills.bridge,
-    skills.rate_checkpoint
+    skills.rate_case, skills.case_slack, skills.rate_checkpoint
   ]
 }

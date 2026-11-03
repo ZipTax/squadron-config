@@ -41,9 +41,11 @@ before cloning, and a cloned repo can override indexed skills with its branch's 
 Cloning solely to make a skill available is not required. See
 [Devin skills](https://docs.devin.ai/product-guides/skills).
 
-For published prose, provide facts and purpose only. Never send a drafted body or demand
-exact wording, under any circumstance. Use
-`sme_writeback` for ticket updates and `session_lane` for shared PR edits.
+For published prose, supply facts, purpose, audience, and constraints. Never supply a drafted
+body or instruct Devin to post supplied text as-is, including technical reports or internal
+replies. Have the context-owning Devin session write for the destination audience using
+its repository writing guidance. Use `sme_writeback` for ticket updates and `session_lane`
+for shared PR edits.
 
 ## Find and continue existing work
 
@@ -62,8 +64,11 @@ Capture session ids as soon as returned. For ticket work, ask Devin to register 
 so discovery does not mistake it for a work owner. Follow the skill's registration procedure
 rather than copying its field-editing mechanics into your message.
 
-Ask for replies in product terms: behavior, who is affected, and any decision needed. Technical
-detail belongs in the structured output or PR, not the reply.
+Ask for a concise result summary: behavior, who is affected, and any decision needed.
+For internal assessment, request the technical analysis and evidence needed to judge the
+work, using the structured report when available. Internal evidence is not publication copy:
+a Jira update requires Devin to write a separate product-language explanation using
+`writing-ticket-updates`, rather than copying technical prose or instructions into the ticket.
 
 Continue with `send_message` and collect the result with `check_session`. When an owner
 cannot be messaged, retain its report with attribution and choose an explicit replacement

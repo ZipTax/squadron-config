@@ -17,8 +17,11 @@ mission "rate_triage" {
 
   # Discovery and assessment precede implementation so a fix starts from an explicit verdict.
   # Session lifecycle, human waits, and checkpoint rules live in the attached skills.
-  # See docs/rate-ticket-orchestration.md for phase ownership and bridge rollout.
+  # See docs/rate-ticket-orchestration.md for the cross-mission lifecycle and phase ownership.
   memories = [memories.rate_checkpoint, memories.rate_resume_state]
+
+  # Cross-mission routes select the entry and supply accepted context; rate_case also retains
+  # that context for continuation and recovery.
 
   agents = [
     agents.session_scout,
@@ -107,15 +110,18 @@ mission "rate_triage" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      Apply rate_case for ${inputs.issue}. Use case_slack with status ":mag: Triaging" for a new case;
+      retain the recorded status on resumption. Save accepted state before routing.
+
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
-      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}; WAI refire count:
-      ${inputs.wai_refire_count}.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
+      count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
       # Inspect existing work
 
-      Have session_scout read or migrate the checkpoint using rate_checkpoint and apply
-      delegated_session for candidate validation, resumability, and provenance.
+      Have session_scout read the ticket title for the root, then apply delegated_session
+      for candidate validation, resumability, and provenance.
       Read the Jira Devin Sessions field ${vars.jira_sessions_field} using getJiraIssue with
       cloudId "${vars.jira_cloud_id}". Extract its tag/URL lines from the ADF paragraphs. Only
       if that field is empty, absent, or refused, fall back to find_sessions(tags: ["${inputs.issue}"]).
@@ -125,7 +131,7 @@ mission "rate_triage" {
       # Assess ownership
 
       Honor explicit inputs: live override "${inputs.wip_investigation_session_id}", terminated
-      context override "${inputs.stale_investigation_session_id}", WAI challenge "${inputs.wai_challenge}".
+      context override "${inputs.stale_investigation_session_id}", WAI challenge "${inputs.wai_challenge}" or the saved context.wai_challenge.
       Otherwise keep the checkpoint's exact lane owner; discovery ranking is only for a lane
       without recorded ownership. Record other candidates and disagreements without blending
       reports. If indexes fail, check recorded ids and label unverified checkpoint facts recorded;
@@ -142,8 +148,8 @@ mission "rate_triage" {
       The selected work stage delegates interpretation of new answers; discovery does not decide
       whether a tax or product question is settled.
 
-      Prefer the checkpoint's downstream resume stage (develop, author_tests, audit, bruno_tests, or
-      record_learnings) when its verdict and required artifacts remain valid. Carry its state
+      For an active case, prefer its downstream resume stage (develop, author_tests, audit,
+      bruno_tests, record_learnings, or review_followup) when its verdict and required artifacts remain valid. Carry its state
       and selected entry forward. If contradictory or incomplete, leave resume_stage blank and
       explain why investigation must reconsider the premise. Otherwise select one entry mode:
 
@@ -166,7 +172,7 @@ mission "rate_triage" {
       }
       field "resume_stage" {
         type        = "string"
-        description = "develop | author_tests | audit | bruno_tests | record_learnings, when the checkpoint's accepted result and the selected stage's required artifacts remain usable. develop can resume before a PR exists. Blank when the recorded state cannot support resumption."
+        description = "develop | author_tests | audit | bruno_tests | record_learnings | review_followup, when the checkpoint's accepted result and the selected stage's required artifacts remain usable. develop can resume before a PR exists. Blank when the recorded state cannot support resumption."
         required    = false
       }
       field "investigation_session_id" {
@@ -214,11 +220,24 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is develop, author_tests, audit or bruno_tests — set entry_stage = resume_stage. Use the checkpoint and recorded reports for the accepted diagnosis, per-issue findings, evidence, artifacts, and lane owners. Map artifacts.fix_pr.url to existing_pr; develop may resume before a PR exists."
+        condition = <<-EOT
+          resume_stage is develop, author_tests, audit or bruno_tests - set entry_stage = resume_stage.
+          Recover the accepted diagnosis, complete per-issue findings, evidence, artifacts, and
+          Devin session ownership from the checkpoint and recorded reports. Preserve that context
+          through rate_case and supply the destination inputs from it. Map artifacts.fix_pr.url
+          to existing_pr; develop may resume before a PR exists.
+        EOT
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage == record_learnings — set entry_stage = record_learnings. Recover the accepted verdict, close_reason, per-issue findings, evidence, outstanding questions, artifacts, and lane owners from the checkpoint and recorded reports. Map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url when present."
+        condition = <<-EOT
+          resume_stage is record_learnings or review_followup - set entry_stage = resume_stage.
+          Recover the accepted verdict, close_reason, complete findings, evidence, outstanding
+          questions, PRs, and Devin session ownership from the checkpoint and recorded reports.
+          Preserve that context through rate_case and supply the destination inputs from it;
+          map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url.
+          A review resumption also retains saved feedback, assessed heads, and pending work.
+        EOT
       }
       route {
         target    = tasks.confirm_wai
@@ -252,6 +271,8 @@ mission "rate_triage" {
 
   task "start_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status ":mag: Investigating".
+
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
       # Delegate to Devin
@@ -287,6 +308,8 @@ mission "rate_triage" {
 
   task "confirm_wai" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status ":mag: Investigating".
+
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
       # Delegate to Devin
@@ -329,6 +352,8 @@ mission "rate_triage" {
 
   task "continue_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status ":mag: Investigating".
+
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
       # Work with Devin
@@ -363,6 +388,8 @@ mission "rate_triage" {
 
   task "forward_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status ":mag: Investigating".
+
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
 
@@ -412,9 +439,11 @@ mission "rate_triage" {
 
   task "assess_investigation" {
     objective = <<-EOT
+      Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status ":mag: Investigating".
+
       Decide whether the investigation of ${inputs.issue} supports a disposition.
-      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}; WAI refire count:
-      ${inputs.wai_refire_count}.
+      Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
+      count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
       # Obtain and assess evidence
 
@@ -435,11 +464,9 @@ mission "rate_triage" {
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
-      For needs_human, use blocked_run and rate_checkpoint. If a production evidence gap ends
-      the work without an actionable request, record insufficient_production_evidence and have
-      Devin post a ticket update explaining what remains unproven and why work stopped, using
-      sme_writeback. Send facts only; Devin writes the comment. Confirm the comment reference; do not invent a question or claim nobody
-      can resolve the gap unless the evidence establishes that.
+      Use txc_production_evidence for production-tool gaps and blocked_run for the resulting
+      operator dependency. Use sme_writeback for supported product findings or questions.
+      Preserve insufficient_production_evidence when the data cannot support a conclusion.
     EOT
     agents = [agents.taxcloud_legacy_sql_investigator]
 
@@ -548,8 +575,10 @@ mission "rate_triage" {
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
           AND disposition != 'unsupported at available granularity' — enter author_tests if
           existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
-          including findings, production evidence, and existing work; map session_messageable to
-          investigation_messageable.
+          including the diagnosis, complete findings, production evidence, and existing work.
+          Preserve it through rate_case and populate the destination inputs; map
+          session_messageable to investigation_messageable. Carry the existing fix PR and
+          its recorded owner so continuing work does not start a duplicate implementation.
         EOT
       }
       route {
@@ -558,8 +587,10 @@ mission "rate_triage" {
           outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
           AND disposition == 'unsupported at available granularity')) — enter verify_wai for
           WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
-          naming that decision. Carry findings unchanged into rate_finalize. Use the accepted assessment; map session_messageable to
-          investigation_messageable, existing_pr to fix_pr_url, and unknowns to open_questions.
+          naming that decision. Carry findings unchanged and preserve the accepted evidence,
+          questions, and session ownership through rate_case. Populate the destination inputs;
+          map session_messageable to investigation_messageable, existing_pr to fix_pr_url,
+          and unknowns to open_questions.
         EOT
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.

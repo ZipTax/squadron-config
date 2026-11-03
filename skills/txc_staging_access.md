@@ -16,7 +16,7 @@ For case data gaps, ask the Devin session authoring cases to use ratevariant-cas
 and find an eligible situation or explain the coverage limit. Let Devin select substitute
 merchants and investigate fixture requirements. A substitute must not be presented as the reported production transaction.
 
-Tests run against the dated staging snapshot. Production observations can inform a diagnosis
+Ratevariant tests run against the dated staging snapshot. Production observations can inform a diagnosis
 or fix, but they do not establish that the snapshot contains the records a test needs.
 
 ## Interpret the evidence
@@ -33,6 +33,6 @@ or treat production observations as a substitute for local SQL Server behavior p
 ## Finish or pause
 
 If access fails, have the Devin session check its environment wiring and report the missing
-capability. Secrets remain in Devin's secret mechanism; a required human dependency returns
-through blocked_run rather than keeping the mission open. Shared staging mutations run
+capability. Secrets remain in Devin's secret mechanism; use blocked_run for the resulting
+operator dependency. Shared staging mutations run
 through the repository's PR workflows, not ad hoc commands from a session.

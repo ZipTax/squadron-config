@@ -5,9 +5,10 @@
       "type": "string",
       "enum": [
         "completed",
-        "needs_human"
+        "needs_human",
+        "failed"
       ],
-      "description": "Whether this lane completed its bounded work. Use needs_human only when the Bruno deliverable cannot safely finish without information or a decision that only a person can provide; deliberately unwritten scenarios can coexist with a completed outcome."
+      "description": "completed means authoring and review are finished: CI guardrails pass and should-change tests fail before fix deployment or pass afterward. failed means unexpected results need correction; needs_human means an unresolved operator or product question."
     },
     "human_questions": {
       "type": "array",
@@ -15,10 +16,17 @@
       "items": {
         "type": "object",
         "properties": {
-          "question": { "type": "string" },
-          "context": { "type": "string" }
+          "question": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          }
         },
-        "required": ["question", "context"],
+        "required": [
+          "question",
+          "context"
+        ],
         "additionalProperties": false
       }
     },
@@ -90,6 +98,55 @@
         "type": "string"
       },
       "description": "Questions a human must answer, each actionable on its own: the scenario, the exact figure needed, and the authority that would supply it. 'Needs confirmation' cannot be resumed by the next run."
+    },
+    "validation": {
+      "type": "object",
+      "description": "Automatic staging CI results assessed against fix deployment state. Before deployment, should-change failures are expected; afterward those tests pass. Guardrails pass throughout.",
+      "properties": {
+        "environment": {
+          "type": "string",
+          "enum": [
+            "staging"
+          ]
+        },
+        "deployment_state": {
+          "type": "string",
+          "enum": [
+            "before_fix",
+            "after_fix",
+            "unknown"
+          ]
+        },
+        "should_change": {
+          "type": "string",
+          "enum": [
+            "failed",
+            "passed",
+            "mixed",
+            "not_run"
+          ]
+        },
+        "guardrails": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "not_run"
+          ]
+        },
+        "result_reference": {
+          "type": "string",
+          "description": "CI run or report supporting the observed results; empty until available."
+        }
+      },
+      "required": [
+        "environment",
+        "deployment_state",
+        "should_change",
+        "guardrails",
+        "result_reference"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -98,7 +155,8 @@
     "pr_url",
     "branch",
     "scenarios",
-    "unwritten"
+    "unwritten",
+    "validation"
   ],
   "additionalProperties": false
 }

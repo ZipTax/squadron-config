@@ -1,7 +1,8 @@
 # Verdict loops
 
-A stage that can send work back must exit on a named verdict, within a stated bound. An
-unbounded "keep improving" loop burns the run and ends in a hedge.
+A stage that sends work back identifies the finding to correct and assesses the returned
+evidence. Continue while making progress; ask for help when progress stalls or information
+is missing.
 
 ## Emit exactly one verdict
 
@@ -17,17 +18,16 @@ The router reads that field; prose is not routable. Verdicts split three ways:
 A routed-back verdict must name the lane, the deficiency, and the evidence that establishes
 it (see `session_lane`, `delegated_session`). "Needs more work" is not a verdict.
 
-## Bound the loop
+## Assess progress
 
-- State the iteration cap in the objective and count iterations in an output field.
-- Each iteration must consume new evidence. If an iteration would send the same message
-  again, the loop is stuck: exit terminal-bad and say what is stuck.
-- On hitting the cap, exit terminal-bad with the open items — never upgrade to
-  terminal-good to close out the run.
+- Continue corrections when new evidence or a concrete next step can advance the work.
+- When progress stalls or required information is missing, ask the operator with the
+  unresolved finding, what was tried, and what would unblock it.
+- Preserve the supported verdict and open items while waiting for direction.
 
 ## Never launder a failure into a pass
 
-The pressure at the cap is to accept a hedge. `evidence_gate` forbids it: an unproven claim
+Pressure to finish can lead to accepting a hedge. `evidence_gate` forbids it: an unproven claim
 cannot support a terminal verdict. Escalating an honest incomplete costs one human read;
 a laundered pass costs a bad change in production.
 

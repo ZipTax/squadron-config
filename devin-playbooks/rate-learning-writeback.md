@@ -19,7 +19,8 @@ Select the relevant maintained guidance in the supplied repositories using these
 | --- | --- |
 | Repository procedure, query trap, or configuration constraint | Relevant maintained repository skill or reference |
 | Case or alteration authoring step | SQL repository's `ratevariant-case-data` or `ratevariant-testing` skill |
-| Workflow boundary, evidence gate, or routing behavior | Corresponding workflow skill |
+| Reusable coordination or evidence acceptance procedure | Corresponding Squadron skill |
+| Task-specific work, acceptance criteria, or routing decision | Owning mission task objective or route |
 | Reusable rate-audit precedent not already covered by maintained guidance | SQL repository's `ratevariant-audit/references/case-law.md` |
 | Proven limitation with an established new-rate-engine deferral | SQL repository's `ratevariant-audit/references/limitations.md` |
 

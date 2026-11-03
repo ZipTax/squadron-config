@@ -23,5 +23,12 @@
   "authority_conflicts": [],
   "open_questions": [
     "Need the prior treatment and its effective period for the before-date scenario."
-  ]
+  ],
+  "validation": {
+    "environment": "staging",
+    "deployment_state": "unknown",
+    "should_change": "not_run",
+    "guardrails": "not_run",
+    "result_reference": ""
+  }
 }

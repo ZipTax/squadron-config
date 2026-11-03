@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "ticket": "DEMO-100",
+  "checkpoint_revision": 1,
+  "updated_at": "2026-09-11T18:00:00Z",
+  "stage": "review_followup",
+  "verdict": "SATISFACTORY",
+  "mechanism": "",
+  "lanes": {
+    "investigation": {
+      "session_id": "11111111111111111111111111111111",
+      "messageable": true,
+      "output_revision": 0
+    },
+    "fix": {
+      "session_id": "22222222222222222222222222222222",
+      "messageable": true,
+      "output_revision": 1
+    },
+    "ratevariant-cases": null,
+    "bruno-tests": null
+  },
+  "production_evidence": [],
+  "artifacts": {
+    "fix_pr": {
+      "url": "https://example.invalid/fix/1",
+      "branch": "fix/DEMO-100",
+      "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "bruno_pr": null
+  },
+  "completed_stages": [
+    "start_investigation",
+    "develop",
+    "author_tests",
+    "audit",
+    "bruno_tests",
+    "record_learnings"
+  ],
+  "wai_refire_count": 0,
+  "audit": {
+    "iteration": 0,
+    "last_result": "",
+    "stall_count": 0
+  },
+  "blocker": null,
+  "processed_start_event_ids": [],
+  "next_entry": {
+    "mission": "rate_finalize",
+    "stage": "review_followup"
+  },
+  "case_state": "active",
+  "context": {
+    "repo_url": "https://github.com/ZipTax/txc-sqlserver-database",
+    "base_branch": "main",
+    "findings": [
+      {
+        "id": "A",
+        "issue": "Issue A treatment",
+        "scope": "Fictional jurisdiction A, product A.",
+        "verdict": "DEFECT_PROVEN",
+        "remedy": "Correct the dated treatment for this scope.",
+        "authority": [
+          {
+            "citation": "https://example.invalid/DEMO-300/A/bulletin",
+            "treatment": "Fictional exempt treatment.",
+            "effective_period": "2024-01-01 onward"
+          }
+        ],
+        "start_date": {
+          "status": "resolved",
+          "date": "2024-01-01",
+          "reasoning": "Published applicability and observed row history support this date.",
+          "evidence": [
+            "https://example.invalid/DEMO-300/A/bulletin",
+            "https://example.invalid/DEMO-300/A/row-history"
+          ]
+        },
+        "unknowns": []
+      }
+    ],
+    "report_references": [
+      "Devin investigation report, revision 1"
+    ]
+  },
+  "slack": {
+    "mission_thread_id": "7b088a4d-ef5d-431c-b4cf-1b68060f205f",
+    "root_message_id": "C012345/1793100000.000001",
+    "root_text": "*DEMO-100: Incorrect tax treatment*\nCause: The dated treatment needs correction.\nStatus: :eyes: Awaiting review\nPRs:\n- <https://example.invalid/fix/1|SQL fix>",
+    "published_text": "*DEMO-100: Incorrect tax treatment*\nCause: The dated treatment needs correction.\nStatus: :eyes: Awaiting review\nPRs:\n- <https://example.invalid/fix/1|SQL fix>",
+    "status": "Awaiting review",
+    "update_pending": false,
+    "root_post_pending": false,
+    "last_update": "Review prompt posted"
+  },
+  "human_wait": null,
+  "review": {
+    "phase": "awaiting_feedback",
+    "feedback": "",
+    "pending_work": "Wait for operator feedback or a merge-status check.",
+    "round": 0,
+    "assessed_heads": {
+      "https://example.invalid/fix/1": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+}
