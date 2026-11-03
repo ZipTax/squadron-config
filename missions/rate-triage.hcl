@@ -110,7 +110,7 @@ mission "rate_triage" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
-      Apply rate_case for ${inputs.issue}. Use case_slack with Triaging for a new case;
+      Apply rate_case for ${inputs.issue}. Use case_slack with status ":mag: Triaging" for a new case;
       retain the recorded status on resumption. Save accepted state before routing.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
@@ -271,7 +271,7 @@ mission "rate_triage" {
 
   task "start_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status "Investigating".
+      Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status ":mag: Investigating".
 
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
@@ -308,7 +308,7 @@ mission "rate_triage" {
 
   task "confirm_wai" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status "Investigating".
+      Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status ":mag: Investigating".
 
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
@@ -352,7 +352,7 @@ mission "rate_triage" {
 
   task "continue_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status "Investigating".
+      Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status ":mag: Investigating".
 
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
@@ -388,7 +388,7 @@ mission "rate_triage" {
 
   task "forward_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status "Investigating".
+      Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status ":mag: Investigating".
 
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
@@ -439,7 +439,7 @@ mission "rate_triage" {
 
   task "assess_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status "Investigating".
+      Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status ":mag: Investigating".
 
       Decide whether the investigation of ${inputs.issue} supports a disposition.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire

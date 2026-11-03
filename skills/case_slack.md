@@ -36,13 +36,12 @@ PRs:
 
 ## Status and results
 
-Use the mission's status with a suitable emoji, for example `:hammer: Fixing`,
-`:microscope: Auditing`, or `:eyes: Awaiting review`. Report the supplied outcome and
+Use the complete status supplied by the caller, including its emoji. Report the supplied outcome and
 supporting links. Preserve existing PR links when a stage produces no new PR.
 
 ## Questions
 
-Use Blocked on question for an unresolved dependency and Awaiting review for the final
-feedback prompt. The human-ask tool posts the question in the thread. When the calling
+The caller supplies the question status. The human-ask tool posts the question in the
+thread. When the calling
 stage accepts the answer, post its resolution and restore the supplied work status.
 The calling task owns question assessment; `blocked_run` handles dependency questions.

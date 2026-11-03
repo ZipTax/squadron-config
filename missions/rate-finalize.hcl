@@ -262,7 +262,7 @@ mission "rate_finalize" {
 
   task "verify_wai" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `verify_wai`. Use case_slack with status "Verifying working-as-intended".
+      Apply rate_case for ${inputs.issue} at `verify_wai`. Use case_slack with status ":mag: Verifying working-as-intended".
 
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
@@ -351,7 +351,7 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `record_learnings`. Use case_slack with status "Recording lessons".
+      Apply rate_case for ${inputs.issue} at `record_learnings`. Use case_slack with status ":memo: Recording lessons".
 
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
       worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
@@ -455,7 +455,7 @@ mission "rate_finalize" {
          delegated_session, including lessons PRs. On resume, reconcile the saved pending
          action before resending work. If the completion criteria below are met, finish.
       2. Save progress and next entry rate_finalize/review_followup before each wait or
-         session request. Set Slack status to Awaiting review.
+         session request. Set Slack status to ":eyes: Awaiting review".
       3. Call builtins.human.ask without timeout_seconds: "What should I review or change?
          Tell me when staging is deployed or the PRs are merged." Offer re-audit, staging
          verification, merge check, and end review, with free text for detailed feedback.
@@ -467,28 +467,29 @@ mission "rate_finalize" {
          the operator requested directly from Devin. Ask for any unrecorded feedback.
       2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
          through delegated_session, preserving each owner's file lane.
-      3. Set status to Auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
+      3. Set status to ":microscope: Auditing". Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
          changed work with fresh captures. Have the Bruno owner review automatic staging CI:
          should-change tests fail before deployment and pass afterward; guardrails pass throughout.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
-      4. Use verdict_loop to bound corrections to 10 attempts per feedback round or two
-         attempts without improvement. Report unresolved findings at the limit. Preserve
-         prior counters and evidence across rounds. Post results in Slack and return to the ask.
+      4. Use verdict_loop to continue corrections while progress is being made. If progress
+         stalls or more information is needed, ask the operator with the unresolved findings
+         and evidence. Preserve review history, post results in Slack, and return to the ask.
 
       Use blocked_run for an operator or product dependency, then resume this review task.
       Merge and deployment decisions remain with the operator.
 
       # Verify a reported staging deployment
 
-      1. Record which fix the operator deployed manually. Have the Bruno owner review a CI
-         run made after deployment; keep verification pending if fresh evidence is unavailable.
+      1. When the operator confirms this case's fix is deployed to staging, have the Bruno
+         owner review a CI run made after that deployment. Keep verification pending if
+         fresh evidence is unavailable.
       2. Compare results with the pre-deployment run. Both should-change tests and guardrails
          should now pass. Investigate unchanged failures, new failures, or an unexpected lack
          of change even when the SQL A/B audit was satisfactory.
       3. Send discrepancies and CI evidence to the appropriate existing owners and re-audit
          their corrections. A correction needing deployment waits for the operator's next
          manual deployment before its post-deployment check.
-      4. Save the deployed fix reference, CI evidence, and pending work. Report results and
+      4. Save the staging deployment confirmation, CI evidence, and pending work. Report results and
          delegated follow-ups in Slack. Keep review open while verification or corrections remain.
 
       # Finish or recover

@@ -299,7 +299,7 @@ mission "rate_fix" {
 
   task "develop" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status "Fixing".
+      Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
@@ -412,7 +412,7 @@ mission "rate_fix" {
 
   task "author_tests" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status "Testing".
+      Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status ":test_tube: Testing".
 
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
@@ -501,7 +501,7 @@ mission "rate_fix" {
 
   task "audit" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `audit`. Use case_slack with status "Auditing".
+      Apply rate_case for ${inputs.issue} at `audit`. Use case_slack with status ":microscope: Auditing".
 
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
@@ -541,8 +541,8 @@ mission "rate_fix" {
 
       # Finish or pause
 
-      Use verdict_loop: stop at a supported result, two iterations without a named improvement,
-      or 10 iterations. Never upgrade a verdict to exit. On FIX_IS_NO_OP, ask Devin to verify
+      Use verdict_loop: continue while making progress; ask the operator when progress
+      stalls or more information is needed. Preserve the supported verdict. On FIX_IS_NO_OP, ask Devin to verify
       read-only, post the product-level finding using writing-ticket-updates, and add a PR note;
       do not close or revert the PR. Stop further case work.
 
@@ -624,7 +624,7 @@ mission "rate_fix" {
 
   task "bruno_tests" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `bruno_tests`. Use case_slack with status "Verifying (Bruno)".
+      Apply rate_case for ${inputs.issue} at `bruno_tests`. Use case_slack with status ":writing_hand: Authoring Bruno tests".
 
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
@@ -651,8 +651,9 @@ mission "rate_fix" {
 
       # Finish or pause
 
-      Completed work proceeds to finalization. Bound technical corrections to 10 attempts or
-      two attempts without improvement, then report the remaining failures to the operator.
+      Completed work proceeds to finalization. Continue technical corrections while making
+      progress. If progress stalls or more information is needed, ask the operator with
+      the remaining failures and evidence.
       Save failed work with next entry bruno_tests so it can resume after direction.
       For needs_human, use blocked_run and rate_checkpoint with next entry bruno_tests.
     EOT

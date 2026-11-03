@@ -16,8 +16,10 @@ and use the configured Databricks MCP tools. That skill owns tool selection, rep
 freshness, completeness checks, and evidence reporting because these depend on the deployed
 queries. Follow its tool-extension procedure in txc-databricks when needed, and return
 the resulting deployment/access dependency for Squadron to ask the operator. This does
-not authorize changes to the SQL fix. Report unresolved data gaps; replica results are not live
-SQL Server observations.
+not authorize changes to the SQL fix. Replica results are accurate within an hour or so,
+not necessarily live-this-second SQL Server observations. Tables loaded via snapshots carry
+their own date, but if they are in the current fiscal quarter they can be treated as current.
+Report unresolved data gaps.
 Register with `registering-on-the-ticket` under `rate-investigation`.
 
 The caller supplies the ticket, known evidence, and the requested mode:

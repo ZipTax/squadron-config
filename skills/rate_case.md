@@ -8,17 +8,14 @@ results; Devin supplies the underlying reports.
 1. Read the current case before briefing a session, so it receives the latest accepted work.
 2. Recover missing context from supplied inputs and recorded reports. Preserve established
    findings when an older launch payload contains different values.
-3. Confirm the required finding, artifact, and owner before starting the selected stage.
-   Use `delegated_session` to recover a report or replace an unavailable owner.
 
 ## Hand off work
 
 1. Save accepted results and their source references before returning or routing.
 2. Preserve complete per-issue findings so scope, authority, and effective dates survive
    the handoff. Keep raw evidence with its source.
-3. Record the next mission and stage. Pass `issue`, `repo_url`, `base_branch`, and
-   `entry_stage` across mission routes, plus the accepted context and mappings specified
-   by the route. The receiving stage reads the case and uses supplied inputs for recovery.
+3. Store the continuation supplied by the caller or router so interrupted work can resume.
+   Route selection, destination inputs, and stage prerequisites belong to the missions.
 
 Field mappings and write rules belong to `rate_checkpoint`. Slack presentation belongs
 to `case_slack`; the mission selects when each update occurs.
