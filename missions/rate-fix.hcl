@@ -51,7 +51,8 @@ mission "rate_fix" {
   # lane's next stage so rate_triage can resume without repeating finished work.
   memories = [memories.rate_checkpoint]
 
-  # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
+  # Cross-mission routes select the entry and supply accepted context; rate_case also retains
+  # that context for continuation and recovery.
 
   agents = [
     agents.session_scout,
@@ -599,8 +600,12 @@ mission "rate_fix" {
         target    = missions.rate_finalize
         condition = <<-EOT
           verdict == FIX_IS_NO_OP — skip Bruno and enter record_learnings.
-          Save close_reason = 'audit FIX_IS_NO_OP', attributed audit findings, and current
-          artifacts through rate_case.
+          Set close_reason = 'audit FIX_IS_NO_OP' and use this audit's verdict. Map
+          confirmed_findings to audit_findings; include its citations alongside the investigation
+          evidence, with each conclusion attributed. Carry complete findings unchanged.
+          Preserve the latest artifacts, Devin session owners, and open questions from completed
+          work or resumed state through rate_case and populate the destination inputs.
+          Map existing_pr to fix_pr_url when develop did not run.
         EOT
       }
       # CASES_INADEQUATE / FIX_OR_TICKET_WRONG normally loop in-session and never reach a
@@ -613,7 +618,7 @@ mission "rate_fix" {
   # ---------------------------------------------------------------------------
   # Task — bruno_tests. Reached only on audit's SATISFACTORY verdict, so the
   # red/green API tests are written against a settled, correct fix — never one
-  # still looping. Dynamic target (no depends_on); hands the closed case to
+  # still looping. Dynamic target (no depends_on); hands the accepted work to
   # rate_finalize.
   # ---------------------------------------------------------------------------
 
@@ -703,8 +708,13 @@ mission "rate_fix" {
         condition = <<-EOT
           outcome == completed — enter record_learnings with close_reason = 'fix audited
           SATISFACTORY and Bruno CI results match deployment state' and verdict = SATISFACTORY.
-          Save accepted findings, audit findings, PRs, and unwritten scenarios through rate_case.
-          Keep coverage limits separate from blocking questions.
+          Use the latest accepted outputs or resumed state. Map audit.confirmed_findings to
+          audit_findings and retain its citations alongside the investigation evidence.
+          Carry complete findings unchanged. Combine audit.open_questions and this task's
+          unwritten_scenarios into open_questions, preserving which are deliberate coverage
+          limits rather than human blockers. Save the current PRs, CI results, and Devin
+          session owners through rate_case and populate the destination inputs; map
+          existing_pr to fix_pr_url when develop did not run.
         EOT
       }
       # Failed or blocked work retains bruno_tests as its next entry; expected pre-deployment failures allow completion.

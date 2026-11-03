@@ -17,7 +17,8 @@ results; Devin supplies the underlying reports.
 2. Preserve complete per-issue findings so scope, authority, and effective dates survive
    the handoff. Keep raw evidence with its source.
 3. Record the next mission and stage. Pass `issue`, `repo_url`, `base_branch`, and
-   `entry_stage` across mission routes; the receiving stage reads the case.
+   `entry_stage` across mission routes, plus the accepted context and mappings specified
+   by the route. The receiving stage reads the case and uses supplied inputs for recovery.
 
 Field mappings and write rules belong to `rate_checkpoint`. Slack presentation belongs
 to `case_slack`; the mission selects when each update occurs.

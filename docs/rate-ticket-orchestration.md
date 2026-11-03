@@ -33,6 +33,51 @@ Similarly, so are questions about the product like tax behavior or merchant setu
 Slack provides status updates and collects artifacts like PR links, operational questions
 such as data access, tool timeouts, or rote mechanics like "what date should this change start on".
 
+## Mission lifecycle
+
+```mermaid
+flowchart TD
+  subgraph triage[rate_triage]
+    investigate[Investigate and assess]
+  end
+  subgraph fix[rate_fix]
+    implement[Propose fix]
+    cases[Author A/B cases]
+    audit[Audit A/B evidence]
+    bruno[Author Bruno tests and review CI]
+    implement --> cases --> audit
+    audit -->|Satisfactory| bruno
+  end
+  subgraph finalize[rate_finalize]
+    wai[Independent WAI verification]
+    lessons[Capture worthwhile lessons]
+    review[Final review and feedback]
+    lessons --> review
+    wai -->|Confirmed| lessons
+  end
+  investigate -->|Proven defect| implement
+  investigate -->|Working-as-intended claim| wai
+  investigate -->|Proven defect outside engine capability| lessons
+  wai -->|Refuted: at most one re-fire| investigate
+  audit -->|Fix is a no-op| lessons
+  bruno -->|CI results match deployment state| lessons
+  review -->|Feedback or post-deployment discrepancies| sessions[Existing Devin sessions]
+  sessions -->|Corrections and evidence for re-audit| review
+  review -->|Completion criteria met or operator ends review| closed[Retain completed case]
+```
+
+A supported existing fix can enter at case authoring. Resumed work enters its recorded
+stage after ownership and prerequisites are checked. Audit corrections happen through the
+existing Devin sessions within the audit task; final review uses the same pattern.
+
+Human dependencies pause the affected stage. Operator answers continue the active ask;
+an ended Jira wait resumes through the bridge at its recorded mission and stage. A second
+WAI refutation needs an operator decision rather than another automatic re-investigation.
+
+This diagram shows decisions and interactions. Each mission's routes retain the destination,
+entry criteria, accepted context, and input mappings needed for its handoff, including entry
+from another mission or recovery without earlier task outputs in the current run.
+
 ## Keep work with its owner
 
 | Owner | Responsibility |

@@ -13,10 +13,17 @@ mission "rate_finalize" {
   }
 
   # Finalization verifies WAI claims, records lessons, and keeps operator review open.
-  # Review feedback is handled within review_followup so existing lane owners stay available.
+  # Enter from triage for an unverified WAI claim or supported-but-unimplementable defect,
+  # or from rate_fix after Bruno completion or an audit no-op. Saved work can resume review.
+  #   enter_finalize -> verify_wai | record_learnings | review_followup
+  #   verify_wai -> rate_triage (refuted, at most one re-fire) | record_learnings (confirmed)
+  #   record_learnings -> review_followup
+  # Review directs existing Devin sessions within the task, rather than routing backward.
+  # See docs/rate-ticket-orchestration.md for interactions across all rate missions.
   memories = [memories.rate_case_log, memories.rate_checkpoint]
 
-  # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
+  # Cross-mission routes select the entry and supply accepted context; rate_case also retains
+  # that context for continuation and recovery.
 
   agents = [
     agents.session_scout,
@@ -61,7 +68,7 @@ mission "rate_finalize" {
 
   input "entry_stage" {
     type        = "string"
-    description = "verify_wai | record_learnings | review_followup. Resume review_followup for operator feedback after lessons."
+    description = "verify_wai | record_learnings | review_followup. verify_wai checks an unverified working-as-intended claim; record_learnings follows accepted work, including a confirmed WAI claim, unsupported remedy, or completed fix audit; review_followup resumes operator review after lessons."
   }
 
   input "close_reason" {
@@ -315,7 +322,16 @@ mission "rate_finalize" {
     router {
       route {
         target    = missions.rate_triage
-        condition = "verdict == WAI_REFUTED AND the pre-increment stored wai_refire_count < 1 - return to triage for an independent re-investigation. Persist the cited challenge and increment wai_refire_count through rate_case; carry the ticket to triage."
+        condition = <<-EOT
+          verdict == WAI_REFUTED AND the pre-increment stored wai_refire_count < 1 - return
+          to triage for an independent re-investigation. Set wai_challenge to the prior
+          reasoning and cited rebuttal, preserving both positions rather than a predetermined
+          answer. Increment wai_refire_count once and persist the challenge and accepted
+          findings through rate_case. Supply the challenge and updated counter in triage's
+          inputs. Map the investigation owner to wip_investigation_session_id if messageable,
+          or stale_investigation_session_id otherwise; the challenged claim still requires
+          an independent session rather than continuation of that owner's conclusion.
+        EOT
       }
       # A repeated WAI refutation ends in the human-wait workflow described above.
       route {
@@ -327,7 +343,7 @@ mission "rate_finalize" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — record_learnings. The chain's terminal. Reached from enter_finalize
+  # Task — record_learnings. Prepares accepted lessons before final operator review. Reached from enter_finalize
   # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.

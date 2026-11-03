@@ -17,10 +17,11 @@ mission "rate_triage" {
 
   # Discovery and assessment precede implementation so a fix starts from an explicit verdict.
   # Session lifecycle, human waits, and checkpoint rules live in the attached skills.
-  # See docs/rate-ticket-orchestration.md for phase ownership and bridge rollout.
+  # See docs/rate-ticket-orchestration.md for the cross-mission lifecycle and phase ownership.
   memories = [memories.rate_checkpoint, memories.rate_resume_state]
 
-  # Cross-mission routes carry the ticket and chosen entry; rate_case persists the context.
+  # Cross-mission routes select the entry and supply accepted context; rate_case also retains
+  # that context for continuation and recovery.
 
   agents = [
     agents.session_scout,
@@ -219,11 +220,24 @@ mission "rate_triage" {
     router {
       route {
         target    = missions.rate_fix
-        condition = "resume_stage is develop, author_tests, audit or bruno_tests - set entry_stage = resume_stage. Use rate_case for the saved findings and owners."
+        condition = <<-EOT
+          resume_stage is develop, author_tests, audit or bruno_tests - set entry_stage = resume_stage.
+          Recover the accepted diagnosis, complete per-issue findings, evidence, artifacts, and
+          Devin session ownership from the checkpoint and recorded reports. Preserve that context
+          through rate_case and supply the destination inputs from it. Map artifacts.fix_pr.url
+          to existing_pr; develop may resume before a PR exists.
+        EOT
       }
       route {
         target    = missions.rate_finalize
-        condition = "resume_stage is record_learnings or review_followup - set entry_stage = resume_stage. Use rate_case for the saved findings and close reason."
+        condition = <<-EOT
+          resume_stage is record_learnings or review_followup - set entry_stage = resume_stage.
+          Recover the accepted verdict, close_reason, complete findings, evidence, outstanding
+          questions, PRs, and Devin session ownership from the checkpoint and recorded reports.
+          Preserve that context through rate_case and supply the destination inputs from it;
+          map artifacts.fix_pr.url to fix_pr_url and artifacts.bruno_pr.url to bruno_pr_url.
+          A review resumption also retains saved feedback, assessed heads, and pending work.
+        EOT
       }
       route {
         target    = tasks.confirm_wai
@@ -560,7 +574,11 @@ mission "rate_triage" {
         condition = <<-EOT
           outcome == completed AND verdict == DEFECT_PROVEN AND evidence_complete == true
           AND disposition != 'unsupported at available granularity' — enter author_tests if
-          existing_pr has a messageable owner, or develop otherwise. Save findings through rate_case.
+          existing_pr has a messageable owner, or develop otherwise. Use the accepted assessment,
+          including the diagnosis, complete findings, production evidence, and existing work.
+          Preserve it through rate_case and populate the destination inputs; map
+          session_messageable to investigation_messageable. Carry the existing fix PR and
+          its recorded owner so continuing work does not start a duplicate implementation.
         EOT
       }
       route {
@@ -568,8 +586,11 @@ mission "rate_triage" {
         condition = <<-EOT
           outcome == completed AND evidence_complete == true AND (verdict == WORKING_AS_INTENDED OR (verdict == DEFECT_PROVEN
           AND disposition == 'unsupported at available granularity')) — enter verify_wai for
-          WORKING_AS_INTENDED or record_learnings for the unsupported result. Save findings and
-          the close reason through rate_case.
+          WORKING_AS_INTENDED or record_learnings for the unsupported result, with close_reason
+          naming that decision. Carry findings unchanged and preserve the accepted evidence,
+          questions, and session ownership through rate_case. Populate the destination inputs;
+          map session_messageable to investigation_messageable, existing_pr to fix_pr_url,
+          and unknowns to open_questions.
         EOT
       }
       # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.
