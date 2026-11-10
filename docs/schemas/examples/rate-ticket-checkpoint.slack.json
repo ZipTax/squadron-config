@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "ticket": "DEMO-100",
+  "checkpoint_revision": 1,
+  "updated_at": "2026-09-11T18:00:00Z",
+  "stage": "start_investigation",
+  "verdict": "",
+  "mechanism": "",
+  "lanes": {
+    "investigation": {
+      "session_id": "11111111111111111111111111111111",
+      "messageable": true,
+      "output_revision": 0
+    },
+    "fix": null,
+    "ratevariant-cases": null,
+    "bruno-tests": null
+  },
+  "production_evidence": [],
+  "artifacts": {
+    "fix_pr": null,
+    "bruno_pr": null
+  },
+  "completed_stages": [],
+  "wai_refire_count": 0,
+  "audit": {
+    "iteration": 0,
+    "last_result": "",
+    "stall_count": 0
+  },
+  "blocker": null,
+  "processed_start_event_ids": [],
+  "next_entry": {
+    "mission": "rate_triage",
+    "stage": "continue_investigation"
+  },
+  "case_state": "active",
+  "context": {
+    "repo_url": "https://github.com/ZipTax/txc-sqlserver-database",
+    "base_branch": "main",
+    "findings": [
+      {
+        "id": "A",
+        "issue": "Issue A treatment",
+        "scope": "Fictional jurisdiction A, product A.",
+        "verdict": "DEFECT_PROVEN",
+        "remedy": "Correct the dated treatment for this scope.",
+        "authority": [
+          {
+            "citation": "https://example.invalid/DEMO-300/A/bulletin",
+            "treatment": "Fictional exempt treatment.",
+            "effective_period": "2024-01-01 onward"
+          }
+        ],
+        "start_date": {
+          "status": "resolved",
+          "date": "2024-01-01",
+          "reasoning": "Published applicability and observed row history support this date.",
+          "evidence": [
+            "https://example.invalid/DEMO-300/A/bulletin",
+            "https://example.invalid/DEMO-300/A/row-history"
+          ]
+        },
+        "unknowns": []
+      },
+      {
+        "id": "B",
+        "issue": "Issue B treatment",
+        "scope": "Fictional jurisdiction B, product B.",
+        "verdict": "DEFECT_PROVEN",
+        "remedy": "Correct the dated treatment for this scope.",
+        "authority": [
+          {
+            "citation": "https://example.invalid/DEMO-300/B/bulletin",
+            "treatment": "Fictional exempt treatment.",
+            "effective_period": "2025-07-01 onward"
+          }
+        ],
+        "start_date": {
+          "status": "resolved",
+          "date": "2025-07-01",
+          "reasoning": "Published applicability and observed row history support this date.",
+          "evidence": [
+            "https://example.invalid/DEMO-300/B/bulletin",
+            "https://example.invalid/DEMO-300/B/row-history"
+          ]
+        },
+        "unknowns": []
+      },
+      {
+        "id": "C",
+        "issue": "Issue C treatment",
+        "scope": "Fictional jurisdiction C, product C.",
+        "verdict": "EVIDENCE_INCOMPLETE",
+        "remedy": "",
+        "authority": [],
+        "start_date": {
+          "status": "unresolved",
+          "date": null,
+          "reasoning": "Current guidance omits historical applicability; archived publications and available history do not settle it.",
+          "evidence": [
+            "https://example.invalid/DEMO-300/C/research-log"
+          ]
+        },
+        "unknowns": [
+          "Historical applicability and correction start date."
+        ]
+      }
+    ],
+    "report_references": [
+      "Devin investigation report, revision 1"
+    ]
+  },
+  "slack": {
+    "mission_thread_id": "7b088a4d-ef5d-431c-b4cf-1b68060f205f",
+    "root_message_id": "C012345/1793100000.000001",
+    "root_text": "*DEMO-100: Rate investigation*\nCause: Investigation in progress.\nStatus: :question: Blocked on question",
+    "published_text": "*DEMO-100: Rate investigation*\nCause: Investigation in progress.\nStatus: :question: Blocked on question",
+    "status": "Blocked on question",
+    "update_pending": false,
+    "root_post_pending": false,
+    "last_update": "Operator question requested"
+  },
+  "human_wait": {
+    "channel": "operator",
+    "state": "pending",
+    "question": "Which deployment window should this change use?",
+    "context": "The tax effective date is established; this is an operational scheduling choice.",
+    "jira_comment_url": "",
+    "answer": "",
+    "answer_source": ""
+  }
+}

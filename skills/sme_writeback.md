@@ -22,10 +22,9 @@ ready-made body bypasses it. DEV-10202 shows the cost: two Squadron-drafted bodi
 procedure names, query receipts, and run caveats were posted as written, and the
 ticket's readers could not use them. Use delegated_session for the tool interaction.
 
-An access blocker can be raised on the ticket. Have Devin name the needed table or kind of
-data, relevant identifiers or period, and why access or supplied data would settle the issue.
-There is no assumed separate access-request channel. Keep secrets, raw queries, and lengthy
-tool diagnostics in the Devin report.
+Production-tool and access gaps use `txc_production_evidence` and an operator ask. Ticket
+updates explain product findings or request product decisions. Keep query mechanics and
+connection diagnostics with the investigating session.
 
 ## Assess the proposed question or finding
 
@@ -49,9 +48,7 @@ tool diagnostics in the Devin report.
 
 Have Devin post the update and confirm its comment reference. If it revises a prior
 conclusion, ask Devin to annotate that earlier comment so readers see the changed status.
-For a blocking Jira evidence request, use blocked_run to confirm the comment, save state,
-and register the bridge wait. Missing production evidence may need a real ticket question. Ask for the data, access, or
-decision that would settle it. If the evidence gap ends the work with no actionable request,
-have Devin post a finding explaining what remains unproven and why work stopped, and confirm
-the comment reference. Do not invent an answerer or present the missing evidence as proof
-of correct behavior.
+For a blocking product question, use `blocked_run` to save the confirmed comment and ask
+in Slack whether answers are ready. Use `txc_production_evidence` for a production-data gap
+before requesting human input. If the investigation ends with an unresolved finding,
+have Devin explain its product consequence and uncertainty on the ticket.

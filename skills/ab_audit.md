@@ -17,15 +17,14 @@ A build/plan step succeeding proves less still: it validates mechanics, not beha
 ## Predict before you look
 
 Obtain expected per-case outcomes **from the change itself** and the ticket requirement.
-In a delegated mission, have the independent evidence session read the changed code and
-return its predictions with citations; you check that the evidence supports them. Do not predict from the PR description or commit message:
-they are frequently wrong about their own change. Then compare each case's actual result to
-that prediction.
+Have the Devin session providing independent evidence read the changed code and return
+predictions and result analysis with citations. Assess whether that evidence supports
+the predictions and conclusions; a PR description or commit message alone is insufficient.
 
-Classify every case up front:
+Have that session classify every case up front:
 
 - **primary positive** — the change is supposed to reach it → must differ, *and* to the value
-  you derived independently.
+  the Devin session derived independently.
 - **guardrail** — the change must not reach it → must match. A guardrail that differs is a
   blast-radius failure.
 
@@ -34,7 +33,7 @@ Treat each "looks fine" as a hypothesis to disprove.
 ## Diagnosing a primary positive that did not differ
 
 A no-diff is never itself evidence the change is right; it means the change did not reach
-the captured output. Determine which of these it is before concluding anything:
+the captured output. Have Devin establish which of these explains it before accepting a conclusion:
 
 - **Shadowed** — the edited branch sits behind an earlier condition that always wins on the
   inputs in play. The code is dead until the ordering changes.
@@ -51,11 +50,11 @@ them is the single most expensive error in this stage.
 ## Fixtures are evidence, not just plumbing
 
 If the harness supports per-case data fixtures applied to both arms, then "the harness can't
-set up state X" is never a valid basis for a verdict: author the fixture or state precisely
-why it is infeasible.
+set up state X" is never a valid basis for a verdict: ask the cases session to author
+the fixture or establish precisely why it is infeasible.
 
-But treat the *need* for a fixture as its own signal. If a case only diverges after you
-patch the gating data, the branch may be dead on real data — the case is invalid rather than
+But treat the *need* for a fixture as its own signal. If a case only diverges after the cases session
+patches the gating data, the branch may be dead on real data — the case is invalid rather than
 merely missing. Weigh that before authoring the fixture; "I had to patch the gating table to
 get a diff" is the classic opening line of a false working-as-designed conclusion.
 
@@ -77,8 +76,8 @@ it is noise each run, and remember the underlying no-diff may be hiding a no-op 
 
 ## Exit bar
 
-A satisfactory verdict requires all of: intended diffs present; each to a value you derived
-independently and confirmed; guardrails flat; parallel paths in agreement; and every path
+A satisfactory verdict requires all of: intended diffs present; each to an independently
+derived value supported by Devin's analysis; guardrails flat; parallel paths in agreement; and every path
 the change actually reaches covered by a case that ran. A path counts as not-needing
-coverage only when you have *proven* the change cannot reach it — never because a case was
+coverage only when Devin supplies proof that the change cannot reach it — never because a case was
 hard to build, and never on a hedge (see `evidence_gate`).

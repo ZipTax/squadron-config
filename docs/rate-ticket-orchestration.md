@@ -1,413 +1,223 @@
 # Rate-ticket orchestration
 
-This document proposes how Squadron, Devin, Jira, and a small bridge service should cooperate on
-long-running rate tickets. These tickets may pause for days while a tax or product question is
-answered. Keeping an agent call open during that pause is fragile, while restarting from the ticket
-alone causes the next run to repeat investigation and sometimes reach a different conclusion.
+Squadron coordinates a rate case from investigation through review. Devin sessions own
+repository work, Jira holds product findings and questions, and Slack provides progress
+updates and operator interaction. Missions exchange information through a shared checkpoint,
+retained after completion for reference or reuse.
 
-The design therefore separates active work from durable coordination:
+For starting a case and answering questions, see [the Slack workflow](slack-rate-workflow.md).
+Connection settings belong in [Slack setup](slack-setup.md) and
+[bridge setup](bridge-infrastructure.md).
 
-- Devin holds the working context for one engineering lane.
-- Squadron owns decisions, routing, and the current case checkpoint.
-- Jira is where people receive and answer product-level questions.
-- The bridge reliably wakes Squadron when Jira receives an explicit ready signal; it does not
-  decide what work happens next or select a Devin session.
-- Repository skills and documentation hold reusable engineering procedure and precedents.
+## Work through a rate case
 
-This is a target design. The Devin blocker contract, production-evidence contract, and checkpoint
-schema are now defined in this repository. Runtime instructions target the bridge workflow. Bridge endpoints, tools, and mission event
-inputs must be wired before deployment; this text does not establish that they are available.
-The new process applies to newly enrolled tickets. Existing sessions and their small set of
-waiting tickets can finish through the previous process; no bulk migration is required.
-If a ticket is explicitly adopted, verify its session ownership and register its current wait.
-The legacy checkpoint reader remains available for that recovery, not as a rollout prerequisite.
+1. **Investigate.** Establish the cause, scope, and supporting authority. Post the results
+   in product language on Jira. A working-as-intended conclusion receives an independent
+   check; a proven defect proceeds to a proposed fix.
+2. **Propose and test the fix.** The fix Devin session implements the accepted remedy. The
+   ratevariant-cases session supplies A/B coverage. Squadron audits the evidence for
+   directional correctness and regressions, directing corrections to the appropriate owner.
+3. **Add API regressions.** The Bruno owner authors and reviews tests; CI runs them in
+   staging. Before deployment, should-change tests fail and guardrails pass. Those expected
+   failures demonstrate the regression and allow the work to proceed to review.
+4. **Record lessons.** Assess lessons from the work sessions. One writeback session records
+   accepted, durable guidance, with one documentation PR per repository.
+5. **Review and follow up.** Squadron accepts feedback, collects current session work,
+   re-audits changed commits, and directs corrections to the existing owners.
+6. **Verify after staging deployment.** The operator deploys manually and tells Squadron.
+   Squadron has the Bruno owner review fresh CI results: should-change tests now pass and
+   guardrails remain passing. Unchanged or new failures return to investigation and correction.
 
-Apply the four updated playbooks and their structured-output schemas in Devin before deploying the
-mission changes that require `outcome` and `human_questions`. The files under `devin-playbooks/` are a
-reviewable mirror, not an automatic UI sync; reversing this order would make an old-format session
-look like a failed mission stage. Existing sessions are outside this rollout unless explicitly adopted.
+Product-level updates, such as investigation results, are recorded on the Jira ticket.
+Similarly, so are questions about the product like tax behavior or merchant setup.
+Slack provides status updates and collects artifacts like PR links, operational questions
+such as data access, tool timeouts, or rote mechanics like "what date should this change start on".
 
-## Where instructions belong
+## Mission lifecycle
 
-Keep each decision at the layer that has the context to make it. A mission should not carry
-a second copy of a SQL or test-authoring procedure: Squadron cannot inspect the repository
-itself, and a copied procedure can disagree with the skill Devin reads there.
+```mermaid
+flowchart TD
+  subgraph triage[rate_triage]
+    investigate[Investigate and assess]
+  end
+  subgraph fix[rate_fix]
+    implement[Propose fix]
+    cases[Author A/B cases]
+    audit[Audit A/B evidence]
+    bruno[Author Bruno tests and review CI]
+    implement --> cases --> audit
+    audit -->|Satisfactory| bruno
+  end
+  subgraph finalize[rate_finalize]
+    wai[Independent WAI verification]
+    lessons[Capture worthwhile lessons]
+    review[Final review and feedback]
+    lessons --> review
+    wai -->|Confirmed| lessons
+  end
+  investigate -->|Proven defect| implement
+  investigate -->|Working-as-intended claim| wai
+  investigate -->|Proven defect outside engine capability| lessons
+  wai -->|Refuted: at most one re-fire| investigate
+  audit -->|Fix is a no-op| lessons
+  bruno -->|CI results match deployment state| lessons
+  review -->|Feedback or post-deployment discrepancies| sessions[Existing Devin sessions]
+  sessions -->|Corrections and evidence for re-audit| review
+  review -->|Completion criteria met or operator ends review| closed[Retain completed case]
+```
 
-| Layer | Owns | Changes when |
-| --- | --- | --- |
-| Squadron missions | Entry points, inputs/outputs, route conditions, and case-specific handoffs | The workflow graph or handoff contract changes. |
-| Squadron skills | Session lifecycle, evidence acceptance, blockers, checkpointing, and correction routing | A coordination rule changes across stages. |
-| Devin playbooks | Lane boundary, repository skill entry points, and mapping results to the attached schema | A lane or its machine-readable contract changes. |
-| Repository skills | Investigation, SQL, fixture selection, test mechanics, and writing for repository/ticket readers | Engineering practice changes. |
-| Attached schemas | Field names, types, and allowed result values | A consumer needs a different result contract. |
+A supported existing fix can enter at case authoring. Resumed work enters its recorded
+stage after ownership and prerequisites are checked. Audit corrections happen through the
+existing Devin sessions within the audit task; final review uses the same pattern.
 
-Squadron asks for evidence and accepts or rejects it. Devin reads diffs, derives predictions,
-reconciles rates, selects case data, and interprets captures. Asking Squadron to repeat those
-calculations from pasted procedure bodies adds another interpretation without another source
-of evidence. Missing support should therefore produce a bounded request to the evidence owner,
-not a calculation improvised by the orchestrator.
+Human dependencies pause the affected stage. Operator answers continue the active ask;
+an ended Jira wait resumes through the bridge at its recorded mission and stage. A second
+WAI refutation needs an operator decision rather than another automatic re-investigation.
 
-Audit acceptance remains with Squadron. A Devin session with relevant context supplies read-only technical
-analysis using the repository audit skill, while cases supplies captures and fixture evidence.
-This does not create a new implementation lane or let either author approve its own work.
-If no investigation session is available, Squadron asks another Devin session with relevant
-context to investigate the bounded question. The session keeps its file ownership, while
-Squadron judges the evidence; a missing lane alone does not block the audit. WAI verification retains its separate session
-because it exists specifically to challenge the original investigation's conclusion.
+This diagram shows decisions and interactions. Each mission's routes retain the destination,
+entry criteria, accepted context, and input mappings needed for its handoff, including entry
+from another mission or recovery without earlier task outputs in the current run.
 
-Agent profiles group reusable responsibilities with relevant capability access. The
-`taxcloud_legacy_sql_investigator`, `taxcloud_legacy_sql_implementer`, and
-`taxcloud_legacy_sql_reviewer` retain SQL/data skills because their evidence needs differ
-from general code work. Their roles do not select Devin playbooks. Both A/B review and WAI
-verification use the reviewer profile; their tasks still require different session ownership
-and independence. Sharing the profile does not mean sharing the Devin session.
+## Keep work with its owner
 
-Ratevariant and Bruno authoring share `test_authoring_coordinator` because both delegate test
-construction and assess coverage. Their tasks and playbooks specify the repository, allowed
-execution, and whether artifacts contain inputs or assertions. Repository query mechanics stay
-with Devin. The current rate checkpoint skill remains attached where needed; generalizing its
-storage and schema to other ticket workflows is a separate change.
-
-The shortened playbooks remain self-contained at their boundary: Devin cannot assume it can
-read this repository's README or Squadron-only skills. A few repeated lines about registration,
-completion, and lane scope are intentional; the reusable engineering procedure is referenced
-rather than copied. See [the playbook maintenance guide](../devin-playbooks/README.md) for
-known upstream conflicts and the deployment checks needed before these mirrors run in Devin.
-
-## What belongs in a task objective versus its output
-
-Organize runtime instructions around responsibility, interaction with Devin, evidence
-assessment, and completion. Address the executing agent as “you” and name a “Devin session”
-when that is the intended recipient. Send Devin only the task and relevant constraints;
-checkpoint handling and other orchestration responsibilities stay with the coordinating agent.
-
-A task objective states the desired result, the work needed to establish it, and constraints
-on that work. Its `output` field descriptions state how to synthesize the result: field meaning,
-source/provenance, allowed values, and what an empty value means. Do not repeat a list of fields
-as “return these” in the objective. Squadron presents the schema to the commander and requires
-schema-matching submission through `submit_output`; downstream tasks can query that stored data.
-See [Tasks](https://docs.squadron.sh/missions/tasks).
-
-For example, case authoring must obtain coverage and evidence for gaps, so that work belongs in
-the objective. Copying Devin’s `findings` from development or the checkpoint belongs in the output
-field's description: this stage preserves a prior conclusion rather than establishing authority.
-Evidence acceptance still needs an objective or skill because a correctly shaped result can be
-unsupported.
-
-The mission objective addresses a task commander. Plugin access belongs to its Squadron agent,
-which delegates repository work to Devin. An objective's request to inspect a session therefore
-means arranging that inspection through the stage agent, not giving the commander plugin tools.
-See [The Harness](https://docs.squadron.sh/missions/harness).
-
-Within a mission, summaries and queryable ancestor outputs provide context, including across a
-selected dynamic route. Cross-mission routing creates another instance: `task_complete` presents
-the destination inputs for the commander to fill. Keep meaningful mappings, such as an audit
-no-op selecting `record_learnings`, with the route rather than repeating the destination schema.
-Route conditions are natural-language choices evaluated by the commander, not executable scalar
-expressions. See [Routing](https://docs.squadron.sh/missions/routing).
-
-The destination mission declares what context it requires; the sending commander supplies it
-through `task_complete.mission_inputs`. A submitted output or completion summary does not
-populate that payload. Inputs with defaults are optional to the routing tool, so essential
-context needs a required input rather than an empty default. Squadron applies the same contract
-when preparing a bridge resume from the latest accepted state. The bridge forwards that payload;
-mission-specific fields and mappings belong in the missions, while reusable registration rules
-belong in the bridge skill.
-
-Devin's attached schema and Squadron's task output remain separate contracts. The former reports
-lane work; the latter records the commander's accepted result and orchestration metadata. Removing
-an objective's field list does not remove the need to collect and assess the Devin result.
-
-## Why a case has several Devin sessions
-
-Investigation, implementation, ratevariant cases, Bruno coverage, and learning writeback require
-different repositories, evidence, and permissions. One session owns each lane so that a test author does not silently change
-the fix and an implementer does not manufacture expectations from the current behavior.
-
-The lane registry records the exact owner:
-
-| Lane | Responsibility |
+| Owner | Responsibility |
 | --- | --- |
-| `investigation` | Establish production facts, applicable authority, and the SQL Server execution path. |
-| `fix` | Implement the diagnosis Squadron approved. |
-| `ratevariant-cases` | Author and maintain local A/B fixtures and alterations. |
-| `bruno-tests` | Author live-API regression coverage from settled expectations. |
-| `learning-writeback` | Record the ticket's accepted lessons in maintained guidance, one documentation PR per repository. |
+| Squadron | Accept evidence, select the next work, maintain case state, and coordinate questions and review |
+| Investigation session | Establish production facts, applicable authority, and the execution path |
+| Fix session | Implement the accepted remedy |
+| Ratevariant-cases session | Author A/B fixtures and supply captures and coverage evidence |
+| Bruno session | Author API regressions and review automatic staging CI results |
+| Learning-writeback session | Record accepted lessons in maintained guidance |
+| Bridge | Resume a recorded Jira wait when an explicit ready signal arrives |
 
-The checkpoint records each lane's exact owner. The independent WAI verifier is a verification
-session, not a replacement owner of the investigation lane. When new information arrives, Squadron chooses
-which owner needs it; the session that raised a question is not necessarily the session that can
-answer the resulting engineering question. The bridge must never choose the newest session or
-combine conclusions from several sessions. If the selected owner is unavailable, Squadron handles
-that as an explicit recovery case.
+Session ownership separates implementation from test construction and evidence acceptance.
+Squadron retains the audit verdict while sessions provide analysis and captures. For example,
+a fixture gap goes to the cases owner, a migration defect to the fix owner, and an uncertain
+production fact to investigation. A missing investigation session can be handled by asking
+another available session a bounded question within its existing ownership constraints.
 
-Audit is a Squadron responsibility rather than another implementation lane. It uses the existing
-sessions to obtain work and evidence:
+Working-as-intended verification uses a separate session to challenge the original conclusion.
+Sharing a Squadron agent profile does not remove that independence requirement.
 
-- A procedure or migration problem goes to the fix session.
-- A fixture, reachability, or coverage problem goes to the ratevariant-cases session.
-- A production fact, tax treatment, or execution-path question goes to the investigation session.
+Reuse the recorded owner when continuing work. If it is unavailable, retain its evidence and
+select an explicit replacement through [delegated_session](../skills/delegated_session.md).
+The session that raised a question may differ from the owner best placed to act on its answer.
 
-When audit asks investigation a question, investigation returns evidence and unknowns. Audit keeps
-the verdict. This preserves independent judgment without creating a second research lane.
+## Put instructions at the appropriate level
 
-## When Squadron remains active
+| Location | Belongs here |
+| --- | --- |
+| Mission | Work to perform, acceptance criteria, entry points, and routing decisions |
+| Squadron skill | Repeated coordination: session reuse, evidence assessment, questions, and checkpoint handling |
+| Devin playbook | The session's assignment, repository skill entry points, and report contract |
+| Repository skill | Reusable or portable mechanical instruction needed to complete tasks, such as data access, test construction, etc |
+| Schema | Field definitions, required values, and result structure |
 
-Squadron should remain active while Devin is doing bounded engineering work. In that case Squadron
-can use `send_message` and `check_session`, receive structured output, update the checkpoint, and
-route the next task within the same mission.
+Squadron requests evidence and assesses it. Devin own the full contextual understanding by
+reading repository code, deriving predictions, selecting test data, and interpreting captures
+using repository guidance. Keep those procedures with Devin so the orchestrator does not overreach,
+misinterpret results, create a competing copy, or improvise missing analysis.
 
-For example, an audit iteration can ask the cases session to cover a missing root, wait for that
-turn, inspect the new output, and audit the new commit. The bridge adds no value inside this live
-loop.
+When publishing updates, Squadron supplies facts, purpose, and constraints; the context-owning
+Devin session writes for the ticket or external audience. See the
+[playbook guide](../devin-playbooks/README.md) for maintaining and publishing playbooks.
 
-Devin needs no live-versus-cold mode. It responds to a message and becomes idle when messages stop.
-Squadron always collects the result in the same way: it sends work to the chosen session and then
-uses the returned result and `check_session`. Whether the mission was already running or was just
-started by a Jira webhook is invisible to Devin.
+## Keep task objectives and outputs distinct
 
-## When Squadron ends the mission
+A task objective states what to accomplish and what evidence establishes completion. Output
+descriptions define the accepted result and its source. For example:
 
-Squadron should not remain open while waiting for a person. Squadron persists crash-recovery state,
-but a week-long tool call still depends on a process, network connection, plugin timeout, and model
-context remaining usable. A deliberate human wait is therefore a completed, checkpointed run—not
-an interrupted tool call.
+- Case authoring must obtain coverage and explain gaps: that belongs in the objective.
+- Preserving accepted investigation findings belongs in the output description; the test
+  author is carrying forward a conclusion, not establishing its authority again.
 
-When Devin reports `needs_human`, Squadron owns the blocking workflow:
+The task commander arranges session work through its Squadron agent. Devin's report and the
+commander's accepted task output are separate contracts: a correctly shaped report still
+needs assessment against the task's evidence requirements.
 
-1. Validate that the missing information really requires a person.
-2. Record which session raised the question and which mission stage must reconsider it when Jira
-   receives new information. This does not preselect the session that will consume the answer.
-3. Ask a context-owning session to author the Jira question using the repository's ticket-writing
-   skill. Usually this is the session that raised it, but Squadron may choose another session with
-   better product context. Devin supplies the words because it can read the ticket and the
-   co-located guidance; Squadron decides that the question may be posted.
-4. Confirm the Jira comment exists, then register the blocker with the bridge.
-5. Write the current checkpoint, add the configured needs-information label, remove any stale
-   ready-for-Squadron label, and end the mission.
+Route conditions guide the commander's choice. Keep meaningful decisions with the route,
+such as an audit no-op proceeding to lessons. Cross-mission handoffs explicitly supply the
+receiving mission's ticket and entry; the destination reads accepted context from the shared
+checkpoint. A task summary alone does not populate the destination inputs. Use
+[rate_case](../skills/rate_case.md) for the shared handoff procedure.
 
-The order matters. A label without a visible question leaves a ticket that appears blocked but gives
-the reader nothing to answer. A question without a registered blocker cannot reliably wake
-Squadron to evaluate the response.
+## Handle questions without losing context
 
-If any step fails, record the partial state and retry idempotently. Do not create a second question
-or a second Devin session to escape an uncertain result.
+Screen a question against available evidence before asking a person. Then use the channel
+appropriate to the answer:
 
-## What the bridge does
+| Question | Handling |
+| --- | --- |
+| Operator decision, date choice, access, or deployment | Squadron's human ask in Slack |
+| Product question or inconsistent requirements | Jira question, followed by a Slack human ask to signal when answers are ready |
+| Missing production data | Try alternative tools or a tool extension before raising an operator dependency |
 
-The bridge is delivery infrastructure, not an agent and not an alternate workflow engine. It needs
-two conceptual endpoints:
+Use [blocked_run](../skills/blocked_run.md) for question handling. Save the question and
+progress, show `Blocked on question`, and have the appropriate owner assess the answer before
+continuing. A ready signal means there is new information to assess; it does not establish
+that the question is resolved.
 
-```text
-POST /blockers       Squadron registers or revises a human blocker.
-POST /webhooks/jira  Jira delivers ready-label changes on tickets waiting for information.
-```
+While a human ask is active, its answer continues the current work. If a Jira wait ends
+unresolved, persist the continuation and register bridge recovery. Register after the active
+ask ends so the same answer cannot start two continuations.
 
-It also needs a durable outbox for calls to Squadron. A webhook receiver should persist an accepted
-event before returning success, then deliver it asynchronously. This protects the workflow from
-process restarts, Jira retries, and an unavailable Squadron instance. Because the bridge does not
-message Devin, it does not need a Devin API key.
+## Resume an ended Jira wait
 
-The bridge validates webhook identity, the ready-label transition, and the active generation.
-Squadron registers an exact MCP mission name (`rate_triage`, `rate_fix`, or `rate_finalize`),
-entry stage, and resume inputs. The bridge calls `run_mission` with that target and a stable
-start-event ID, saves the returned run ID, and checks progress with `get_run_details`.
-It never chooses the engineering lane. The [bridge skill](../skills/bridge.md) defines the
-registration and resolution payloads expected by the implementation.
+1. A person answers on Jira and adds the configured ready label.
+2. The bridge delivers that signal to the recorded Squadron entry.
+3. Squadron reads the checkpoint and new discussion, then asks the appropriate owner to
+   assess the answer.
+4. Squadron accepts the result and continues, refines the question, or closes the case.
 
-## How a human answer resumes work
+Ordinary Jira comments do not start a mission. The bridge delivers the saved continuation;
+Squadron chooses the work and session. Delivery retries retain the same identity, while a
+new human wait receives a new generation, so old events cannot restart newer work.
 
-The cold continuation is:
+The [bridge skill](../skills/bridge.md) owns registration and recovery rules. Endpoint,
+outbox, and delivery setup belong in [bridge infrastructure](bridge-infrastructure.md).
 
-```text
-Squadron registers blocker and exits
-                    |
-                    | time passes
-                    v
-Human adds ready label -> bridge -> recorded Squadron entry point
-                                           |
-                                           v
-                              selected Devin session(s)
-```
+## Keep final review available
 
-In detail:
+After lessons, Squadron waits for feedback through its review prompt. Feedback may request
+another audit, include changes requested directly from Devin, or report a manual staging
+deployment. Squadron collects current session results and PR heads before assessing the work.
 
-1. A person answers or discusses the question in its existing Jira discussion. Ordinary comments
-   do not start a mission.
-2. When the person believes the available answer is ready for another attempt, they add the
-   configured ready-for-Squadron label.
-3. Jira sends an issue-update webhook. The bridge accepts only an addition of that label on a
-   ticket with an active blocker and the needs-information label; removals and unrelated field
-   changes do nothing.
-4. The bridge claims that ready transition and invokes the recorded Squadron mission and entry
-   stage. Its payload identifies the Jira event and active blocker generation; it does not claim
-   that the discussion is a sufficient answer.
-5. Squadron clears the ready label, then reads the checkpoint and Jira discussion after the last
-   processed comment. It may discard a duplicate or unrelated event without waking Devin; domain
-   sufficiency is assessed by the selected context-owning session.
-6. If engineering interpretation is needed, Squadron selects the appropriate registered lane and
-   sends that session a bounded request to read the Jira update. This may be different from the
-   session that raised or authored the question.
-7. Squadron receives the normal Devin result, checks the session as it would in any live mission,
-   updates the checkpoint, and decides whether to continue, refine the blocker, or close the case.
+After deployment, fresh Bruno CI results can reveal an ineffective fix or new regressions.
+Squadron delegates those findings to the existing owners and re-audits corrections. If a
+correction needs another deployment, the operator deploys it and requests the next check.
+Results and pending work are posted in Slack.
 
-This means Devin neither restarts Squadron nor chooses the next phase. It only performs the work
-Squadron routes to it and reports what remains unknown.
+The `review_followup` task in [rate_finalize](../missions/rate-finalize.hcl) owns this loop.
+Review remains open until
+PRs merge and requested checks and corrections are settled, or the operator explicitly ends
+it. An interrupted wait retains the next action for resumption.
 
-## How a new human wait and a delivery retry differ
+## Retain accepted state and source evidence
 
-A generation identifies one round of waiting for human input. Whenever Squadron confirms a
-Jira update and needs another human answer, it increments the blocker generation, including
-when the outstanding question is unchanged. Retrying an uncertain registration or label write
-keeps the same generation. Checkpoint revision separately counts checkpoint writes.
+Squadron maintains the checkpoint so later missions can continue from accepted findings and
+recorded ownership. Read the latest record before updating it to preserve other completed
+work. An incomplete record is valid context; an empty result is not proof of completion.
 
-For example, generation 3 resumes after a person adds the ready label. If the answer is still
-insufficient, Squadron posts the remaining question and registers generation 4. Another Jira
-delivery for generation 3 cannot start generation 4. A ready signal for generation 4 can.
+The [checkpoint skill](../skills/rate_checkpoint.md) owns updates and recovery. The
+[checkpoint schema](schemas/rate-ticket-checkpoint.schema.json) defines its fields, and the
+[examples](schemas/examples/rate-ticket-checkpoint.early.json) show partial state.
 
-Store one durable row per `(blocker_id, generation)`, with webhook identity, stable start-event
-ID, state, timestamps, run ID, and last error. Enforce unique webhook and start-event identities.
-Accept at most one logical ready dispatch per generation; transport retries retain its event
-ID. Reject superseded generations and atomically claim work during overlapping deployments.
+Raw evidence remains with Jira, session reports, PRs, and captures. The checkpoint retains
+accepted findings and references. Reusable lessons belong in maintained guidance; PR
+descriptions explain the proposed change rather than storing coordination history.
 
-## How MCP delivery recovers automatically
+## Use production evidence appropriately
 
-Persist the ready signal before acknowledging Jira. Retry explicit capacity rejection and
-transient delivery failures with bounded backoff. After an accepted start, use the saved run
-ID to poll status. A lost response is an unknown outcome: reconcile through `list_runs` and
-`get_run_details` using the exact start-event ID, never the newest run or ticket alone.
-Only retry an uncertain start once reconciliation or an enforced idempotent claim makes it
-safe. The deployed MCP metadata and mission claim behavior must be verified before rollout.
-A failed status query does not establish that a mission failed.
+Production observations establish data, configuration, transaction facts, and history.
+Repository analysis establishes how the code consumes them; A/B demonstrates baseline and
+proposed behavior. Bruno verifies the API behavior as deployment changes staging.
 
-Squadron validates and claims the event before side effects. Interrupted work continues from
-its durable checkpoint; completed events do nothing. Failed runs require classification before
-recovery: a transient interruption can continue, while an invalid payload or unsupported
-contract remains an explicit error rather than an endless retry. Terminal errors remain in
-bridge state and logs for diagnosis. Ticket watchers provide the operational fallback; Slack
-alerts and a manual-retry UI are outside this rollout.
+No matching rows, missing history, stale data, denied access, and truncated results have
+different meanings. Preserve those distinctions so unavailable evidence cannot be mistaken
+for proof that behavior is correct.
 
-## Which mission receives a continuation
-
-Keep the existing phase boundaries: `rate_triage` for investigation, `rate_fix` for
-implementation/cases/audit/Bruno, and `rate_finalize` for WAI verification and close-out.
-All accept bridge event identity and generation; `entry_stage` identifies the recorded
-continuation within the phase. Additional phase webhooks are unnecessary because the bridge
-uses MCP. Internal task routes remain ordinary Squadron routes.
-
-## What Squadron remembers
-
-Squadron is the only writer of the per-ticket checkpoint. The bridge passes delivery records and
-Devin returns structured facts, but neither edits orchestration memory directly. Single ownership
-prevents a late Jira delivery from overwriting a newer audit decision.
-
-The checkpoint is an index and decision record, not a transcript. Required keys describe the
-coordination envelope, not completed work: lanes and artifacts may be null, results and lists
-may be empty, and a new session has output_revision 0 until a result is collected. See the
-[early checkpoint](schemas/examples/rate-ticket-checkpoint.early.json). Its authoritative contract is
-[`schemas/rate-ticket-checkpoint.schema.json`](schemas/rate-ticket-checkpoint.schema.json); the
-production observations it contains use
-[`schemas/production-evidence.schema.json`](schemas/production-evidence.schema.json). Readers reject
-an unknown `schema_version`, and writers increment `checkpoint_revision` after re-reading the
-current file so a late mission cannot overwrite a newer decision. This field identifies the current
-checkpoint write; it is not a Jira revision or a history of stored snapshots.
-
-The following excerpt shows the responsibilities rather than every required field:
-
-```yaml
-schema_version: 1
-ticket: TAX-123
-checkpoint_revision: 4
-updated_at: 2026-09-10T19:20:00Z
-stage: audit
-verdict: defect_proven
-mechanism: district rate selected from an obsolete effective row
-lanes:
-  investigation:
-    session_id: 8e72920a57d04c5592603de7085cb45e
-    output_revision: 4
-  fix:
-    session_id: 93b2501d2bf94cc7a81208134c8c1ca2
-  ratevariant-cases:
-    session_id: ab854fca652b46bf98e98c55c862f1a8
-artifacts:
-  fix_pr:
-    url: https://github.com/FedTax/txc-sqlserver-database/pull/123
-    branch: TAX-123-fix
-    head_sha: abc123
-audit:
-  iteration: 2
-  last_result: changes_requested
-blocker: null
-completed_stages:
-  - develop
-  - author_tests
-wai_refire_count: 0
-processed_start_event_ids: []
-next_entry:
-  mission: rate_fix
-  stage: audit
-```
-
-Evidence stays in the systems that produced it: Jira, Devin session output, PRs, and ratevariant
-captures. Generalizable lessons move into repository skills or reference documentation through the
-learning-capture process. Copying either into the checkpoint would create another version that can
-drift.
-
-PR descriptions are not workflow storage. They describe the proposed code change and may be edited
-by authors or reviewers. Session links and process state belong in the checkpoint and, if people
-need a convenient index, a dedicated Jira field or bridge status view.
-
-## Where production evidence fits
-
-Databricks MCP access is only for production observation: rows, configuration, transaction facts,
-and historical state made available through governed Unity Catalog objects. It does not replace the
-local `txc-sqlserver-database` checkout, SQL Server execution, or the ratevariant harness.
-
-The production-query identity should be read-only, limited to approved catalogs or views, and
-audited. Queries should be bounded by ticket-relevant identifiers and dates. The evidence record
-captures a stable query reference, execution time, relevant catalog objects, bounded scope, and the
-domain conclusion. Raw rows and large tool output stay with the system that produced them because
-copying them into the checkpoint would make it a second evidence store.
-
-Production evidence has an explicit status: `sufficient`, `insufficient`, or `unavailable`. No
-matching rows, incomplete history in the replica, stale synchronization, access refusal, and a
-truncated result are different findings and must not be collapsed into "production showed
-nothing." In particular, absence from the accessible Databricks data is not proof that the reported
-behavior is working as intended.
-
-When missing production data prevents a supported conclusion, Squadron surfaces the gap on the Jira
-ticket. The comment identifies the unavailable artifact or period, why it matters to the decision,
-and whether local investigation can still proceed. The same blocker workflow applies if a person
-can supply the missing evidence; otherwise the case closes or escalates with an explicit
-`insufficient_production_evidence` outcome rather than an inferred verdict.
-
-The proof chain remains:
-
-1. Databricks establishes what production data contained.
-2. The SQL Server repository establishes which procedure or function consumes that data.
-3. The local harness demonstrates baseline and proposed behavior.
-4. Bruno captures the settled live-API contract when that coverage is appropriate.
-
-Production observations can explain a result, but they cannot by themselves prove that a stored
-procedure change is correct.
-
-## Incremental implementation
-
-The design can be introduced without rewriting every mission at once:
-
-1. Define a typed Devin output for `needs_human`. **Defined:** every rate-lane playbook schema now
-   returns `outcome` plus structured question-and-context pairs in `human_questions`.
-2. Define the production-evidence status and ticket-visible gap outcome. **Defined:** investigation
-   output and checkpoint records distinguish `sufficient`, `insufficient`, and `unavailable`, then
-   say whether the ticket outcome is `none`, `needs_human`, or
-   `insufficient_production_evidence`.
-3. Replace the free-form resume record with a checkpoint that has an explicit schema version.
-   **Defined and adopted by the mission memory contract:** `rate_checkpoint/<TICKET>.yaml` is
-   Squadron-owned, and `checkpoint_revision` identifies its current write.
-4. Build blocker registration, the Jira receiver, delivery deduplication, and the durable outbox.
-5. Wire the three existing rate phases for MCP starts with explicit entry stages and event claims.
-6. Add the read-only Databricks MCP evidence path independently; it does not depend on the bridge.
-
-Deploy these blocking instructions with the bridge wiring and scope the old comment-triggered
-resumption away from newly enrolled tickets. Both triggers must not own the same ticket.
+For a data gap, the owner first tries other tools or another way to obtain the answer.
+When necessary, extend `prod-sql-insights` and raise an operator dependency for access or
+deployment. See [production evidence coordination](../skills/txc_production_evidence.md).
+Jira questions remain focused on product decisions. If evidence cannot support a conclusion,
+retain that limitation instead of inferring a verdict.

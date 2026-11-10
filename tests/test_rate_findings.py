@@ -1,6 +1,5 @@
 """Contract checks; these do not substitute for a live Devin or Squadron run."""
 import json
-import re
 import unittest
 from pathlib import Path
 
@@ -62,12 +61,12 @@ class FindingsContract(unittest.TestCase):
         tasks = blocks(fix["task"])
         for name in ("develop", "author_tests", "audit", "bruno_tests"):
             with self.subTest(task=name):
-                self.assertIn("${inputs.findings}", tasks[name]["objective"])
+                self.assertIn("${memories.rate_checkpoint}", fix["memories"])
                 self.assertIn("findings", blocks(tasks[name]["output"][0]["field"]))
         finalize = mission("rate_finalize")
         self.assertIn("findings", blocks(finalize["input"]))
         for name in ("verify_wai", "record_learnings"):
-            self.assertIn("${inputs.findings}", blocks(finalize["task"])[name]["objective"])
+            self.assertIn("${memories.rate_checkpoint}", finalize["memories"])
 
     def test_cross_mission_routes_preserve_findings(self):
         checked = 0
@@ -87,7 +86,7 @@ class FindingsContract(unittest.TestCase):
         self.assertNotEqual(inputs["findings"]["default"], "[]")
         for name, task in blocks(fix["task"]).items():
             if name in ("develop", "author_tests", "audit", "bruno_tests"):
-                self.assertIn("${inputs.target_authority}", task["objective"])
+                self.assertEqual(inputs["target_authority"]["default"], "")
                 self.assertFalse(blocks(task["output"][0]["field"])["findings"]["required"])
         tasks = blocks(fix["task"])
         self.assertTrue(blocks(tasks["audit"]["output"][0]["field"])["verdict"]["required"])
@@ -95,10 +94,11 @@ class FindingsContract(unittest.TestCase):
         assess = blocks(mission("rate_triage")["task"])["assess_investigation"]
         self.assertFalse(blocks(assess["output"][0]["field"])["findings"]["required"])
 
-    def test_long_values_are_separately_fenced(self):
-        objective = blocks(mission("rate_fix")["task"])["develop"]["objective"]
-        for field in ("mechanism", "affected_roots", "evidence", "findings", "production_evidence"):
-            self.assertRegex(objective, r"~~~~text\n[ \t]*" + re.escape("${inputs." + field + "}") + r"\n[ \t]*~~~~")
+    def test_case_record_preserves_complete_multipart_findings(self):
+        report = json.loads((ROOT / "devin-playbooks/examples/rate-investigation.multiple-issues.json").read_text())
+        case = json.loads((ROOT / "docs/schemas/examples/rate-ticket-checkpoint.slack.json").read_text())
+        self.assertEqual(case["context"]["findings"], report["findings"])
+        self.assertEqual(json.loads(json.dumps(case))["context"]["findings"], report["findings"])
 
     def test_date_schema_uses_no_conditional_or_format_validation(self):
         for name in ("rate_investigation", "rate-fix"):
