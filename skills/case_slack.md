@@ -7,7 +7,9 @@ editing it so the latest cause and PR links are preserved.
 
 1. Read the current case memory so an update preserves the latest cause, status, and PRs.
 2. When the case has no root, read the ticket title, save the desired text with `root_post_pending: true`,
-   and post one root with `root: true`. Save the returned ID immediately in `slack.root_message_id`, together with the full text and
+   and post one root with `root: true` and the mission-supplied `channel`, when provided.
+   The gateway reuses an existing conversation regardless of that initial channel choice.
+   Save the returned ID immediately in `slack.root_message_id`, together with the full text and
    the runtime's mission thread ID; clear `root_post_pending`. Later updates reuse this root.
 3. For later updates, merge only the changed facts into the saved full text. Persist the
    desired `root_text` with `update_pending: true`, then call `gateway.edit` with the saved

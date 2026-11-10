@@ -221,6 +221,9 @@ mission "rate_fix" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      Use `squadron-rates` as the initial channel supplied to case_slack when creating
+      the case root. An existing Slack conversation remains the destination.
+
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
       and save accepted state before routing. Use legacy inputs only to recover missing fields.
 
