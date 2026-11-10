@@ -1,14 +1,17 @@
 # Configure Slack
 
+Use [Squadron v0.0.88 or newer](https://github.com/mlund01/squadron/releases/tag/v0.0.88)
+for Slack mission starts and shared mission threads. `gateways.hcl` pins the Slack gateway
+to [v0.0.3](https://github.com/mlund01/squadron-gateway-slack/releases/tag/v0.0.3).
+
 1. Create and install the Slack app using the gateway's
    [setup instructions](https://github.com/mlund01/squadron-gateway-slack#setup).
 2. Set `slack_bot_token`, `slack_app_token`, and `default_slack_channel_id` in Squadron's
    variable store. Invite the bot to each channel it will use.
-3. Install the gateway selected by `gateways.hcl`. `version = "local"` uses a locally
-   installed binary.
-4. Set `mcp_host_secret`. The gateway connects to Squadron at `http://localhost:8090/mcp`
+3. Set `mcp_host_secret`. The gateway connects to Squadron at `http://localhost:8090/mcp`
    using this secret to list and start missions.
-5. Restart Squadron and start a mission with `/squadron`.
+4. Restart Squadron; it installs the pinned gateway release automatically. Start a mission
+   with `/squadron`.
 
 ## Choose a channel
 

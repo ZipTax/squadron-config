@@ -6,7 +6,7 @@ This repo defines the agents, models, plugins, skills, and missions used to auto
 
 ## Prerequisites
 
-- [Squadron CLI](https://docs.squadron.sh/) installed
+- [Squadron CLI v0.0.88 or newer](https://github.com/mlund01/squadron/releases/tag/v0.0.88) installed for shared mission threads and Slack mission starts
 - API keys configured as Squadron variables (see [Variables](#variables))
 
 ## Repository Structure

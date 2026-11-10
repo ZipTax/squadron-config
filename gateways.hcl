@@ -1,6 +1,6 @@
 gateway "slack" {
   source  = "github.com/mlund01/squadron-gateway-slack"
-  version = "local"
+  version = "v0.0.3"
   settings = {
     bot_token       = vars.slack_bot_token
     app_token       = vars.slack_app_token
