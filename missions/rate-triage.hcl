@@ -110,6 +110,9 @@ mission "rate_triage" {
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      Use `squadron-rates` as the initial channel supplied to case_slack when creating
+      the case root. An existing Slack conversation remains the destination.
+
       Apply rate_case for ${inputs.issue}. Use case_slack with status ":mag: Triaging" for a new case;
       retain the recorded status on resumption. Save accepted state before routing.
 
