@@ -1,9 +1,5 @@
 # Configure Slack
 
-Use [Squadron v0.0.88 or newer](https://github.com/mlund01/squadron/releases/tag/v0.0.88)
-for Slack mission starts and shared mission threads. `gateways.hcl` pins the Slack gateway
-to [v0.0.3](https://github.com/mlund01/squadron-gateway-slack/releases/tag/v0.0.3).
-
 1. Create and install the Slack app using the gateway's
    [setup instructions](https://github.com/mlund01/squadron-gateway-slack#setup).
 2. Set `slack_bot_token`, `slack_app_token`, and `default_slack_channel_id` in Squadron's
