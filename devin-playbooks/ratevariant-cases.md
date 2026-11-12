@@ -67,3 +67,6 @@ answer is necessary to finish authoring safely. Never ask a question you have no
 `human_questions`. An evidenced coverage limit can be a completed result for audit to judge.
 Do not wait or change workflow state. If asked to write on Jira, use `writing-ticket-updates`.
 Keep session registration on the ticket and preserve others' content in any PR edit.
+Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
+resolved), with or without a colon, directly before a PR or issue reference in a PR title,
+description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.

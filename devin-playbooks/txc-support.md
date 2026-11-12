@@ -246,6 +246,10 @@ Create a PR targeting the `main` branch. The PR description should include:
 - **Testing notes**: verification queries or test steps for reviewers
 - **Risk assessment**: what could this change affect? Any states/TICs beyond the reported issue?
 
+Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
+resolved), with or without a colon, directly before a PR or issue reference in a PR title,
+description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
+
 Wait for CI checks to pass before proceeding.
 
 ## Step 6: Post a short Jira update

@@ -88,6 +88,9 @@ without force-pushing or creating a duplicate; if it has several there, continue
 one and report the others. Read the PR's current description and preserve other
 authors' content when updating it.
 Keep implementation PRs as evidence references, not writeback destinations.
+Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
+resolved), with or without a colon, directly before a PR or issue reference in a PR title,
+description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
 
 Review each diff using the SQL repository's `review-learning-pr` checklist, reading it from that
 repository when it is not checked out: a maintainer unfamiliar with the case must be able to

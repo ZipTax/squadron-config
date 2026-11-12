@@ -35,6 +35,18 @@ this assignment requires. Do not reconstruct it from memory or a template becaus
 session may have changed it since your last read.
 ```
 
+Whenever you ask Devin to open a PR or write a PR description or commit message, include this
+instruction:
+
+```text
+Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
+resolved), with or without a colon, directly before a PR or issue reference in a PR title,
+description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
+```
+
+Label related PRs in your own briefs by role, as `Fix session <id>, PR #359`, not `Fix: #359`;
+sessions copy that wording into PR bodies.
+
 Repeat it for correction requests involving PR edits; loading this skill does not send
 its instructions to Devin.
 
