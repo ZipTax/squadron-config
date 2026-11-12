@@ -89,8 +89,15 @@ Keep the question-matched verdict and explain its mapping to exactly one routing
 | `WORKING_AS_INTENDED` | Positive evidence establishes correct behavior, including the decomposed value or a precluding condition. Failure to reproduce alone does not qualify. |
 | `EVIDENCE_INCOMPLETE` | A load-bearing claim remains inferred or unknown; name the artifact that would settle it. |
 
-On a multipart ticket, report each part; the primary part drives routing without hiding the
-others. Use `data/configuration change`, `procedure/function change`, `both`, or
+Before considering your work completed, you MUST:
+1. Re-check the ticket: is EVERY address or concern mentioned by the reporter answered?
+2. Did you THOROUGHLY validate EVERY concern - checking government sources, production data, and ensure your answers were FULLY researched?
+  - For defect proven, did you base it off authoritative or definite (e.g. code) sources?
+  - For working as intended, did you ensure the government or other legal basis agrees?
+  - For incomplete evidence, did you check production data/other tools and government sources?
+
+On a multipart ticket, each address/rate/component needs an independent decision.
+Use `data/configuration change`, `procedure/function change`, `both`, or
 `unsupported at available granularity` for a proven defect's disposition. `both` preserves
 a remedy that needs data and code; report both even though the repository skill lists them
 separately. For unsupported behavior, apply `investigate-tax-behavior`'s remediation proof
