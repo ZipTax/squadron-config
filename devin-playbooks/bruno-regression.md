@@ -43,6 +43,9 @@ what would be needed. Do not silently omit a required scenario or soften its ass
    unwritten scenarios, and the observed CI results. Link the Bruno PR from
    the SQL fix PR while preserving its current description. Keep session history in the
    ticket registration, not the PR body. Never commit secrets or environment files.
+   Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
+   resolved), with or without a colon, directly before a PR or issue reference in a PR title,
+   description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
 
 Return the attached schema's PR URL, scenarios with authority, `unwritten`, and `validation`.
 Finish when authoring and review are complete and CI matches the deployment state:

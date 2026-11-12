@@ -61,6 +61,9 @@ correction, change only the evidenced finding and push to that same branch witho
 Report migration changes and the affected artifacts.
 Read the current PR description before editing it and preserve other authors' content.
 Session registration belongs on the ticket; do not add process history to the PR body.
+Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
+resolved), with or without a colon, directly before a PR or issue reference in a PR title,
+description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
 
 ## Impact radius and test recommendation
 
