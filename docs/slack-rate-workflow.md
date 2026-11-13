@@ -42,7 +42,7 @@ show Slack link syntax so labels become clickable rather than plain PR numbers.
 | Lessons work starts | Status: :memo: Recording lessons | None |
 | Lessons PR ready | Add `<lessons-pr-url\|squadron-config lessons>` to PRs | "`<lessons-pr-url\|Lessons PR>` adds guidance to check local tax separately when changing state exemptions." |
 | Review opens | Status: :eyes: Awaiting review | Review prompt for feedback, including: "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix." |
-| Operator confirms staging deployment | Status: :test_tube: Verifying in staging | None; the existing Bruno session triggers CI on the PR branch |
+| Operator confirms staging deployment | Status: :test_tube: Verifying in staging | None; the existing Bruno session reuses a post-deployment attempt or reruns the PR's API Tests check at the same head |
 | Post-deployment CI assessed | No change | "The previously failing local-tax tests now pass, and unaffected items still pass. `<run-url\|CI>`" |
 
 Each PR entry on the root is only a labeled link. The quoted summaries are replies, not text

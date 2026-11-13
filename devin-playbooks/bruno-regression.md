@@ -59,3 +59,21 @@ include the exact question, evidence checked, and missing answer. A pending fix 
 is expected at this stage. Use the repository's `prod-sql-insights` procedure for data gaps.
 Squadron owns correction routing and human waits. Post Jira prose when requested,
 using `writing-ticket-updates`.
+
+## Verify after a staging deployment
+
+When Squadron requests verification after the operator confirms deployment:
+
+1. Find the current Bruno PR head and its latest `pull_request` API Tests run
+   (`api-tests.yml`). Check attempt start times, since a rerun retains the original run ID.
+2. Reuse an attempt at that head that started after staging deployment completed.
+   If it is in progress, wait; if finished, read its result even if it failed.
+3. Otherwise, rerun all jobs of the latest matching PR run with
+   `gh run rerun <run-id> --repo FedTax/txc-bruno` and wait for completion.
+   Start at most one attempt per verification request; check for an in-progress attempt
+   before rerunning. If an older attempt is still running, wait for it before rerunning
+   after deployment. Do not use `workflow_dispatch` or push a commit: rerunning the PR
+   event keeps verification in the PR's checks without changing the test revision.
+4. Return the attempt link, tested head, and assessed result to Squadron for comparison
+   with the pre-deployment evidence. If no matching PR run exists or it cannot be rerun,
+   report the blocker and leave verification pending.
