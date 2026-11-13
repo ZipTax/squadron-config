@@ -14,7 +14,9 @@ editing it so the latest cause and PR links are preserved.
 3. For later updates, merge only the changed facts into the saved full text. Persist the
    desired `root_text` with `update_pending: true`, then call `gateway.edit` with the saved
    ID and complete text. On success, save `published_text` and clear `update_pending`.
-4. Post a short reply for a stage transition, accepted result, new PR, or blocked question.
+4. Confirm the root was published with the supplied status before reporting the stage in a reply.
+   A thread reply leaves the root unchanged, so status transitions require the root update above.
+   Post a short reply for a stage transition, accepted result, new PR, or blocked question.
    Routing comes from the mission thread; omit payload routing keys. Record the last
    confirmed update in `last_update` so a resume can skip updates already delivered.
 
@@ -46,6 +48,34 @@ PRs:
 
 Use the complete status supplied by the caller, including its emoji. Report the supplied outcome and
 supporting links. Preserve existing PR links when a stage produces no new PR.
+
+## Wording examples
+
+Adapt these examples to the supported facts; link the actual PR or evidence when relevant.
+Use one short sentence per update. Keep technical evidence in the case record and linked work.
+
+| Stage | Starting or waiting | Result |
+| --- | --- | --- |
+| Triage | "Checking existing work on the reported bakery tax issue." | "Found an existing investigation; continuing from its findings." |
+| Investigation | "Investigating why bakery items receive the wrong tax treatment." | "The affected bakery items are missing the tax treatment required in these states." |
+| Fixing | "Preparing the taxability correction for the affected states." | "[Fix PR] is ready to review; it updates how the affected bakery items are taxed." |
+| Testing | "Preparing test cases for the correction and nearby behavior that should stay the same." | "Test cases are ready for the correction and unchanged behavior; the audit is next." |
+| Auditing | "Checking whether the proposed fix corrects the reported behavior and causes regressions." | "The comparison supports the correction, with no regressions found in the covered cases." |
+| Authoring Bruno tests | "Adding API tests to verify the correction after deployment." | "API tests reproduce the issue before deployment; checks for unchanged behavior pass." |
+| Verifying working-as-intended | "Independently checking whether the reported tax treatment is correct." | "The reported tax treatment is correct for this purchase; the explanation is on the ticket." |
+| Recording lessons | "Reviewing what we learned for useful guidance on future cases." | "[Lessons PR] is ready for review." |
+| Awaiting review | "The fix, tests, and lessons are ready for your review." | "Your requested changes are ready for another look." |
+| Verifying in staging | "Checking the API results now that the fix is deployed to staging." | "The previously failing tests now pass, and checks for unchanged behavior still pass." |
+| Blocked on question | "Waiting for confirmation of which staging deployment includes this fix." | "Deployment is confirmed; resuming verification." |
+
+When a result differs, state the outcome and next action just as briefly:
+- "The API tests still show the issue after deployment; the fix session is investigating."
+- "The comparison found a regression in another purchase scenario; the fix session is correcting it."
+- "No reusable lessons emerged from this case; moving to review."
+
+Investigation also replaces the root's provisional Cause with its accepted product finding,
+for example: "Bakery items without utensils are missing the tax treatment required in the affected states."
+Later stages preserve that finding while updating status and PR links.
 
 ## Questions
 

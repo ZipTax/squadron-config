@@ -195,22 +195,33 @@ mission "rate_finalize" {
 
   task "enter_finalize" {
     objective = <<-EOT
+      1. Validate the start event.
+      2. Restore the case and Slack root.
+      3. Inspect the handoff.
+      4. Select the entry.
+
+      # 1. Validate the start event
+
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
       have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      # 2. Restore the case and Slack root
+
       Use `squadron-rates` as the initial channel supplied to case_slack when creating
       the case root. An existing Slack conversation remains the destination.
 
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
-      and save accepted state before routing. Use legacy inputs only to recover missing fields.
+      retaining the recorded status until the selected work stage publishes its own.
+      Have session_scout confirm the root status through case_slack, and save accepted state
+      before routing. Use legacy inputs only to recover missing fields.
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       using the saved close reason.
 
-      # Inspect the handoff
+      # 3. Inspect the handoff
 
       Have session_scout check the investigation, fix, cases, and Bruno owners recorded in lanes.
       Use delegated_session's discovery guidance if an id is missing for known work. An unavailable
@@ -220,7 +231,7 @@ mission "rate_finalize" {
       Read context.findings from the case.
       If they are missing, the selected work stage recovers the report through delegated_session.
 
-      # Select the entry
+      # 4. Select the entry
 
       Resume review_followup when the checkpoint records an unfinished review. Otherwise
       select verify_wai for an unverified WAI claim, or record_learnings for accepted work.
@@ -265,12 +276,20 @@ mission "rate_finalize" {
 
   task "verify_wai" {
     objective = <<-EOT
+      1. Restore the case and publish the stage status.
+      2. Delegate to Devin.
+      3. Assess the result.
+      4. Finish or pause.
+
+      # 1. Restore the case and publish the stage status
+
       Apply rate_case for ${inputs.issue} at `verify_wai`. Use case_slack with status ":mag: Verifying working-as-intended".
+      Have the stage agent confirm the root status through case_slack before starting stage work.
 
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
 
-      # Delegate to Devin
+      # 2. Delegate to Devin
 
       Have the stage agent create a fresh read-only Devin session through plugins.devin.code_develop
       on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} — verify working-as-intended,
@@ -281,13 +300,13 @@ mission "rate_finalize" {
       Have the independent Devin session use the issue scopes in context.findings to
       re-derive the disputed behavior rather than treating prior conclusions as proof.
 
-      # Assess the result
+      # 3. Assess the result
 
       Collect evidence with check_session and apply evidence_gate. Confirmation requires positive
       proof of correct behavior, not an absent reproduction. Refutation requires evidence of the
       missed defect. Ask Devin to investigate any gap rather than choosing a side without support.
 
-      # Finish or pause
+      # 4. Finish or pause
 
       On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
       On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
@@ -354,18 +373,26 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
+      1. Restore the case and publish the stage status.
+      2. Read the accepted findings.
+      3. Gather and record worthwhile lessons.
+      4. Finish.
+
+      # 1. Restore the case and publish the stage status
+
       Apply rate_case for ${inputs.issue} at `record_learnings`. Use case_slack with status ":memo: Recording lessons".
+      Have the stage agent confirm the root status through case_slack before starting stage work.
 
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
       worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
 
-      # Context
+      # 2. Read the accepted findings
 
       Read the verdict, close reason, diagnosis, complete findings, audit findings, and PRs
       from the case. Ask sessions for lessons from their work.
       Recover missing report context through delegated_session before drawing on it.
 
-      # Session selection and writeback details
+      # 3. Gather and record worthwhile lessons
 
       Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
       distinct Devin session through learnings_capture. Check rate_case_log for duplication or
@@ -379,7 +406,7 @@ mission "rate_finalize" {
       and tag it with `["${inputs.issue}", "learnings"]`.
       Record that owner so operator review can direct later documentation corrections to it.
 
-      # Finish
+      # 4. Finish
 
       Append one line to rate_case_log/cases.md using mission file tools, even if nothing qualified:
       <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
@@ -448,29 +475,38 @@ mission "rate_finalize" {
 
   task "review_followup" {
     objective = <<-EOT
+      1. Collect current work and wait.
+      2. Assess feedback and direct corrections.
+      3. Verify a reported staging deployment.
+      4. Finish or recover.
+
+      Repeat the feedback steps as needed; staging verification follows an operator-reported deployment.
+
       Keep ${inputs.issue} available for operator feedback, re-audit, and corrections until
       its PRs merge and requested checks are settled, or the operator ends review.
       Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
 
-      # Collect current work and wait
+      # 1. Collect current work and wait
 
       1. Have the reviewer collect current PR states, heads, and session results through
          delegated_session, including lessons PRs. On resume, reconcile the saved pending
          action before resending work. If the completion criteria below are met, finish.
       2. Save progress and next entry rate_finalize/review_followup before each wait or
-         session request. Set Slack status to ":eyes: Awaiting review".
+         session request. Have the reviewer use case_slack to publish and confirm
+         root status ":eyes: Awaiting review" before asking for feedback.
       3. Call builtins.human.ask without timeout_seconds: "What should I review or change?
          Tell me when staging is deployed or the PRs are merged." Offer re-audit, staging
          verification, merge check, and end review, with free text for detailed feedback.
          Wait in this task; an interrupted ask retains active case state for resumption.
 
-      # Assess feedback and direct corrections
+      # 2. Assess feedback and direct corrections
 
       1. Save feedback and collect affected session results and PR heads, including changes
          the operator requested directly from Devin. Ask for any unrecorded feedback.
       2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
          through delegated_session, preserving each owner's file lane.
-      3. Set status to ":microscope: Auditing". Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
+      3. Have the reviewer use case_slack to publish and confirm root status
+         ":microscope: Auditing" before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
          changed work with fresh captures. Have the Bruno owner review automatic staging CI:
          should-change tests fail before deployment and pass afterward; guardrails pass throughout.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
@@ -481,10 +517,11 @@ mission "rate_finalize" {
       Use blocked_run for an operator or product dependency, then resume this review task.
       Merge and deployment decisions remain with the operator.
 
-      # Verify a reported staging deployment
+      # 3. Verify a reported staging deployment
 
-      1. When the operator confirms this case's fix is deployed to staging, have the Bruno
-         owner review a CI run made after that deployment. Keep verification pending if
+      1. When the operator confirms this case's fix is deployed to staging, have the reviewer
+         use case_slack to publish and confirm root status ":test_tube: Verifying in staging".
+         Then have the Bruno owner review a CI run made after that deployment. Keep verification pending if
          fresh evidence is unavailable.
       2. Compare results with the pre-deployment run. Both should-change tests and guardrails
          should now pass. Investigate unchanged failures, new failures, or an unexpected lack
@@ -495,7 +532,7 @@ mission "rate_finalize" {
       4. Save the staging deployment confirmation, CI evidence, and pending work. Report results and
          delegated follow-ups in Slack. Keep review open while verification or corrections remain.
 
-      # Finish or recover
+      # 4. Finish or recover
 
       On a merge check, confirm every case PR's state through the sessions. Report remaining
       open PRs and return to the ask; obtain operator disposition for closed-unmerged PRs.
