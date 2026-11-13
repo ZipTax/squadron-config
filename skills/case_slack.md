@@ -73,7 +73,7 @@ Keep supporting technical evidence in the case record and linked work.
 | Blocked on question | "Deployment is confirmed; resuming verification." |
 
 For questions or unexpected results, state what needs attention and the next action:
-- "Which staging deployment includes this fix? Verification is waiting on confirmation."
+- "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix."
 - "API tests still show local tax being cleared after deployment; the fix session is investigating."
 - "The comparison found tax changes for unaffected items; the fix session is correcting them."
 - "No reusable lessons emerged from this case; moving to review."
