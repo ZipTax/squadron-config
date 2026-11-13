@@ -29,8 +29,7 @@ posting another root so the case keeps one conversation.
 
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
 about 25-30 words: explain the problem and its effect, stating uncertainty until established.
-Put the proposed solution in the fix/PR update and implementation details in the linked work.
-List only PRs that exist.
+Do not include the proposed solution or implementation details in Cause.
 
 Write replies as concisely as you can without losing context, consequence, or meaning.
 Include enough information for the reader to understand the result or answer the question.
