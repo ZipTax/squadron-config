@@ -118,6 +118,6 @@ skill "rate_case" {
 }
 
 skill "case_slack" {
-  description  = "Load for rate-case status, result, and question updates in one Slack thread, using the saved root ID and complete message."
+  description  = "Load to decide which rate-case updates belong in Slack, write root edits and permitted replies, and preserve the saved root message."
   instructions = load("./skills/case_slack.md")
 }

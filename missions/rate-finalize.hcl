@@ -210,12 +210,10 @@ mission "rate_finalize" {
 
       # 2. Restore the case and Slack root
 
-      Use `squadron-rates` as the initial channel supplied to case_slack when creating
-      the case root. An existing Slack conversation remains the destination.
+      Use `squadron-rates` as the initial channel supplied to case_slack when creating the root.
 
-      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
-      retaining the recorded status until the selected work stage publishes its own.
-      Use case_slack to publish the recorded root status.
+      Apply rate_case for ${inputs.issue}. Use case_slack with the recorded status until
+      the selected work stage publishes its own.
       Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
@@ -230,9 +228,6 @@ mission "rate_finalize" {
 
       Read context.findings from the case.
       If they are missing, the selected work stage recovers the report through delegated_session.
-
-      Preserve the root's accepted Cause and PR links. Keep handoff recovery and owner checks
-      in the case record; use a thread question only when an operator decision is needed.
 
       # 4. Select the entry
 

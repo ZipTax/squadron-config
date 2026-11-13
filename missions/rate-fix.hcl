@@ -229,12 +229,10 @@ mission "rate_fix" {
 
       # 2. Restore the case and Slack root
 
-      Use `squadron-rates` as the initial channel supplied to case_slack when creating
-      the case root. An existing Slack conversation remains the destination.
+      Use `squadron-rates` as the initial channel supplied to case_slack when creating the root.
 
-      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
-      retaining the recorded status until the selected work stage publishes its own.
-      Use case_slack to publish the recorded root status.
+      Apply rate_case for ${inputs.issue}. Use case_slack with the recorded status until
+      the selected work stage publishes its own.
       Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
@@ -252,9 +250,6 @@ mission "rate_fix" {
       stage assesses new answers. Prior state:
       ${inputs.checkpoint}
       %{ endif ~}
-
-      Preserve the root's accepted Cause and PR links. Keep handoff recovery and owner checks
-      in the case record; use a thread question only when an operator decision is needed.
 
       # 4. Select the entry
 
@@ -324,8 +319,6 @@ mission "rate_fix" {
 
       Apply rate_case for ${inputs.issue} at `develop`.
       Use case_slack to publish root status ":hammer: Fixing".
-      Preserve investigation's accepted Cause on the root; investigation findings remain owned
-      by investigation. Publish the fix outcome and PR when ready.
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
@@ -361,8 +354,8 @@ mission "rate_fix" {
       and its effect in a thread reply. For example: "<fix-pr-url|Fix PR> adds a branch for
       TIC 40030 so local tax is preserved." Include material limits or unresolved scope.
       This reports implementation progress, not a renewed investigation verdict or proof that
-      the fix works. Keep the detailed change report and validation evidence in the PR and case record. If findings need revision,
-      have the investigation session assess them before changing the accepted Cause.
+      the fix works. If findings need revision, have the investigation session assess them
+      before changing the accepted Cause.
 
       Completed work proceeds to case authoring. For needs_human, use blocked_run and
       rate_checkpoint with next entry develop.
