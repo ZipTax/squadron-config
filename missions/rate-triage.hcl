@@ -172,6 +172,10 @@ mission "rate_triage" {
       - forward: its report is readable but the owner is terminated/expired; preserve attribution.
       - start: no investigation owner is known.
 
+      Save discovery results and session-state corrections in the checkpoint and task output.
+      Use case_slack for a question when discovery needs operator input; routine handoff details
+      stay in the case record so Slack highlights meaningful case updates.
+
       Leave the answer assessment to the routed stage. Do not mine PR descriptions for
       workflow state; use artifact links and returned session evidence to identify the fix.
     EOT

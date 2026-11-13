@@ -15,7 +15,8 @@ editing it so the latest cause and PR links are preserved.
    desired `root_text` with `update_pending: true`, then call `gateway.edit` with the saved
    ID and complete text. On success, save `published_text` and clear `update_pending`.
 4. Stage transitions update the root;
-   reserve thread replies for artifacts, accepted results, and questions that need attention.
+   reserve thread replies for artifacts, accepted case findings, test results, and questions
+   that need attention.
    Routing comes from the mission thread; omit payload routing keys. Record the last
    confirmed update in `last_update` so a resume can skip updates already delivered.
 
@@ -27,20 +28,26 @@ reference for operator recovery and continue mission work. Recover that referenc
 posting another root so the case keeps one conversation.
 
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
-about 25-30 words, stating uncertainty until established. List only PRs that exist.
+about 25-30 words: explain the problem and its effect, stating uncertainty until established.
+Put the proposed solution in the fix/PR update and implementation details in the linked work.
+List only PRs that exist.
 
 Write replies as concisely as you can without losing context, consequence, or meaning.
 Include enough information for the reader to understand the result or answer the question.
+Post when there is new information about the case or something the reader needs to act on.
+Keep session-state corrections, ownership checks, routing decisions, and inventories of work
+not yet started in the checkpoint and task output. When these create an operator dependency,
+explain its consequence and the needed action in the question.
 
 For PR and implementation summaries, describe the change and its effect at the level of the
 high-level approach, such as a ZIP+4 override or a TIC-specific branch that preserves local tax.
 Keep implementation details and supporting logs in the linked PR or case record.
-Summarize the supplied outcome instead of copying the internal report. Report this stage's
-outcome; preserve the accepted Cause unless the mission supplies a revised finding.
+Summarize the relevant case outcome instead of copying the internal report. Preserve the
+accepted Cause unless the mission supplies a revised finding.
 
 ```text
 *DEV-1234: Incorrect tax rate in Austin, TX*
-Cause: The remote seller needs a ZIP+4 override because the current address match selects the wrong local rate. The fix targets the affected location and effective period.
+Cause: The address match selects the wrong local rate for this remote seller because the location needs ZIP+4 resolution, causing the reported tax discrepancy.
 Status: :hammer: Fixing
 PRs:
 - <https://github.com/ZipTax/txc-sqlserver-database/pull/123|txc-sqlserver-database fix>
