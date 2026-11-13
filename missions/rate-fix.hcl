@@ -322,8 +322,8 @@ mission "rate_fix" {
 
       Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
       Have the stage agent confirm the root status through case_slack before starting stage work.
-      Preserve investigation's accepted Cause on the root. Describe the intended product
-      correction in the progress reply; investigation findings remain owned by investigation.
+      Preserve investigation's accepted Cause on the root; investigation findings remain owned
+      by investigation. Publish the fix outcome and PR when ready.
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
