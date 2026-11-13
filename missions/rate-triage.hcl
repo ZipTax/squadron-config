@@ -104,16 +104,27 @@ mission "rate_triage" {
 
   task "discover_sessions" {
     objective = <<-EOT
+      1. Validate the start event.
+      2. Restore the case and Slack root.
+      3. Inspect existing work.
+      4. Assess ownership.
+      5. Finish discovery.
+
+      # 1. Validate the start event
+
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
-      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
 
+      # 2. Restore the case and Slack root
+
       Use `squadron-rates` as the initial channel supplied to case_slack when creating
       the case root. An existing Slack conversation remains the destination.
 
-      Apply rate_case for ${inputs.issue}. Use case_slack with status ":mag: Triaging" for a new case;
+      Apply rate_case for ${inputs.issue}. Read the ticket title when creating the root.
+      Use case_slack with status ":mag: Triaging" for a new case;
       retain the recorded status on resumption. Save accepted state before routing.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
@@ -121,17 +132,16 @@ mission "rate_triage" {
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
       count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
-      # Inspect existing work
+      # 3. Inspect existing work
 
-      Have session_scout read the ticket title for the root, then apply delegated_session
-      for candidate validation, resumability, and provenance.
+      Apply delegated_session for candidate validation, resumability, and provenance.
       Read the Jira Devin Sessions field ${vars.jira_sessions_field} using getJiraIssue with
       cloudId "${vars.jira_cloud_id}". Extract its tag/URL lines from the ADF paragraphs. Only
       if that field is empty, absent, or refused, fall back to find_sessions(tags: ["${inputs.issue}"]).
       Check candidate sessions for actual lane work and verdicts; a writeback-only session is
       never an investigation owner. A refused read is not evidence that no session exists.
 
-      # Assess ownership
+      # 4. Assess ownership
 
       Honor explicit inputs: live override "${inputs.wip_investigation_session_id}", terminated
       context override "${inputs.stale_investigation_session_id}", WAI challenge "${inputs.wai_challenge}" or the saved context.wai_challenge.
@@ -145,7 +155,7 @@ mission "rate_triage" {
       from the checkpoint and its recorded investigation report. Reading that accepted report
       restores the handoff; it does not require a fresh investigation or a messageable author.
 
-      # Finish discovery
+      # 5. Finish discovery
 
       Apply blocked_run's trigger-label entry step using editJiraIssue label removal only.
       The selected work stage delegates interpretation of new answers; discovery does not decide
@@ -274,19 +284,26 @@ mission "rate_triage" {
 
   task "start_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status ":mag: Investigating".
+      1. Restore the case and publish the stage status.
+      2. Delegate to Devin.
+      3. Assess and finish.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `start_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
-      # Delegate to Devin
+      # 2. Delegate to Devin
 
-      Have the stage agent call plugins.devin.code_develop on ${inputs.repo_url}, with
+      Call plugins.devin.code_develop on ${inputs.repo_url}, with
       !rate_investigation in the task, `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`.
       Supply the ticket, reported scope, and any evidence from discovery. Use a title naming the
       reported behavior. If discovery could not establish prior history, tell Devin that existing
       work may be unknown; do not turn this operational caveat into a requested ticket update.
 
-      # Assess and finish
+      # 3. Assess and finish
 
       Collect the result through check_session. Apply rate_investigation's evidence and completion
       criteria; ask for any missing support. Assessment handles the accepted verdict and next route.
@@ -311,13 +328,20 @@ mission "rate_triage" {
 
   task "confirm_wai" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status ":mag: Investigating".
+      1. Restore the case and publish the stage status.
+      2. Delegate to Devin.
+      3. Assess and finish.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `confirm_wai`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
-      # Delegate to Devin
+      # 2. Delegate to Devin
 
-      Have the stage agent create a fresh session through plugins.devin.code_develop on
+      Create a fresh session through plugins.devin.code_develop on
       ${inputs.repo_url}, with !rate_investigation in the task, `prompt_mode: "raw"`, and tags
       `["${inputs.issue}", "rate-investigation", "wai-challenge"]`. Use a title naming the disputed behavior.
       Supply the ticket, prior conclusion, and rebuttal as claims to test against code and data:
@@ -330,7 +354,7 @@ mission "rate_triage" {
       account is correct. Ask Devin to annotate the prior Jira conclusion as under investigation
       using writing-ticket-updates, so readers do not mistake it for a settled answer.
 
-      # Assess and finish
+      # 3. Assess and finish
 
       Collect the result with check_session and apply rate_investigation's acceptance criteria.
       Assessment handles the supported verdict and routing.
@@ -355,18 +379,25 @@ mission "rate_triage" {
 
   task "continue_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status ":mag: Investigating".
+      1. Restore the case and publish the stage status.
+      2. Work with Devin.
+      3. Assess and finish.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `continue_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
-      # Work with Devin
+      # 2. Work with Devin
 
-      Have the stage agent check_session first. If work remains, send_message with only the
+      Call check_session first. If work remains, send_message with only the
       unanswered question and new evidence, following rate_investigation and delegated_session.
       Do not repeat the full investigation brief. If the selected session is no longer messageable,
       report the discovery discrepancy rather than silently replacing it on this continuation path.
 
-      # Assess and finish
+      # 3. Assess and finish
 
       Reuse an already supported result without restarting work. Otherwise collect the follow-up
       and apply rate_investigation's acceptance criteria before handing it to assessment.
@@ -391,20 +422,27 @@ mission "rate_triage" {
 
   task "forward_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status ":mag: Investigating".
+      1. Restore the case and publish the stage status.
+      2. Work with Devin.
+      3. Assess and finish.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `forward_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
 
-      # Work with Devin
+      # 2. Work with Devin
 
-      Have the stage agent read the selected report with check_session. Reuse it when its cited
+      Read the selected report with check_session. Reuse it when its cited
       evidence settles the question. If gaps remain, create a read-only session through
       plugins.devin.code_develop on ${inputs.repo_url}, with !rate_investigation in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`. Supply the attributed report
       and the specific gaps, following rate_investigation; do not ask for a restart from zero.
 
-      # Assess and finish
+      # 3. Assess and finish
 
       Apply rate_investigation's acceptance criteria. Keep inherited claims attributed until
       Devin checks their evidence. Hand the result to assessment with the actual session ownership
@@ -442,15 +480,22 @@ mission "rate_triage" {
 
   task "assess_investigation" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status ":mag: Investigating".
+      1. Restore the case and publish the stage status.
+      2. Obtain and assess evidence.
+      3. Finish or pause.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `assess_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Decide whether the investigation of ${inputs.issue} supports a disposition.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
       count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
-      # Obtain and assess evidence
+      # 2. Obtain and assess evidence
 
-      Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
+      Retrieve the Devin result with check_session and apply rate_investigation.
       Use Devin's per-issue findings as the requirement. Recover older reports through
       delegated_session before accepting the handoff; return unfinished research to Devin.
       Confirm the selected session actually investigated: a comment-only session is a discovery
@@ -463,7 +508,12 @@ mission "rate_triage" {
       the known PR even when its owner is unavailable. Preserve the strength of the findings and
       all outstanding questions.
 
-      # Finish or pause
+      # 3. Finish or pause
+
+      Before routing an accepted investigation, supply case_slack with a short product-language
+      summary of the established cause and affected behavior. Replace the root's provisional
+      Cause; preserve any remaining uncertainty without describing settled
+      findings as still under investigation. Keep the detailed investigation update on Jira.
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.

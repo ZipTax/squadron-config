@@ -38,12 +38,11 @@ mission "rate_fix" {
   # session ids that make it possible (fix, cases) are produced here. Splitting
   # audit out would hand it ids it cannot own.
   #
-  # Objective convention (same as rate_triage): "You"/"# You do" is this Squadron
-  # stage, "the session"/"# Brief the session" is text for the Devin task,
-  # "# Hold the session to" is what to check on return. Repo mechanics are not
-  # restated: the fix/cases/run/audit steps live in txc-sqlserver-database's
-  # ratevariant-testing skill (references/process.md), which the playbooks load.
-  # All credentialed I/O (gh, PR/Jira comments, staging queries) is Devin's.
+  # Task commanders assign work to the configured Squadron agent, assess its evidence,
+  # and select routes. The agent coordinates Devin sessions using the named playbooks.
+  # Repo mechanics live in txc-sqlserver-database's ratevariant-testing skill
+  # (references/process.md), which the playbooks load.
+  # Repository edits and database queries are Devin's; Squadron agents handle case coordination.
   #
   # Blocking on a human: the blocked_run skill, both ends. A stage that hits a
   # dependency first screens it and selects native ask-human for operator
@@ -215,26 +214,37 @@ mission "rate_fix" {
 
   task "enter_fix" {
     objective = <<-EOT
+      1. Validate the start event.
+      2. Restore the case and Slack root.
+      3. Inspect the handoff.
+      4. Select the entry.
+
+      # 1. Validate the start event
+
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
-      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
+
+      # 2. Restore the case and Slack root
 
       Use `squadron-rates` as the initial channel supplied to case_slack when creating
       the case root. An existing Slack conversation remains the destination.
 
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
-      and save accepted state before routing. Use legacy inputs only to recover missing fields.
+      retaining the recorded status until the selected work stage publishes its own.
+      Use case_slack to publish the recorded root status.
+      Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
 
       Read the diagnosis, complete findings, and cited evidence from the maintained case.
 
-      # Inspect the handoff
+      # 3. Inspect the handoff
 
-      Have session_scout check the investigation, fix, and cases owners recorded in lanes.
+      Check the investigation, fix, and cases owners recorded in lanes.
       Compare reported ownership and resumability with the handoff. Do not create or message
       Devin sessions here.
       %{ if inputs.checkpoint != "" ~}
@@ -243,7 +253,7 @@ mission "rate_fix" {
       ${inputs.checkpoint}
       %{ endif ~}
 
-      # Select the entry
+      # 4. Select the entry
 
       Missing or empty findings require report recovery through delegated_session in the
       selected work stage before it acts on the requirement; preserve any legacy authority.
@@ -302,14 +312,24 @@ mission "rate_fix" {
 
   task "develop" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
+      1. Restore the case and publish the stage status.
+      2. Delegate to Devin.
+      3. Assess the result.
+      4. Finish or pause.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `develop`.
+      Use case_slack to publish root status ":hammer: Fixing".
+      Preserve investigation's accepted Cause on the root; investigation findings remain owned
+      by investigation. Publish the fix outcome and PR when ready.
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
-      # Delegate to Devin
+      # 2. Delegate to Devin
 
-      Use delegated_session to resume the registered owner. When a new owner is needed, have the
-      stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
+      Use delegated_session to resume the registered owner. When a new owner is needed, call
+      plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "rate-fix"]`. Supply the case diagnosis, complete findings,
       cited evidence, and relevant unresolved gaps. Recover missing or empty findings
       through delegated_session before implementing a scoped change.
@@ -321,7 +341,7 @@ mission "rate_fix" {
       An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
 
-      # Assess the result
+      # 3. Assess the result
 
       Collect Devin's result with check_session. Require a PR for completed work and investigate
       any reported contradiction with the diagnosis. Have Devin resolve missing support or
@@ -332,7 +352,13 @@ mission "rate_fix" {
       diff, maintained in the PR’s Impact radius section. Accept it when the rationale supports
       the proposed coverage; otherwise ask the fix owner to resolve the specific gap.
 
-      # Finish or pause
+      # 4. Finish or pause
+
+      When the fix PR is ready, add its link to the root and summarize the proposed change
+      and its effect using case_slack's wording guidance.
+      This reports implementation progress, not a renewed investigation verdict or proof that
+      the fix works. Keep the detailed change report and validation evidence in the PR and case record. If findings need revision,
+      have the investigation session assess them before changing the accepted Cause.
 
       Completed work proceeds to case authoring. For needs_human, use blocked_run and
       rate_checkpoint with next entry develop.
@@ -415,14 +441,22 @@ mission "rate_fix" {
 
   task "author_tests" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status ":test_tube: Testing".
+      1. Restore the case and publish the stage status.
+      2. Delegate to Devin.
+      3. Assess the result.
+      4. Finish or pause.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `author_tests`.
+      Use case_slack to publish root status ":test_tube: Testing".
 
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
-      # Delegate to Devin
+      # 2. Delegate to Devin
 
       Read the fix PR/branch from artifacts and resume the cases owner in lanes through
-      delegated_session. If a replacement is needed, have the stage agent call
+      delegated_session. If a replacement is needed, call
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
@@ -433,13 +467,13 @@ mission "rate_fix" {
 
       Supply the latest accepted findings, using delegated_session for report recovery.
 
-      # Assess the result
+      # 3. Assess the result
 
       Collect the result with check_session. Require offline validation and coverage or an
       evidenced gap for each affected root. Ask Devin to investigate missing support rather than
       inventing a fixture yourself. Case authoring preserves the accepted per-issue requirements.
 
-      # Finish or pause
+      # 4. Finish or pause
 
       Completed coverage proceeds to audit, including justified limits for the auditor to assess.
       For needs_human, use blocked_run and rate_checkpoint with next entry author_tests.
@@ -504,11 +538,19 @@ mission "rate_fix" {
 
   task "audit" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `audit`. Use case_slack with status ":microscope: Auditing".
+      1. Restore the case and publish the stage status.
+      2. Work with Devin.
+      3. Assess the evidence.
+      4. Finish or pause.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `audit`.
+      Use case_slack to publish root status ":microscope: Auditing".
 
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
-      # Work with Devin
+      # 2. Work with Devin
 
       Read the fix PR, cases mode, and lane owners from the case. Check available sessions
       and use send_message/check_session for bounded evidence requests.
@@ -528,7 +570,7 @@ mission "rate_fix" {
 
       Supply the latest accepted findings, using delegated_session for report recovery.
 
-      # Assess the evidence
+      # 3. Assess the evidence
 
       Apply evidence_gate, ab_audit, and txc_rate_audit. Obtain predictions before examining results.
       Assess captures for the required modes using the run details in the automatic GitHub
@@ -542,7 +584,7 @@ mission "rate_fix" {
       finding before accepting that result. FIX_IS_NO_OP requires positive evidence of correct prior behavior
       or a dead changed branch, not just failure to reproduce.
 
-      # Finish or pause
+      # 4. Finish or pause
 
       Use verdict_loop: continue while making progress; ask the operator when progress
       stalls or more information is needed. Preserve the supported verdict. On FIX_IS_NO_OP, ask Devin to verify
@@ -627,15 +669,23 @@ mission "rate_fix" {
 
   task "bruno_tests" {
     objective = <<-EOT
-      Apply rate_case for ${inputs.issue} at `bruno_tests`. Use case_slack with status ":writing_hand: Authoring Bruno tests".
+      1. Restore the case and publish the stage status.
+      2. Delegate to Devin.
+      3. Assess the result.
+      4. Finish or pause.
+
+      # 1. Restore the case and publish the stage status
+
+      Apply rate_case for ${inputs.issue} at `bruno_tests`.
+      Use case_slack to publish root status ":writing_hand: Authoring Bruno tests".
 
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
-      # Delegate to Devin
+      # 2. Delegate to Devin
 
       Read the fix PR and branch from artifacts.fix_pr.
       Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
-      have the stage agent call plugins.devin.code_develop with repo_url
+      call plugins.devin.code_develop with repo_url
       https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
@@ -644,7 +694,7 @@ mission "rate_fix" {
 
       Supply the latest accepted findings, using delegated_session for report recovery.
 
-      # Assess the result
+      # 3. Assess the result
 
       Collect Devin's result with check_session. Require cited authority for assertions and an
       explicit reason for unwritten scenarios. Assess CI results against deployment state:
@@ -652,7 +702,7 @@ mission "rate_fix" {
       Expected pre-deployment failures demonstrate the regression and allow this stage to finish.
       Send unexpected results to the owning sessions for assessment and correction.
 
-      # Finish or pause
+      # 4. Finish or pause
 
       Completed work proceeds to finalization. Continue technical corrections while making
       progress. If progress stalls or more information is needed, ask the operator with
