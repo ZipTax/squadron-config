@@ -229,12 +229,9 @@ mission "rate_fix" {
 
       # 2. Restore the case and Slack root
 
-      Use `squadron-rates` as the initial channel supplied to case_slack when creating
-      the case root. An existing Slack conversation remains the destination.
+      Use `squadron-rates` as the initial channel when creating the root.
 
-      Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
-      retaining the recorded status until the selected work stage publishes its own.
-      Use case_slack to publish the recorded root status.
+      Apply rate_case for ${inputs.issue}. Use case_slack with the recorded status for this handoff.
       Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
@@ -321,8 +318,6 @@ mission "rate_fix" {
 
       Apply rate_case for ${inputs.issue} at `develop`.
       Use case_slack to publish root status ":hammer: Fixing".
-      Preserve investigation's accepted Cause on the root; investigation findings remain owned
-      by investigation. Publish the fix outcome and PR when ready.
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
@@ -354,11 +349,12 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
-      When the fix PR is ready, add its link to the root and summarize the proposed change
-      and its effect using case_slack's wording guidance.
+      When the fix PR is ready, add its labeled link to the root's PR list. In a separate thread
+      reply, summarize the proposed change and its effect. For example: "<fix-pr-url|Fix PR> adds a branch for
+      TIC 40030 so local tax is preserved." Include material limits or unresolved scope.
       This reports implementation progress, not a renewed investigation verdict or proof that
-      the fix works. Keep the detailed change report and validation evidence in the PR and case record. If findings need revision,
-      have the investigation session assess them before changing the accepted Cause.
+      the fix works. If findings need revision, have the investigation session assess them
+      before changing the accepted Cause.
 
       Completed work proceeds to case authoring. For needs_human, use blocked_run and
       rate_checkpoint with next entry develop.
@@ -475,6 +471,10 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
+      Use case_slack to reply with the behavior covered, material coverage gaps, and the fix PR
+      link. Describe readiness for audit, for example: "Cases now cover local-tax preservation
+      for TIC 40030 and unaffected items: <fix-pr-url|Fix PR>." Audit reports the A/B outcome.
+
       Completed coverage proceeds to audit, including justified limits for the auditor to assess.
       For needs_human, use blocked_run and rate_checkpoint with next entry author_tests.
     EOT
@@ -585,6 +585,12 @@ mission "rate_fix" {
       or a dead changed branch, not just failure to reproduce.
 
       # 4. Finish or pause
+
+      Use case_slack to report the assessed A/B outcome, behavior checked, material limits,
+      and evidence link. For example: "A/B checks support local-tax preservation for TIC 40030,
+      with no regressions found in the covered cases: <run-url|Comparison>." For a discrepancy,
+      name the affected behavior and correction underway. This reports directional correctness
+      and regression checks; Bruno verifies the deployed fix.
 
       Use verdict_loop: continue while making progress; ask the operator when progress
       stalls or more information is needed. Preserve the supported verdict. On FIX_IS_NO_OP, ask Devin to verify
@@ -703,6 +709,11 @@ mission "rate_fix" {
       Send unexpected results to the owning sessions for assessment and correction.
 
       # 4. Finish or pause
+
+      Add the Bruno PR's labeled link to the root's PR list. In a separate thread reply, summarize
+      its coverage, observed CI outcome, and what remains to verify. For example: "<bruno-pr-url|API tests> reproduce the lost local tax before
+      deployment; unaffected items pass. After staging deployment, we'll rerun to verify the fix."
+      Include the CI link and any material gaps or unexpected failures.
 
       Completed work proceeds to finalization. Continue technical corrections while making
       progress. If progress stalls or more information is needed, ask the operator with

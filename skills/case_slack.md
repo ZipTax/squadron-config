@@ -1,90 +1,116 @@
-# Keep the case visible in Slack
+# Communicate progress or updates via Slack
 
-Publish the status or result supplied by the mission. Read the saved message before
-editing it so the latest cause and PR links are preserved.
+Use these instructions to choose what belongs in Slack, compose the update, and maintain
+the saved root message.
+See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-thread-replies) for root edits versus thread posts.
 
-## Start or update the root
+## 1. Decide what to publish
 
-1. Read the current case memory so an update preserves the latest cause, status, and PRs.
-2. When the case has no root, read the ticket title, save the desired text with `root_post_pending: true`,
-   and post one root with `root: true` and the mission-supplied `channel`, when provided.
-   The gateway reuses an existing conversation regardless of that initial channel choice.
-   Save the returned ID immediately in `slack.root_message_id`, together with the full text and
-   the runtime's mission thread ID; clear `root_post_pending`. Later updates reuse this root.
-3. For later updates, merge only the changed facts into the saved full text. Persist the
-   desired `root_text` with `update_pending: true`, then call `gateway.edit` with the saved
-   ID and complete text. On success, save `published_text` and clear `update_pending`.
-4. Stage transitions update the root;
-   reserve thread replies for artifacts, accepted results, and questions that need attention.
-   Routing comes from the mission thread; omit payload routing keys. Record the last
-   confirmed update in `last_update` so a resume can skip updates already delivered.
+**Update the root** when the case status, accepted Cause, or PR links change.
+A stage transition changes the root status; it does not need a thread reply.
+For a new PR, add only its labeled link to the root's PR list. Post its brief change summary
+as a separate thread reply. These are two distinct updates, not two copies of the summary.
 
-Slack updates are notifications: continue mission work when delivery fails. Record the failure
-and pending update in the case record and mission result; mark delivery only on success.
-Retry a failed edit against the same ID using the latest desired text on the next update.
-If `root_post_pending` remains set with no root ID after an uncertain post, flag the missing
-reference for operator recovery and continue mission work. Recover that reference before
-posting another root so the case keeps one conversation.
+**You may post a thread reply only for:**
 
-Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
-about 25-30 words, stating uncertainty until established. List only PRs that exist.
+- An accepted investigation, verification, or case outcome that changes the reader's
+  understanding of the issue.
+- A new PR or a substantive revision, with the change it proposes and its effect.
+- Completed test coverage, assessed test results, or a material coverage gap.
+- A lessons outcome, a response to review feedback, or case closure.
+- A question requiring human input, or its accepted resolution. Use `builtins.human.ask`
+  for the question; it posts to the thread, so do not duplicate it with a gateway post.
 
-Write replies as concisely as you can without losing context, consequence, or meaning.
-Include enough information for the reader to understand the result or answer the question.
+**You may not post a thread reply solely to report:**
 
-For PR and implementation summaries, describe the change and its effect at the level of the
-high-level approach, such as a ZIP+4 override or a TIC-specific branch that preserves local tax.
-Keep implementation details and supporting logs in the linked PR or case record.
-Summarize the supplied outcome instead of copying the internal report. Report this stage's
-outcome; preserve the accepted Cause unless the mission supplies a revised finding.
+- A task starting, finishing, handing off, or waiting for the next stage.
+- A status that is already shown on the root.
+- Session creation, suspension, resumability, ownership checks, or metadata corrections.
+- Routing decisions, checkpoint maintenance, or inventories of work not yet started.
+- Findings or artifacts already reported, without a meaningful change.
+
+For example, omit "Triage complete; findings intact, session suspended, no fix PR yet."
+Keep that bookkeeping in the case record. If it creates a human dependency, ask for the
+needed action and explain its consequence, following your task instructions and `blocked_run`.
+
+## 2. Compose the root
+
+The root body must contain only the four fields below, in this order. Read the saved root
+before editing to preserve current facts and links, then render this format. Remove extra
+sections and commentary already present; preserving facts does not mean preserving prose.
+
+- **Title:** ticket key and title.
+- **Cause:** the accepted problem and its effect, with uncertainty where needed. Keep it
+  to two sentences and about 25-30 words. Do not include the proposed solution or
+  implementation details. Use "Under investigation" until an accepted cause is available.
+- **Status:** the complete label specified in your task instructions, including its emoji.
+- **PRs:** one labeled link per line, using repository and purpose, such as
+  `txc-sqlserver-database fix`, `txc-bruno tests`, or `squadron-config lessons`.
+
+Do not add change summaries, branch names, commit hashes, labels, database objects, row counts,
+test results, or audit commentary to the root. Do not annotate PR links with those details.
+The gateway appends the mission links and requester footer; do not recreate it in the body.
+
+Use Slack mrkdwn with line breaks, `*bold*` titles, and `<url|label>` links:
 
 ```text
-*DEV-1234: Incorrect tax rate in Austin, TX*
-Cause: The remote seller needs a ZIP+4 override because the current address match selects the wrong local rate. The fix targets the affected location and effective period.
-Status: :hammer: Fixing
+*DEV-10679: NEW TIC - Carbon Credits - TIC 99985*
+Cause: Carbon credits are missing from the tax catalog, so purchases default to taxable even in jurisdictions where they should be exempt.
+Status: :writing_hand: Authoring Bruno tests
 PRs:
-- <https://github.com/ZipTax/txc-sqlserver-database/pull/123|txc-sqlserver-database fix>
-- <https://github.com/ZipTax/txc-bruno/pull/45|bruno tests>
-- <https://github.com/ZipTax/squadron-config/pull/67|lessons>
+- <fix-pr-url|txc-sqlserver-database fix>
+- <bruno-pr-url|txc-bruno tests>
 ```
 
-## Status and results
+## 3. Compose a permitted reply
 
-Use the complete status supplied by the caller, including its emoji. Report the supplied outcome and
-supporting links. Preserve existing PR links when a stage produces no new PR.
+Follow your task's content instructions and examples. Adapt examples to supported
+facts and actual links. Write as concisely as you can without losing context, consequence,
+or meaning; include enough information to understand the result or answer the question.
+These writing and formatting rules also apply to every visible human-ask field, including
+`additional_context`. Use it only for context needed to answer the question; omit it when the
+question is self-contained. Do not paste checkpoint contents or lane-by-lane session reports.
+Use clickable `<actual-url|label>` links for PR, Jira, and CI references, using URLs from the
+case record or tool results. Bare PR numbers, run IDs, and commit hashes are not links.
 
-## Wording examples
+Summarize the outcome and link to Jira, the PR, or CI for detail. Do not reproduce their reports
+or enumerate implementation changes and test cases in the reply.
 
-Adapt these examples to the supported facts; link the actual PR or evidence when relevant.
-Keep supporting technical evidence in the case record and linked work.
+For PR and implementation summaries, describe the change and its effect at the level of
+the high-level approach. For example: "<fix-pr-url|Fix PR> adds a branch for TIC 40030 so
+local tax is preserved." Keep implementation details and supporting logs in linked work.
 
-| Stage | Artifact or result reply |
-| --- | --- |
-| Investigation | "The state exemption is also clearing local tax for TIC 40030." |
-| Fixing | "[Fix PR] adds a branch for TIC 40030 so local tax is preserved." |
-| Fixing | "[Fix PR] adds a ZIP+4 override so affected addresses receive the correct local rate." |
-| Testing | "Test cases now cover local-tax preservation for TIC 40030 and unaffected items." |
-| Auditing | "A/B checks show local tax is preserved for TIC 40030, with no regressions found in the covered cases." |
-| Authoring Bruno tests | "API tests reproduce the lost local tax before deployment; checks for unaffected items pass." |
-| Verifying working-as-intended | "Local tax still applies despite the state exemption; the supporting explanation is on the ticket." |
-| Recording lessons | "[Lessons PR] adds guidance to check local tax separately when changing state exemptions." |
-| Awaiting review | "Your requested local-tax coverage is added and ready for another look." |
-| Verifying in staging | "After deployment, API tests confirm local tax is preserved and unaffected items still pass." |
-| Blocked on question | "Deployment is confirmed; resuming verification." |
+Report the relevant case outcome, not the internal session report:
 
-For questions or unexpected results, state what needs attention and the next action:
-- "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix."
-- "API tests still show local tax being cleared after deployment; the fix session is investigating."
-- "The comparison found tax changes for unaffected items; the fix session is correcting them."
-- "No reusable lessons emerged from this case; moving to review."
+- Result: "API tests still show local tax being cleared after deployment; the fix session
+  is investigating." Include the CI link.
+- Question: "Please follow up when the fix is deployed to staging. If applicable, provide
+  any relevant deployment details so I can verify the fix."
+- Resolution: "Deployment is confirmed; resuming verification."
 
-Investigation also replaces the root's provisional Cause with its accepted product finding,
-for example: "The state exemption is also clearing local tax for TIC 40030, causing eligible purchases to be undertaxed."
-Later stages preserve that finding while updating status and PR links.
+After assessing an answer according to your task instructions, update the root status and
+report the accepted resolution. Follow `blocked_run` for human dependencies.
 
-## Questions
+## 4. Deliver and record the update
 
-The caller supplies the question status. The human-ask tool posts the question in the
-thread. When the calling
-stage accepts the answer, post its resolution and restore the supplied work status.
-The calling task owns question assessment; `blocked_run` handles dependency questions.
+Use `rate_checkpoint` to maintain the case memory.
+
+1. Read the current case before writing so the update preserves newer findings and links.
+2. **Create a root:** read the ticket title and save the desired text with `root_post_pending: true`. Post with
+   `root: true` and the `channel` specified in your task instructions, when provided. The gateway reuses an
+   existing conversation regardless of that initial channel choice. Save the returned ID
+   immediately in `slack.root_message_id`, together with the full text and runtime's mission
+   thread ID; clear `root_post_pending`. Later updates reuse this root.
+3. **Edit the root:** render only the four root fields using the latest case facts. Persist `root_text` with
+   `update_pending: true`, then call `gateway.edit` with the saved ID and complete text.
+   On success, save `published_text` and clear `update_pending`.
+4. **Post a permitted reply:** routing comes from the mission thread; omit payload routing
+   keys. Record the last confirmed update in `last_update` so resumption skips delivered replies.
+
+Slack delivery is nonblocking. On failure, record the failure and pending update in the case
+record and mission result, then continue mission work. Mark delivery only on success.
+Retry a failed edit against the same ID using the latest desired text on the next update.
+
+If an uncertain root post leaves `root_post_pending` set with no root ID, flag the missing
+reference for operator recovery and continue mission work. Recover that reference before
+posting another root so the case keeps one conversation.
