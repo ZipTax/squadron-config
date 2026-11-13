@@ -27,10 +27,12 @@ remain visible in the case record and mission result; they do not imply successf
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
 about 25-30 words, stating uncertainty until established. List only PRs that exist.
 
-Write thread replies as one short sentence naming the meaningful change, result, or decision
-and its effect. At most, describe the high-level approach, such as a ZIP+4 override or a
-TIC-specific branch that preserves local tax. Keep implementation details, branch names, commit
-hashes, exhaustive object lists, row counts, and validation logs in the linked PR or case record.
+Write replies as concisely as you can without losing context, consequence, or meaning.
+Include enough information for the reader to understand the result or answer the question.
+
+For PR and implementation summaries, describe the change and its effect at the level of the
+high-level approach, such as a ZIP+4 override or a TIC-specific branch that preserves local tax.
+Keep implementation details and supporting logs in the linked PR or case record.
 Summarize the supplied outcome instead of copying the internal report. Report this stage's
 outcome; preserve the accepted Cause unless the mission supplies a revised finding.
 
@@ -52,7 +54,6 @@ supporting links. Preserve existing PR links when a stage produces no new PR.
 ## Wording examples
 
 Adapt these examples to the supported facts; link the actual PR or evidence when relevant.
-Use one short sentence per update with enough detail to explain what changed or was checked.
 Keep supporting technical evidence in the case record and linked work.
 
 | Stage | Artifact or result reply |
