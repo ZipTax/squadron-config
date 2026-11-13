@@ -28,8 +28,9 @@ about 25-30 words, stating uncertainty until established. List only PRs that exi
 
 Write progress replies as one short sentence about the product change, result, or decision
 needed. For example: "Preparing the taxability correction for the affected states." Keep
-delegation mechanics, file lanes, and implementation shorthand in the case record. Use the
-accepted findings supplied by the mission; a status change alone does not establish a cause.
+branch names, commit hashes, database objects, row counts, labels, and test-plan details
+in the linked PR or case record. Summarize the supplied outcome for the reader instead of
+copying the internal report. Report this stage's progress without repeating another stage's findings; preserve the accepted Cause unless the mission supplies a revised finding.
 
 ```text
 *DEV-1234: Incorrect tax rate in Austin, TX*

@@ -303,8 +303,8 @@ mission "rate_fix" {
   task "develop" {
     objective = <<-EOT
       Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
-      Supply the accepted investigation summary as Cause so the root explains the established
-      problem when Fixing begins. Describe the intended product correction in the progress reply.
+      Preserve investigation's accepted Cause on the root. Describe the intended product
+      correction in the progress reply; investigation findings remain owned by investigation.
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
@@ -335,6 +335,12 @@ mission "rate_fix" {
       the proposed coverage; otherwise ask the fix owner to resolve the specific gap.
 
       # Finish or pause
+
+      When the fix PR is ready, add its link to the root and post one short product-language
+      sentence about the proposed correction. This reports implementation progress, not a
+      renewed investigation verdict or proof that the fix works. Keep the detailed change
+      report and validation evidence in the PR and case record. If findings need revision,
+      have the investigation session assess them before changing the accepted Cause.
 
       Completed work proceeds to case authoring. For needs_human, use blocked_run and
       rate_checkpoint with next entry develop.
