@@ -200,10 +200,13 @@ mission "rate_finalize" {
       3. Inspect the handoff.
       4. Select the entry.
 
+      Delegate the tool work below to `session_scout`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
-      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
@@ -215,15 +218,15 @@ mission "rate_finalize" {
 
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
       retaining the recorded status until the selected work stage publishes its own.
-      Have session_scout confirm the root status through case_slack, and save accepted state
-      before routing. Use legacy inputs only to recover missing fields.
+      Use case_slack to publish the recorded root status and confirm the gateway succeeded.
+      Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       using the saved close reason.
 
       # 3. Inspect the handoff
 
-      Have session_scout check the investigation, fix, cases, and Bruno owners recorded in lanes.
+      Check the investigation, fix, cases, and Bruno owners recorded in lanes.
       Use delegated_session's discovery guidance if an id is missing for known work. An unavailable
       session still contributes its report; it cannot answer follow-up questions. Do not create
       or message sessions here.
@@ -281,17 +284,20 @@ mission "rate_finalize" {
       3. Assess the result.
       4. Finish or pause.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_reviewer`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `verify_wai`. Use case_slack with status ":mag: Verifying working-as-intended".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
 
       # 2. Delegate to Devin
 
-      Have the stage agent create a fresh read-only Devin session through plugins.devin.code_develop
+      Create a fresh read-only Devin session through plugins.devin.code_develop
       on ${inputs.repo_url}, with `prompt_mode: "raw"`, title ${inputs.issue} — verify working-as-intended,
       and tags `["${inputs.issue}", "verify-wai"]`. Have Devin use the repository's investigate-tax-behavior
       skill to check the ticket's disputed value against data independently of the earlier reasoning.
@@ -378,10 +384,13 @@ mission "rate_finalize" {
       3. Gather and record worthwhile lessons.
       4. Finish.
 
+      Delegate the tool work below to `learnings_curator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `record_learnings`. Use case_slack with status ":memo: Recording lessons".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
       worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
@@ -486,14 +495,17 @@ mission "rate_finalize" {
       its PRs merge and requested checks are settled, or the operator ends review.
       Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_reviewer`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Collect current work and wait
 
-      1. Have the reviewer collect current PR states, heads, and session results through
+      1. Collect current PR states, heads, and session results through
          delegated_session, including lessons PRs. On resume, reconcile the saved pending
          action before resending work. If the completion criteria below are met, finish.
       2. Save progress and next entry rate_finalize/review_followup before each wait or
-         session request. Have the reviewer use case_slack to publish and confirm
-         root status ":eyes: Awaiting review" before asking for feedback.
+         session request. Use case_slack to publish root status ":eyes: Awaiting review"
+         and confirm the gateway succeeded before asking for feedback.
       3. Call builtins.human.ask without timeout_seconds: "What should I review or change?
          Tell me when staging is deployed or the PRs are merged." Offer re-audit, staging
          verification, merge check, and end review, with free text for detailed feedback.
@@ -505,8 +517,8 @@ mission "rate_finalize" {
          the operator requested directly from Devin. Ask for any unrecorded feedback.
       2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
          through delegated_session, preserving each owner's file lane.
-      3. Have the reviewer use case_slack to publish and confirm root status
-         ":microscope: Auditing" before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
+      3. Use case_slack to publish root status ":microscope: Auditing" and confirm the gateway
+         succeeded before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
          changed work with fresh captures. Have the Bruno owner review automatic staging CI:
          should-change tests fail before deployment and pass afterward; guardrails pass throughout.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
@@ -519,8 +531,8 @@ mission "rate_finalize" {
 
       # 3. Verify a reported staging deployment
 
-      1. When the operator confirms this case's fix is deployed to staging, have the reviewer
-         use case_slack to publish and confirm root status ":test_tube: Verifying in staging".
+      1. When the operator confirms this case's fix is deployed to staging, use case_slack
+         to publish root status ":test_tube: Verifying in staging" and confirm the gateway succeeded.
          Then have the Bruno owner review a CI run made after that deployment. Keep verification pending if
          fresh evidence is unavailable.
       2. Compare results with the pre-deployment run. Both should-change tests and guardrails

@@ -38,12 +38,11 @@ mission "rate_fix" {
   # session ids that make it possible (fix, cases) are produced here. Splitting
   # audit out would hand it ids it cannot own.
   #
-  # Objective convention (same as rate_triage): "You"/"# You do" is this Squadron
-  # stage, "the session"/"# Brief the session" is text for the Devin task,
-  # "# Hold the session to" is what to check on return. Repo mechanics are not
-  # restated: the fix/cases/run/audit steps live in txc-sqlserver-database's
-  # ratevariant-testing skill (references/process.md), which the playbooks load.
-  # All credentialed I/O (gh, PR/Jira comments, staging queries) is Devin's.
+  # Task commanders assign work to the configured Squadron agent, assess its evidence,
+  # and select routes. The agent coordinates Devin sessions using the named playbooks.
+  # Repo mechanics live in txc-sqlserver-database's ratevariant-testing skill
+  # (references/process.md), which the playbooks load.
+  # Repository edits and database queries are Devin's; Squadron agents handle case coordination.
   #
   # Blocking on a human: the blocked_run skill, both ends. A stage that hits a
   # dependency first screens it and selects native ask-human for operator
@@ -220,10 +219,13 @@ mission "rate_fix" {
       3. Inspect the handoff.
       4. Select the entry.
 
+      Delegate the tool work below to `session_scout`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
-      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
@@ -235,8 +237,8 @@ mission "rate_fix" {
 
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
       retaining the recorded status until the selected work stage publishes its own.
-      Have session_scout confirm the root status through case_slack, and save accepted state
-      before routing. Use legacy inputs only to recover missing fields.
+      Use case_slack to publish the recorded root status and confirm the gateway succeeded.
+      Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
@@ -245,7 +247,7 @@ mission "rate_fix" {
 
       # 3. Inspect the handoff
 
-      Have session_scout check the investigation, fix, and cases owners recorded in lanes.
+      Check the investigation, fix, and cases owners recorded in lanes.
       Compare reported ownership and resumability with the handoff. Do not create or message
       Devin sessions here.
       %{ if inputs.checkpoint != "" ~}
@@ -318,10 +320,13 @@ mission "rate_fix" {
       3. Assess the result.
       4. Finish or pause.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_implementer`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
       Preserve investigation's accepted Cause on the root; investigation findings remain owned
       by investigation. Publish the fix outcome and PR when ready.
 
@@ -329,8 +334,8 @@ mission "rate_fix" {
 
       # 2. Delegate to Devin
 
-      Use delegated_session to resume the registered owner. When a new owner is needed, have the
-      stage agent call plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
+      Use delegated_session to resume the registered owner. When a new owner is needed, call
+      plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "rate-fix"]`. Supply the case diagnosis, complete findings,
       cited evidence, and relevant unresolved gaps. Recover missing or empty findings
       through delegated_session before implementing a scoped change.
@@ -447,17 +452,20 @@ mission "rate_fix" {
       3. Assess the result.
       4. Finish or pause.
 
+      Delegate the tool work below to `test_authoring_coordinator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status ":test_tube: Testing".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
       # 2. Delegate to Devin
 
       Read the fix PR/branch from artifacts and resume the cases owner in lanes through
-      delegated_session. If a replacement is needed, have the stage agent call
+      delegated_session. If a replacement is needed, call
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
@@ -544,10 +552,13 @@ mission "rate_fix" {
       3. Assess the evidence.
       4. Finish or pause.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_reviewer`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `audit`. Use case_slack with status ":microscope: Auditing".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
@@ -675,10 +686,13 @@ mission "rate_fix" {
       3. Assess the result.
       4. Finish or pause.
 
+      Delegate the tool work below to `test_authoring_coordinator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `bruno_tests`. Use case_slack with status ":writing_hand: Authoring Bruno tests".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
@@ -686,7 +700,7 @@ mission "rate_fix" {
 
       Read the fix PR and branch from artifacts.fix_pr.
       Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
-      have the stage agent call plugins.devin.code_develop with repo_url
+      call plugins.devin.code_develop with repo_url
       https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 

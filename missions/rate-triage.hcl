@@ -110,10 +110,13 @@ mission "rate_triage" {
       4. Assess ownership.
       5. Finish discovery.
 
+      Delegate the tool work below to `session_scout`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
-      have session_scout apply blocked_run with blocker "${inputs.blocker_id}" and generation
+      apply blocked_run with blocker "${inputs.blocker_id}" and generation
       ${inputs.blocker_generation}. Load the current checkpoint, reject stale or completed
       events, and durably claim this event before continuing interrupted work.
       If that check rejects the event, end this run without selecting a downstream route.
@@ -123,9 +126,10 @@ mission "rate_triage" {
       Use `squadron-rates` as the initial channel supplied to case_slack when creating
       the case root. An existing Slack conversation remains the destination.
 
-      Apply rate_case for ${inputs.issue}. Use case_slack with status ":mag: Triaging" for a new case;
-      retain the recorded status on resumption. Have session_scout confirm the root status
-      through case_slack. Save accepted state before routing.
+      Apply rate_case for ${inputs.issue}. Read the ticket title when creating the root.
+      Use case_slack with status ":mag: Triaging" for a new case;
+      retain the recorded status on resumption. Confirm the gateway succeeded and save accepted
+      state before routing.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
@@ -134,8 +138,7 @@ mission "rate_triage" {
 
       # 3. Inspect existing work
 
-      Have session_scout read the ticket title for the root, then apply delegated_session
-      for candidate validation, resumability, and provenance.
+      Apply delegated_session for candidate validation, resumability, and provenance.
       Read the Jira Devin Sessions field ${vars.jira_sessions_field} using getJiraIssue with
       cloudId "${vars.jira_cloud_id}". Extract its tag/URL lines from the ADF paragraphs. Only
       if that field is empty, absent, or refused, fall back to find_sessions(tags: ["${inputs.issue}"]).
@@ -289,16 +292,19 @@ mission "rate_triage" {
       2. Delegate to Devin.
       3. Assess and finish.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status ":mag: Investigating".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
       # 2. Delegate to Devin
 
-      Have the stage agent call plugins.devin.code_develop on ${inputs.repo_url}, with
+      Call plugins.devin.code_develop on ${inputs.repo_url}, with
       !rate_investigation in the task, `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`.
       Supply the ticket, reported scope, and any evidence from discovery. Use a title naming the
       reported behavior. If discovery could not establish prior history, tell Devin that existing
@@ -333,16 +339,19 @@ mission "rate_triage" {
       2. Delegate to Devin.
       3. Assess and finish.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status ":mag: Investigating".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
       # 2. Delegate to Devin
 
-      Have the stage agent create a fresh session through plugins.devin.code_develop on
+      Create a fresh session through plugins.devin.code_develop on
       ${inputs.repo_url}, with !rate_investigation in the task, `prompt_mode: "raw"`, and tags
       `["${inputs.issue}", "rate-investigation", "wai-challenge"]`. Use a title naming the disputed behavior.
       Supply the ticket, prior conclusion, and rebuttal as claims to test against code and data:
@@ -384,16 +393,19 @@ mission "rate_triage" {
       2. Work with Devin.
       3. Assess and finish.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status ":mag: Investigating".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
       # 2. Work with Devin
 
-      Have the stage agent check_session first. If work remains, send_message with only the
+      Call check_session first. If work remains, send_message with only the
       unanswered question and new evidence, following rate_investigation and delegated_session.
       Do not repeat the full investigation brief. If the selected session is no longer messageable,
       report the discovery discrepancy rather than silently replacing it on this continuation path.
@@ -427,17 +439,20 @@ mission "rate_triage" {
       2. Work with Devin.
       3. Assess and finish.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status ":mag: Investigating".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
 
       # 2. Work with Devin
 
-      Have the stage agent read the selected report with check_session. Reuse it when its cited
+      Read the selected report with check_session. Reuse it when its cited
       evidence settles the question. If gaps remain, create a read-only session through
       plugins.devin.code_develop on ${inputs.repo_url}, with !rate_investigation in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`. Supply the attributed report
@@ -485,10 +500,13 @@ mission "rate_triage" {
       2. Obtain and assess evidence.
       3. Finish or pause.
 
+      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
+      As commander, assess its evidence before accepting task output or selecting a route.
+
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status ":mag: Investigating".
-      Have the stage agent confirm the root status through case_slack before starting stage work.
+      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
 
       Decide whether the investigation of ${inputs.issue} supports a disposition.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
@@ -496,7 +514,7 @@ mission "rate_triage" {
 
       # 2. Obtain and assess evidence
 
-      Have the stage agent retrieve the Devin result with check_session and apply rate_investigation.
+      Retrieve the Devin result with check_session and apply rate_investigation.
       Use Devin's per-issue findings as the requirement. Recover older reports through
       delegated_session before accepting the handoff; return unfinished research to Devin.
       Confirm the selected session actually investigated: a comment-only session is a discovery
