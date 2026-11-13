@@ -26,6 +26,11 @@ remain visible in the case record and mission result; they do not imply successf
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
 about 25-30 words, stating uncertainty until established. List only PRs that exist.
 
+Write progress replies as one short sentence about the product change, result, or decision
+needed. For example: "Preparing the taxability correction for the affected states." Keep
+delegation mechanics, file lanes, and implementation shorthand in the case record. Use the
+accepted findings supplied by the mission; a status change alone does not establish a cause.
+
 ```text
 *DEV-1234: Incorrect tax rate in Austin, TX*
 Cause: The remote seller needs a ZIP+4 override because the current address match selects the wrong local rate. The fix targets the affected location and effective period.

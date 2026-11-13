@@ -465,6 +465,11 @@ mission "rate_triage" {
 
       # Finish or pause
 
+      Before routing an accepted investigation, supply case_slack with a short product-language
+      summary of the established cause and affected behavior. Replace the root's provisional
+      Cause and confirm the edit; preserve any remaining uncertainty without describing settled
+      findings as still under investigation. Keep the detailed investigation update on Jira.
+
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
       Use txc_production_evidence for production-tool gaps and blocked_run for the resulting

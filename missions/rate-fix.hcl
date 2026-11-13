@@ -303,6 +303,8 @@ mission "rate_fix" {
   task "develop" {
     objective = <<-EOT
       Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
+      Supply the accepted investigation summary as Cause so the root explains the established
+      problem when Fixing begins. Describe the intended product correction in the progress reply.
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
