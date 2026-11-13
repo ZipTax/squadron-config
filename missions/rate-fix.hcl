@@ -356,9 +356,9 @@ mission "rate_fix" {
       # 4. Finish or pause
 
       When the fix PR is ready, add its link to the root and post one short product-language
-      sentence about the proposed correction. This reports implementation progress, not a
-      renewed investigation verdict or proof that the fix works. Keep the detailed change
-      report and validation evidence in the PR and case record. If findings need revision,
+      sentence naming the high-level approach and its effect, using case_slack's examples.
+      This reports implementation progress, not a renewed investigation verdict or proof that
+      the fix works. Keep the detailed change report and validation evidence in the PR and case record. If findings need revision,
       have the investigation session assess them before changing the accepted Cause.
 
       Completed work proceeds to case authoring. For needs_human, use blocked_run and

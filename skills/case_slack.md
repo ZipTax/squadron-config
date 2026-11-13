@@ -27,11 +27,12 @@ remain visible in the case record and mission result; they do not imply successf
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
 about 25-30 words, stating uncertainty until established. List only PRs that exist.
 
-Write thread replies as one short sentence about the artifact, result, or decision
-needed. For example: "The fix PR is ready for review; it corrects bakery taxability in the affected states." Keep
-branch names, commit hashes, database objects, row counts, labels, and test-plan details
-in the linked PR or case record. Summarize the supplied outcome for the reader instead of
-copying the internal report. Report this stage's outcome without repeating another stage's findings; preserve the accepted Cause unless the mission supplies a revised finding.
+Write thread replies as one short sentence naming the meaningful change, result, or decision
+and its effect. At most, describe the high-level approach, such as a ZIP+4 override or a
+TIC-specific branch that preserves local tax. Keep implementation details, branch names, commit
+hashes, exhaustive object lists, row counts, and validation logs in the linked PR or case record.
+Summarize the supplied outcome instead of copying the internal report. Report this stage's
+outcome; preserve the accepted Cause unless the mission supplies a revised finding.
 
 ```text
 *DEV-1234: Incorrect tax rate in Austin, TX*
@@ -51,29 +52,31 @@ supporting links. Preserve existing PR links when a stage produces no new PR.
 ## Wording examples
 
 Adapt these examples to the supported facts; link the actual PR or evidence when relevant.
-Use one short sentence per update. Keep technical evidence in the case record and linked work.
+Use one short sentence per update with enough detail to explain what changed or was checked.
+Keep supporting technical evidence in the case record and linked work.
 
 | Stage | Artifact or result reply |
 | --- | --- |
-| Investigation | "The affected bakery items are missing the tax treatment required in these states." |
-| Fixing | "[Fix PR] is ready to review; it updates how the affected bakery items are taxed." |
-| Testing | "Test cases are ready for the correction and unchanged behavior; the audit is next." |
-| Auditing | "The comparison supports the correction, with no regressions found in the covered cases." |
-| Authoring Bruno tests | "API tests reproduce the issue before deployment; checks for unchanged behavior pass." |
-| Verifying working-as-intended | "The reported tax treatment is correct for this purchase; the explanation is on the ticket." |
-| Recording lessons | "[Lessons PR] is ready for review." |
-| Awaiting review | "Your requested changes are ready for another look." |
-| Verifying in staging | "The previously failing tests now pass, and checks for unchanged behavior still pass." |
+| Investigation | "The state exemption is also clearing local tax for TIC 40030." |
+| Fixing | "[Fix PR] adds a branch for TIC 40030 so local tax is preserved." |
+| Fixing | "[Fix PR] adds a ZIP+4 override so affected addresses receive the correct local rate." |
+| Testing | "Test cases now cover local-tax preservation for TIC 40030 and unaffected items." |
+| Auditing | "A/B checks show local tax is preserved for TIC 40030, with no regressions found in the covered cases." |
+| Authoring Bruno tests | "API tests reproduce the lost local tax before deployment; checks for unaffected items pass." |
+| Verifying working-as-intended | "Local tax still applies despite the state exemption; the supporting explanation is on the ticket." |
+| Recording lessons | "[Lessons PR] adds guidance to check local tax separately when changing state exemptions." |
+| Awaiting review | "Your requested local-tax coverage is added and ready for another look." |
+| Verifying in staging | "After deployment, API tests confirm local tax is preserved and unaffected items still pass." |
 | Blocked on question | "Deployment is confirmed; resuming verification." |
 
 For questions or unexpected results, state what needs attention and the next action:
 - "Which staging deployment includes this fix? Verification is waiting on confirmation."
-- "The API tests still show the issue after deployment; the fix session is investigating."
-- "The comparison found a regression in another purchase scenario; the fix session is correcting it."
+- "API tests still show local tax being cleared after deployment; the fix session is investigating."
+- "The comparison found tax changes for unaffected items; the fix session is correcting them."
 - "No reusable lessons emerged from this case; moving to review."
 
 Investigation also replaces the root's provisional Cause with its accepted product finding,
-for example: "Bakery items without utensils are missing the tax treatment required in the affected states."
+for example: "The state exemption is also clearing local tax for TIC 40030, causing eligible purchases to be undertaxed."
 Later stages preserve that finding while updating status and PR links.
 
 ## Questions
