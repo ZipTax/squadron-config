@@ -39,6 +39,8 @@ what would be needed. Do not silently omit a required scenario or soften its ass
    the authoring session does not execute them. Before deployment, should-change
    assertions fail and guardrails pass. After deployment, both pass. Investigate
    results that differ from those expectations without weakening assertions.
+   Record the assessed attempt URL (`.../actions/runs/<id>/attempts/<n>`) in
+   `validation.result_reference` so later reruns preserve the pre-deployment baseline.
 5. Commit and open/update the Bruno PR. Describe covered behavior, cited expectations,
    unwritten scenarios, and the observed CI results. Link the Bruno PR from
    the SQL fix PR while preserving its current description. Keep session history in the
@@ -59,3 +61,24 @@ include the exact question, evidence checked, and missing answer. A pending fix 
 is expected at this stage. Use the repository's `prod-sql-insights` procedure for data gaps.
 Squadron owns correction routing and human waits. Post Jira prose when requested,
 using `writing-ticket-updates`.
+
+## Verify after a staging deployment
+
+When Squadron requests verification after the operator confirms deployment:
+
+1. Find the current Bruno PR head and its latest `pull_request` API Tests run
+   (`api-tests.yml`). Check attempt start times, since a rerun retains the original run ID.
+2. Compare the attempt's `run_started_at` with the deployment cutoff supplied by Squadron
+   (the reported deployment time, or the time Squadron received confirmation).
+   Reuse an attempt at that head that started after that cutoff.
+   If it is in progress, wait; if finished, read its result even if it failed.
+3. Otherwise, rerun all jobs of the latest matching PR run with
+   `gh run rerun <run-id> --repo FedTax/txc-bruno` and wait for completion.
+   Start at most one attempt per verification request; check for an in-progress attempt
+   before rerunning. If an older attempt is still running, wait for it before rerunning
+   after deployment. Do not use `workflow_dispatch` or push a commit: rerunning the PR
+   event keeps verification in the PR's checks without changing the test revision.
+4. Return both pre- and post-deployment attempt URLs (`.../actions/runs/<id>/attempts/<n>`),
+   tested heads, and assessed results so the comparison survives another rerun.
+   If no matching PR run exists or it cannot be rerun,
+   report the blocker and leave verification pending.

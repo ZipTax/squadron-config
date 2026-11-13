@@ -706,6 +706,8 @@ mission "rate_fix" {
       explicit reason for unwritten scenarios. Assess CI results against deployment state:
       should-change tests fail before deployment and pass afterward; guardrails pass in both.
       Expected pre-deployment failures demonstrate the regression and allow this stage to finish.
+      Save the assessed attempt-specific CI link in the case record as the pre-deployment
+      baseline; a run-level link changes its displayed result when CI is rerun.
       Send unexpected results to the owning sessions for assessment and correction.
 
       # 4. Finish or pause
