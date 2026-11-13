@@ -1,4 +1,4 @@
-# Keep the case visible in Slack
+# Communicate progress or updates via Slack
 
 The mission supplies the stage, accepted findings, artifacts, and questions. Use this skill to
 choose what belongs in Slack, compose the update, and maintain the saved root message.
