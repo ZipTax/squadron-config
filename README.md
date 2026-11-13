@@ -4,6 +4,33 @@ Configuration repository for [Squadron](https://docs.squadron.sh/) -- a declarat
 
 This repo defines the agents, models, plugins, skills, and missions used to automate code development, QA, and peer review workflows for the ZipTax project.
 
+## Writing missions and agent instructions
+
+A task's objective goes to its commander. The commander delegates tool work to the Squadron
+agents selected by the task's `agents` field. Those agents use their configured tools to
+coordinate Devin sessions and perform other assigned actions, such as Slack updates.
+
+| Definition | Responsibility |
+| --- | --- |
+| Task in `missions/*.hcl` | Objective, allowed agents, accepted output, and routes |
+| Commander | Break down the objective, delegate work, assess returned evidence, and select the route |
+| Agent in `agents.hcl` | Reusable persona, role, tools, and available skills |
+| Squadron skill | Reusable procedure loaded by a Squadron agent when needed |
+| Devin session | Delegated repository work and analysis, guided by its playbook and repository skills |
+
+When writing a task objective:
+
+1. State the work, ordering, and acceptance criteria. Agent selection and persona already come
+   from configuration; write the steps directly, such as "Publish the root status using
+   case_slack and confirm the gateway succeeded before continuing."
+2. Distinguish Squadron actions from Devin work: "Ask the existing fix session to correct the
+   regression, then assess its returned evidence." A Squadron agent and a Devin session are
+   separate participants; reusing an agent profile does not identify an existing Devin session.
+3. Put repeated procedures in skills and task-specific decisions in the objective. Supply
+   Devin with the relevant assignment and context; it does not inherit the mission objective.
+
+For the rate workflow, see [phase ownership and routing](docs/rate-ticket-orchestration.md).
+
 ## Prerequisites
 
 - [Squadron CLI](https://docs.squadron.sh/) installed
@@ -80,18 +107,19 @@ Defines the Anthropic model provider with the following allowed models:
 
 ## Agents
 
-Four specialized agents are defined in `agents.hcl`, all powered by Claude Opus 4.6:
+Agent profiles in [agents.hcl](agents.hcl) define their models, personas, tools, and skills.
+Examples include:
 
 | Agent               | Role | Tools |
 |---------------------|------|-------|
 | **`codegen`**         | Delegates development tasks to Devin. Provides clear task descriptions and coding guidelines so Devin can create branches, implement changes, and open PRs. | `code_develop`, `check_session` |
-| **`quality_assurance`** | Manages QA review. Analyzes diffs for regressions, logic errors, missing test coverage, and edge cases. Produces structured QA reports with pass/fail verdicts. | `code_develop`, `code_qa`, `check_session` |
-| **`peer_review`**     | Performs peer code review. Evaluates correctness, maintainability, and security. Posts inline comments directly on GitHub PRs. | `code_develop`, `code_review`, `check_session` |
+| **`quality_assurance`** | Coordinates QA through Devin and assesses the returned findings against the task criteria. | `code_develop`, `code_qa`, `check_session` |
+| **`peer_review`**     | Coordinates peer review through Devin, which examines the code and posts review comments. | `code_develop`, `code_review`, `check_session` |
 | **`linear`**          | Gathers and prepares technical issue details from Linear for engineers implementing the work. | All Linear MCP tools |
 
 ## Skills
 
-Skills provide detailed instructions that are loaded into agents when they use specific tools:
+Skills provide reusable procedures that Squadron agents load when needed. Examples include:
 
 - **devin_code** -- Workflow guide for using the `code_develop` tool: parameter documentation, prompt tips, and session inspection.
 - **devin_qa** -- Workflow guide for the `code_qa` tool: what Devin checks (bugs, edge cases, error handling, test coverage, regressions, performance), and how to interpret results.
