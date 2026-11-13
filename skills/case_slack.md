@@ -1,11 +1,11 @@
 # Communicate progress or updates via Slack
 
-Use this skill to choose what belongs in Slack, compose the update, and maintain the saved
-root message. The mission supplies the stage, accepted findings, artifacts, and questions.
+Use these instructions to choose what belongs in Slack, compose the update, and maintain
+the saved root message.
 
 ## 1. Decide what to publish
 
-**Update the root** when the mission supplies a new status, accepted Cause, or PR link.
+**Update the root** when the case status, accepted Cause, or PR links change.
 A stage transition changes the root status; it does not need a thread reply.
 
 **You may post a thread reply only for:**
@@ -15,8 +15,8 @@ A stage transition changes the root status; it does not need a thread reply.
 - A new PR or a substantive revision, with the change it proposes and its effect.
 - Completed test coverage, assessed test results, or a material coverage gap.
 - A lessons outcome, a response to review feedback, or case closure.
-- A question requiring human input, or its accepted resolution. The mission's human-ask
-  tool posts the question; do not duplicate it with a separate gateway post.
+- A question requiring human input, or its accepted resolution. Use `builtins.human.ask`
+  for the question; it posts to the thread, so do not duplicate it with a gateway post.
 
 **You may not post a thread reply solely to report:**
 
@@ -28,7 +28,7 @@ A stage transition changes the root status; it does not need a thread reply.
 
 For example, omit "Triage complete; findings intact, session suspended, no fix PR yet."
 Keep that bookkeeping in the case record. If it creates a human dependency, ask for the
-needed action and explain its consequence, following the calling task and `blocked_run`.
+needed action and explain its consequence, following your task instructions and `blocked_run`.
 
 ## 2. Compose the root
 
@@ -38,8 +38,8 @@ Read the saved root before editing so the latest Cause and PR links are preserve
 - **Cause:** the accepted problem and its effect, with uncertainty where needed. Keep it
   to two sentences and about 25-30 words. Do not include the proposed solution or
   implementation details. Use "Under investigation" until an accepted cause is available.
-- **Status:** the complete label supplied by the mission, including its emoji.
-- **PRs:** preserve existing links and add the artifacts supplied by the mission.
+- **Status:** the complete label specified in your task instructions, including its emoji.
+- **PRs:** preserve existing links and add new case PRs.
 
 Use Slack mrkdwn with line breaks, `*bold*` titles, and `<url|label>` links:
 
@@ -53,7 +53,7 @@ PRs:
 
 ## 3. Compose a permitted reply
 
-Follow the calling task's content instructions and examples. Adapt examples to supported
+Follow your task's content instructions and examples. Adapt examples to supported
 facts and actual links. Write as concisely as you can without losing context, consequence,
 or meaning; include enough information to understand the result or answer the question.
 
@@ -69,8 +69,8 @@ Report the relevant case outcome, not the internal session report:
   any relevant deployment details so I can verify the fix."
 - Resolution: "Deployment is confirmed; resuming verification."
 
-The calling task assesses answers and supplies the blocked or resumed status. Update the
-root accordingly and report the accepted resolution; dependency handling belongs to `blocked_run`.
+After assessing an answer according to your task instructions, update the root status and
+report the accepted resolution. Follow `blocked_run` for human dependencies.
 
 ## 4. Deliver and record the update
 
@@ -78,7 +78,7 @@ Use `rate_checkpoint` to maintain the case memory.
 
 1. Read the current case before writing so the update preserves newer findings and links.
 2. **Create a root:** read the ticket title and save the desired text with `root_post_pending: true`. Post with
-   `root: true` and the mission-supplied `channel`, when provided. The gateway reuses an
+   `root: true` and the `channel` specified in your task instructions, when provided. The gateway reuses an
    existing conversation regardless of that initial channel choice. Save the returned ID
    immediately in `slack.root_message_id`, together with the full text and runtime's mission
    thread ID; clear `root_post_pending`. Later updates reuse this root.

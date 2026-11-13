@@ -120,7 +120,7 @@ mission "rate_triage" {
 
       # 2. Restore the case and Slack root
 
-      Use `squadron-rates` as the initial channel supplied to case_slack when creating the root.
+      Use `squadron-rates` as the initial channel when creating the root.
 
       Apply rate_case for ${inputs.issue}. Use case_slack with status ":mag: Triaging" for a
       new case; retain the recorded status on resumption. Save accepted state before routing.
@@ -305,7 +305,7 @@ mission "rate_triage" {
 
       Collect the result through check_session. Apply rate_investigation's evidence and completion
       criteria; ask for any missing support. Assessment handles the accepted verdict and next route.
-      assess_investigation publishes the root Cause and accepted-result reply.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -357,7 +357,7 @@ mission "rate_triage" {
 
       Collect the result with check_session and apply rate_investigation's acceptance criteria.
       Assessment handles the supported verdict and routing.
-      assess_investigation publishes the root Cause and accepted-result reply.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -401,7 +401,7 @@ mission "rate_triage" {
 
       Reuse an already supported result without restarting work. Otherwise collect the follow-up
       and apply rate_investigation's acceptance criteria before handing it to assessment.
-      assess_investigation publishes the root Cause and accepted-result reply.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -448,7 +448,7 @@ mission "rate_triage" {
       Apply rate_investigation's acceptance criteria. Keep inherited claims attributed until
       Devin checks their evidence. Hand the result to assessment with the actual session ownership
       and resumability described by the output contract.
-      assess_investigation publishes the root Cause and accepted-result reply.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 

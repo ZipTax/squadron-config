@@ -229,10 +229,9 @@ mission "rate_fix" {
 
       # 2. Restore the case and Slack root
 
-      Use `squadron-rates` as the initial channel supplied to case_slack when creating the root.
+      Use `squadron-rates` as the initial channel when creating the root.
 
-      Apply rate_case for ${inputs.issue}. Use case_slack with the recorded status until
-      the selected work stage publishes its own.
+      Apply rate_case for ${inputs.issue}. Use case_slack with the recorded status for this handoff.
       Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
