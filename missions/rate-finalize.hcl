@@ -215,7 +215,7 @@ mission "rate_finalize" {
 
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
       retaining the recorded status until the selected work stage publishes its own.
-      Use case_slack to publish the recorded root status and confirm the gateway succeeded.
+      Use case_slack to publish the recorded root status.
       Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
@@ -283,8 +283,8 @@ mission "rate_finalize" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `verify_wai`. Use case_slack with status ":mag: Verifying working-as-intended".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `verify_wai`.
+      Use case_slack to publish root status ":mag: Verifying working-as-intended".
 
       Independently assess the working-as-intended conclusion for ${inputs.issue}.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}.
@@ -380,8 +380,8 @@ mission "rate_finalize" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `record_learnings`. Use case_slack with status ":memo: Recording lessons".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `record_learnings`.
+      Use case_slack to publish root status ":memo: Recording lessons".
 
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
       worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
@@ -493,7 +493,7 @@ mission "rate_finalize" {
          action before resending work. If the completion criteria below are met, finish.
       2. Save progress and next entry rate_finalize/review_followup before each wait or
          session request. Use case_slack to publish root status ":eyes: Awaiting review"
-         and confirm the gateway succeeded before asking for feedback.
+         before asking for feedback.
       3. Call builtins.human.ask without timeout_seconds: "What should I review or change?
          Tell me when staging is deployed or the PRs are merged." Offer re-audit, staging
          verification, merge check, and end review, with free text for detailed feedback.
@@ -505,8 +505,7 @@ mission "rate_finalize" {
          the operator requested directly from Devin. Ask for any unrecorded feedback.
       2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
          through delegated_session, preserving each owner's file lane.
-      3. Use case_slack to publish root status ":microscope: Auditing" and confirm the gateway
-         succeeded before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
+      3. Use case_slack to publish root status ":microscope: Auditing" before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
          changed work with fresh captures. Have the Bruno owner review automatic staging CI:
          should-change tests fail before deployment and pass afterward; guardrails pass throughout.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
@@ -520,7 +519,7 @@ mission "rate_finalize" {
       # 3. Verify a reported staging deployment
 
       1. When the operator confirms this case's fix is deployed to staging, use case_slack
-         to publish root status ":test_tube: Verifying in staging" and confirm the gateway succeeded.
+         to publish root status ":test_tube: Verifying in staging".
          Then have the Bruno owner review a CI run made after that deployment. Keep verification pending if
          fresh evidence is unavailable.
       2. Compare results with the pre-deployment run. Both should-change tests and guardrails

@@ -22,7 +22,7 @@ When writing a task objective:
 
 1. State the work, ordering, and acceptance criteria. Agent selection and persona already come
    from configuration; write the steps directly, such as "Publish the root status using
-   case_slack and confirm the gateway succeeded before continuing."
+   case_slack."
 2. Distinguish Squadron actions from Devin work: "Ask the existing fix session to correct the
    regression, then assess its returned evidence." A Squadron agent and a Devin session are
    separate participants; reusing an agent profile does not identify an existing Devin session.

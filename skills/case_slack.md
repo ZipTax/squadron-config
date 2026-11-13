@@ -14,15 +14,17 @@ editing it so the latest cause and PR links are preserved.
 3. For later updates, merge only the changed facts into the saved full text. Persist the
    desired `root_text` with `update_pending: true`, then call `gateway.edit` with the saved
    ID and complete text. On success, save `published_text` and clear `update_pending`.
-4. Confirm the root was published with the supplied status. Stage transitions update the root;
+4. Stage transitions update the root;
    reserve thread replies for artifacts, accepted results, and questions that need attention.
    Routing comes from the mission thread; omit payload routing keys. Record the last
    confirmed update in `last_update` so a resume can skip updates already delivered.
 
-If `root_post_pending` remains set with no root ID after a restart or uncertain post,
-ask the operator to recover its exact message reference before creating another root. Retry a failed edit against the same ID
-and saved desired text; keep pending state until delivery is confirmed. Gateway failures
-remain visible in the case record and mission result; they do not imply successful delivery.
+Slack updates are notifications: continue mission work when delivery fails. Record the failure
+and pending update in the case record and mission result; mark delivery only on success.
+Retry a failed edit against the same ID using the latest desired text on the next update.
+If `root_post_pending` remains set with no root ID after an uncertain post, flag the missing
+reference for operator recovery and continue mission work. Recover that reference before
+posting another root so the case keeps one conversation.
 
 Use Slack mrkdwn: bold title and `<url|label>` links. Keep Cause to two sentences and
 about 25-30 words, stating uncertainty until established. List only PRs that exist.

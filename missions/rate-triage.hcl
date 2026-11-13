@@ -125,8 +125,7 @@ mission "rate_triage" {
 
       Apply rate_case for ${inputs.issue}. Read the ticket title when creating the root.
       Use case_slack with status ":mag: Triaging" for a new case;
-      retain the recorded status on resumption. Confirm the gateway succeeded and save accepted
-      state before routing.
+      retain the recorded status on resumption. Save accepted state before routing.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
@@ -291,8 +290,8 @@ mission "rate_triage" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status ":mag: Investigating".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `start_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Establish a read-only investigation of ${inputs.issue} using the rate_investigation skill.
 
@@ -335,8 +334,8 @@ mission "rate_triage" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `confirm_wai`. Use case_slack with status ":mag: Investigating".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `confirm_wai`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Re-examine the challenged working-as-intended conclusion for ${inputs.issue} independently.
 
@@ -386,8 +385,8 @@ mission "rate_triage" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status ":mag: Investigating".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `continue_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Finish the investigation of ${inputs.issue} in the Devin session selected by discovery.
 
@@ -429,8 +428,8 @@ mission "rate_triage" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `forward_investigation`. Use case_slack with status ":mag: Investigating".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `forward_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Use the prior investigation of ${inputs.issue} without losing its findings when the original
       Devin session can no longer be messaged.
@@ -487,8 +486,8 @@ mission "rate_triage" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `assess_investigation`. Use case_slack with status ":mag: Investigating".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `assess_investigation`.
+      Use case_slack to publish root status ":mag: Investigating".
 
       Decide whether the investigation of ${inputs.issue} supports a disposition.
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
@@ -513,7 +512,7 @@ mission "rate_triage" {
 
       Before routing an accepted investigation, supply case_slack with a short product-language
       summary of the established cause and affected behavior. Replace the root's provisional
-      Cause and confirm the edit; preserve any remaining uncertainty without describing settled
+      Cause; preserve any remaining uncertainty without describing settled
       findings as still under investigation. Keep the detailed investigation update on Jira.
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the

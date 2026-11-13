@@ -234,7 +234,7 @@ mission "rate_fix" {
 
       Apply rate_case for ${inputs.issue}: load the shared case, use case_slack for status,
       retaining the recorded status until the selected work stage publishes its own.
-      Use case_slack to publish the recorded root status and confirm the gateway succeeded.
+      Use case_slack to publish the recorded root status.
       Save accepted state before routing. Use legacy inputs only to recover missing fields.
 
       Confirm the state needed to enter ${inputs.entry_stage} for ${inputs.issue}.
@@ -319,8 +319,8 @@ mission "rate_fix" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `develop`. Use case_slack with status ":hammer: Fixing".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `develop`.
+      Use case_slack to publish root status ":hammer: Fixing".
       Preserve investigation's accepted Cause on the root; investigation findings remain owned
       by investigation. Publish the fix outcome and PR when ready.
 
@@ -448,8 +448,8 @@ mission "rate_fix" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status ":test_tube: Testing".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `author_tests`.
+      Use case_slack to publish root status ":test_tube: Testing".
 
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
@@ -545,8 +545,8 @@ mission "rate_fix" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `audit`. Use case_slack with status ":microscope: Auditing".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `audit`.
+      Use case_slack to publish root status ":microscope: Auditing".
 
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
@@ -676,8 +676,8 @@ mission "rate_fix" {
 
       # 1. Restore the case and publish the stage status
 
-      Apply rate_case for ${inputs.issue} at `bruno_tests`. Use case_slack with status ":writing_hand: Authoring Bruno tests".
-      Publish the root status using case_slack and confirm the gateway succeeded before continuing.
+      Apply rate_case for ${inputs.issue} at `bruno_tests`.
+      Use case_slack to publish root status ":writing_hand: Authoring Bruno tests".
 
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
