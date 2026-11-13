@@ -521,7 +521,7 @@ mission "rate_finalize" {
       1. When the operator confirms this case's fix is deployed to staging, use case_slack
          to publish root status ":test_tube: Verifying in staging".
          Have the existing Bruno session trigger the API Tests workflow in GitHub Actions on the
-         current Bruno PR branch, or main after merge, then review the resulting staging run.
+         current Bruno PR branch, then review the resulting staging run.
          Reuse a run already started after deployment for the same test revision. Record its link
          and tested revision; keep verification pending if the run cannot start or finish.
       2. Compare results with the pre-deployment run. Both should-change tests and guardrails
