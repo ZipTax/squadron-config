@@ -306,10 +306,11 @@ mission "rate_finalize" {
 
       # 4. Finish or pause
 
-      Use case_slack to reply with the supported conclusion, its effect on the reported behavior,
-      and the Jira explanation link. For example: "Local tax still applies despite the state
-      exemption; <jira-url|the ticket> explains why." If refuted, state the evidenced defect
-      and the next action selected by routing or the operator. Update Cause with accepted findings.
+      Use case_slack to report whether independent verification confirmed or refuted the prior
+      working-as-intended finding, with the Jira explanation link. For example: "Independent
+      verification confirms local tax still applies despite the state exemption: <jira-url|Evidence>."
+      If refuted, state the evidenced defect and the next action selected by routing or the operator.
+      Update Cause with accepted findings.
 
       On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
       On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
