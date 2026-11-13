@@ -219,9 +219,6 @@ mission "rate_fix" {
       3. Inspect the handoff.
       4. Select the entry.
 
-      Delegate the tool work below to `session_scout`.
-      As commander, assess its evidence before accepting task output or selecting a route.
-
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
@@ -319,9 +316,6 @@ mission "rate_fix" {
       2. Delegate to Devin.
       3. Assess the result.
       4. Finish or pause.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_implementer`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 
@@ -452,9 +446,6 @@ mission "rate_fix" {
       3. Assess the result.
       4. Finish or pause.
 
-      Delegate the tool work below to `test_authoring_coordinator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `author_tests`. Use case_slack with status ":test_tube: Testing".
@@ -551,9 +542,6 @@ mission "rate_fix" {
       2. Work with Devin.
       3. Assess the evidence.
       4. Finish or pause.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_reviewer`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 
@@ -685,9 +673,6 @@ mission "rate_fix" {
       2. Delegate to Devin.
       3. Assess the result.
       4. Finish or pause.
-
-      Delegate the tool work below to `test_authoring_coordinator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 

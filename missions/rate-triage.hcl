@@ -110,9 +110,6 @@ mission "rate_triage" {
       4. Assess ownership.
       5. Finish discovery.
 
-      Delegate the tool work below to `session_scout`.
-      As commander, assess its evidence before accepting task output or selecting a route.
-
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
@@ -292,9 +289,6 @@ mission "rate_triage" {
       2. Delegate to Devin.
       3. Assess and finish.
 
-      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `start_investigation`. Use case_slack with status ":mag: Investigating".
@@ -338,9 +332,6 @@ mission "rate_triage" {
       1. Restore the case and publish the stage status.
       2. Delegate to Devin.
       3. Assess and finish.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 
@@ -393,9 +384,6 @@ mission "rate_triage" {
       2. Work with Devin.
       3. Assess and finish.
 
-      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `continue_investigation`. Use case_slack with status ":mag: Investigating".
@@ -438,9 +426,6 @@ mission "rate_triage" {
       1. Restore the case and publish the stage status.
       2. Work with Devin.
       3. Assess and finish.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 
@@ -499,9 +484,6 @@ mission "rate_triage" {
       1. Restore the case and publish the stage status.
       2. Obtain and assess evidence.
       3. Finish or pause.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_investigator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 

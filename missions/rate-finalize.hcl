@@ -200,9 +200,6 @@ mission "rate_finalize" {
       3. Inspect the handoff.
       4. Select the entry.
 
-      Delegate the tool work below to `session_scout`.
-      As commander, assess its evidence before accepting task output or selecting a route.
-
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
@@ -283,9 +280,6 @@ mission "rate_finalize" {
       2. Delegate to Devin.
       3. Assess the result.
       4. Finish or pause.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_reviewer`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 
@@ -383,9 +377,6 @@ mission "rate_finalize" {
       2. Read the accepted findings.
       3. Gather and record worthwhile lessons.
       4. Finish.
-
-      Delegate the tool work below to `learnings_curator`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Restore the case and publish the stage status
 
@@ -494,9 +485,6 @@ mission "rate_finalize" {
       Keep ${inputs.issue} available for operator feedback, re-audit, and corrections until
       its PRs merge and requested checks are settled, or the operator ends review.
       Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
-
-      Delegate the tool work below to `taxcloud_legacy_sql_reviewer`.
-      As commander, assess its evidence before accepting task output or selecting a route.
 
       # 1. Collect current work and wait
 
