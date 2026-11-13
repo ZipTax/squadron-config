@@ -520,8 +520,10 @@ mission "rate_finalize" {
 
       1. When the operator confirms this case's fix is deployed to staging, use case_slack
          to publish root status ":test_tube: Verifying in staging".
-         Then have the Bruno owner review a CI run made after that deployment. Keep verification pending if
-         fresh evidence is unavailable.
+         Have the existing Bruno session trigger the API Tests workflow in GitHub Actions on the
+         current Bruno PR branch, or main after merge, then review the resulting staging run.
+         Reuse a run already started after deployment for the same test revision. Record its link
+         and tested revision; keep verification pending if the run cannot start or finish.
       2. Compare results with the pre-deployment run. Both should-change tests and guardrails
          should now pass. Investigate unchanged failures, new failures, or an unexpected lack
          of change even when the SQL A/B audit was satisfactory.
