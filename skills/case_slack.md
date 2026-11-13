@@ -2,6 +2,7 @@
 
 Use these instructions to choose what belongs in Slack, compose the update, and maintain
 the saved root message.
+See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-thread-replies) for root edits versus thread posts.
 
 ## 1. Decide what to publish
 
@@ -66,6 +67,12 @@ PRs:
 Follow your task's content instructions and examples. Adapt examples to supported
 facts and actual links. Write as concisely as you can without losing context, consequence,
 or meaning; include enough information to understand the result or answer the question.
+These writing and formatting rules also apply to every visible human-ask field, including
+`additional_context`. Use it only for context needed to answer the question; omit it when the
+question is self-contained. Do not paste checkpoint contents or lane-by-lane session reports.
+Use clickable `<actual-url|label>` links for PR, Jira, and CI references, using URLs from the
+case record or tool results. Bare PR numbers, run IDs, and commit hashes are not links.
+
 Summarize the outcome and link to Jira, the PR, or CI for detail. Do not reproduce their reports
 or enumerate implementation changes and test cases in the reply.
 

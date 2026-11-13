@@ -504,9 +504,13 @@ mission "rate_finalize" {
       2. Save progress and next entry rate_finalize/review_followup before each wait or
          session request. Use case_slack to publish root status ":eyes: Awaiting review"
          before asking for feedback.
-      3. Call builtins.human.ask without timeout_seconds: "What should I review or change?
-         Tell me when staging is deployed or the PRs are merged." Offer re-audit, staging
-         verification, merge check, and end review, with free text for detailed feedback.
+      3. Call builtins.human.ask without timeout_seconds. Summarize readiness with labeled PR
+         links, the accepted A/B outcome, Bruno's pre/post-deployment result, and material
+         coverage limits or open product decisions. Keep the evidence behind those links.
+         Ask "What should I review or change? Tell me when the fix is deployed to staging or
+         the PRs are merged." Offer "Re-audit", "Verify staging (deployment done)", "Merge check",
+         and "End review", with free text for detailed feedback. Use case_slack's writing guidance
+         for the whole prompt, including additional_context.
          Wait in this task; an interrupted ask retains active case state for resumption.
 
       # 2. Assess feedback and direct corrections
