@@ -421,8 +421,8 @@ mission "rate_finalize" {
       blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
       or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
 
-      Add accepted lessons PRs to the root and reply with the reusable guidance they add and why
-      it helps. For example: "<lessons-pr-url|Lessons PR> adds guidance to check local tax separately
+      Add accepted lessons PRs as labeled links in the root's PR list. In a separate thread reply,
+      summarize the reusable guidance they add and why it helps. For example: "<lessons-pr-url|Lessons PR> adds guidance to check local tax separately
       when changing state exemptions." If none qualified, report that outcome briefly.
 
       Save the lessons outcome and all confirmed PRs through rate_checkpoint. When this

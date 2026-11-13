@@ -349,8 +349,8 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
-      When the fix PR is ready, add its link to the root and summarize the proposed change
-      and its effect in a thread reply. For example: "<fix-pr-url|Fix PR> adds a branch for
+      When the fix PR is ready, add its labeled link to the root's PR list. In a separate thread
+      reply, summarize the proposed change and its effect. For example: "<fix-pr-url|Fix PR> adds a branch for
       TIC 40030 so local tax is preserved." Include material limits or unresolved scope.
       This reports implementation progress, not a renewed investigation verdict or proof that
       the fix works. If findings need revision, have the investigation session assess them
@@ -710,8 +710,8 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
-      Add the Bruno PR to the root and reply with its coverage, observed CI outcome, and what
-      remains to verify. For example: "<bruno-pr-url|API tests> reproduce the lost local tax before
+      Add the Bruno PR's labeled link to the root's PR list. In a separate thread reply, summarize
+      its coverage, observed CI outcome, and what remains to verify. For example: "<bruno-pr-url|API tests> reproduce the lost local tax before
       deployment; unaffected items pass. After staging deployment, we'll rerun to verify the fix."
       Include the CI link and any material gaps or unexpected failures.
 

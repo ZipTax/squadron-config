@@ -7,6 +7,8 @@ the saved root message.
 
 **Update the root** when the case status, accepted Cause, or PR links change.
 A stage transition changes the root status; it does not need a thread reply.
+For a new PR, add only its labeled link to the root's PR list. Post its brief change summary
+as a separate thread reply. These are two distinct updates, not two copies of the summary.
 
 **You may post a thread reply only for:**
 
@@ -32,23 +34,31 @@ needed action and explain its consequence, following your task instructions and 
 
 ## 2. Compose the root
 
-Read the saved root before editing so the latest Cause and PR links are preserved.
+The root body must contain only the four fields below, in this order. Read the saved root
+before editing to preserve current facts and links, then render this format. Remove extra
+sections and commentary already present; preserving facts does not mean preserving prose.
 
 - **Title:** ticket key and title.
 - **Cause:** the accepted problem and its effect, with uncertainty where needed. Keep it
   to two sentences and about 25-30 words. Do not include the proposed solution or
   implementation details. Use "Under investigation" until an accepted cause is available.
 - **Status:** the complete label specified in your task instructions, including its emoji.
-- **PRs:** preserve existing links and add new case PRs.
+- **PRs:** one labeled link per line, using repository and purpose, such as
+  `txc-sqlserver-database fix`, `txc-bruno tests`, or `squadron-config lessons`.
+
+Do not add change summaries, branch names, commit hashes, labels, database objects, row counts,
+test results, or audit commentary to the root. Do not annotate PR links with those details.
+The gateway appends the mission links and requester footer; do not recreate it in the body.
 
 Use Slack mrkdwn with line breaks, `*bold*` titles, and `<url|label>` links:
 
 ```text
-*DEV-1234: Incorrect tax rate in Austin, TX*
-Cause: The address match selects the wrong local rate for this remote seller because the location needs ZIP+4 resolution, causing the reported tax discrepancy.
-Status: :hammer: Fixing
+*DEV-10679: NEW TIC - Carbon Credits - TIC 99985*
+Cause: Carbon credits are missing from the tax catalog, so purchases default to taxable even in jurisdictions where they should be exempt.
+Status: :writing_hand: Authoring Bruno tests
 PRs:
-- <https://github.com/ZipTax/txc-sqlserver-database/pull/123|Fix PR>
+- <fix-pr-url|txc-sqlserver-database fix>
+- <bruno-pr-url|txc-bruno tests>
 ```
 
 ## 3. Compose a permitted reply
@@ -56,6 +66,8 @@ PRs:
 Follow your task's content instructions and examples. Adapt examples to supported
 facts and actual links. Write as concisely as you can without losing context, consequence,
 or meaning; include enough information to understand the result or answer the question.
+Summarize the outcome and link to Jira, the PR, or CI for detail. Do not reproduce their reports
+or enumerate implementation changes and test cases in the reply.
 
 For PR and implementation summaries, describe the change and its effect at the level of
 the high-level approach. For example: "<fix-pr-url|Fix PR> adds a branch for TIC 40030 so
@@ -82,7 +94,7 @@ Use `rate_checkpoint` to maintain the case memory.
    existing conversation regardless of that initial channel choice. Save the returned ID
    immediately in `slack.root_message_id`, together with the full text and runtime's mission
    thread ID; clear `root_post_pending`. Later updates reuse this root.
-3. **Edit the root:** merge changed facts into the saved full text. Persist `root_text` with
+3. **Edit the root:** render only the four root fields using the latest case facts. Persist `root_text` with
    `update_pending: true`, then call `gateway.edit` with the saved ID and complete text.
    On success, save `published_text` and clear `update_pending`.
 4. **Post a permitted reply:** routing comes from the mission thread; omit payload routing
