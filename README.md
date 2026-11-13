@@ -107,15 +107,9 @@ Defines the Anthropic model provider with the following allowed models:
 
 ## Agents
 
-Agent profiles in [agents.hcl](agents.hcl) define their models, personas, tools, and skills.
-Examples include:
-
-| Agent               | Role | Tools |
-|---------------------|------|-------|
-| **`codegen`**         | Delegates development tasks to Devin. Provides clear task descriptions and coding guidelines so Devin can create branches, implement changes, and open PRs. | `code_develop`, `check_session` |
-| **`quality_assurance`** | Coordinates QA through Devin and assesses the returned findings against the task criteria. | `code_develop`, `code_qa`, `check_session` |
-| **`peer_review`**     | Coordinates peer review through Devin, which examines the code and posts review comments. | `code_develop`, `code_review`, `check_session` |
-| **`linear`**          | Gathers and prepares technical issue details from Linear for engineers implementing the work. | All Linear MCP tools |
+Define reusable agent profiles in [agents.hcl](agents.hcl), choosing the persona, model,
+tools, and skills appropriate to each role. Tasks select the profiles they need through
+`agents`; task-specific work and acceptance criteria belong in the objective.
 
 ## Skills
 
