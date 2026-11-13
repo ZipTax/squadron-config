@@ -231,6 +231,9 @@ mission "rate_finalize" {
       Read context.findings from the case.
       If they are missing, the selected work stage recovers the report through delegated_session.
 
+      Preserve the root's accepted Cause and PR links. Keep handoff recovery and owner checks
+      in the case record; use a thread question only when an operator decision is needed.
+
       # 4. Select the entry
 
       Resume review_followup when the checkpoint records an unfinished review. Otherwise
@@ -307,6 +310,11 @@ mission "rate_finalize" {
       missed defect. Ask Devin to investigate any gap rather than choosing a side without support.
 
       # 4. Finish or pause
+
+      Use case_slack to reply with the supported conclusion, its effect on the reported behavior,
+      and the Jira explanation link. For example: "Local tax still applies despite the state
+      exemption; <jira-url|the ticket> explains why." If refuted, state the evidenced defect
+      and the next action selected by routing or the operator. Update Cause with accepted findings.
 
       On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
       On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
@@ -418,6 +426,10 @@ mission "rate_finalize" {
       blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
       or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
 
+      Add accepted lessons PRs to the root and reply with the reusable guidance they add and why
+      it helps. For example: "<lessons-pr-url|Lessons PR> adds guidance to check local tax separately
+      when changing state exemptions." If none qualified, report that outcome briefly.
+
       Save the lessons outcome and all confirmed PRs through rate_checkpoint. When this
       work is settled, leave the case active and hand it to review_followup.
     EOT
@@ -485,6 +497,9 @@ mission "rate_finalize" {
       Keep ${inputs.issue} available for operator feedback, re-audit, and corrections until
       its PRs merge and requested checks are settled, or the operator ends review.
       Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
+      For review replies, state what changed in response to feedback, the assessed result,
+      remaining decisions, and relevant PR/evidence links. For example: "Your requested
+      local-tax coverage is added; the comparison supports the correction: <run-url|Results>."
 
       # 1. Collect current work and wait
 
@@ -530,8 +545,11 @@ mission "rate_finalize" {
       3. Send discrepancies and CI evidence to the appropriate existing owners and re-audit
          their corrections. A correction needing deployment waits for the operator's next
          manual deployment before its post-deployment check.
-      4. Save the staging deployment confirmation, CI evidence, and pending work. Report results and
-         delegated follow-ups in Slack. Keep review open while verification or corrections remain.
+      4. Save the staging deployment confirmation, CI evidence, and pending work. Reply with the
+         before/after result, unaffected-behavior checks, and CI link. For example: "After deployment,
+         the previously failing local-tax tests now pass and unaffected items still pass: <run-url|CI>."
+         If failures remain, name the behavior and corrective follow-up instead of reporting success.
+         Keep review open while verification or corrections remain.
 
       # 4. Finish or recover
 
@@ -541,6 +559,7 @@ mission "rate_finalize" {
       a no-PR case has an accepted disposition and no pending work. On explicit end review,
       record remaining work and close by operator choice. An interruption leaves this stage
       as the next entry rather than completing review.
+      On closure, post the accepted outcome and any remaining work recorded by operator choice.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 

@@ -62,32 +62,14 @@ supporting links. Preserve existing PR links when a stage produces no new PR.
 
 ## Wording examples
 
-Adapt these examples to the supported facts; link the actual PR or evidence when relevant.
-Keep supporting technical evidence in the case record and linked work.
-
-| Stage | Artifact or result reply |
-| --- | --- |
-| Investigation | "The state exemption is also clearing local tax for TIC 40030." |
-| Fixing | "[Fix PR] adds a branch for TIC 40030 so local tax is preserved." |
-| Fixing | "[Fix PR] adds a ZIP+4 override so affected addresses receive the correct local rate." |
-| Testing | "Test cases now cover local-tax preservation for TIC 40030 and unaffected items." |
-| Auditing | "A/B checks show local tax is preserved for TIC 40030, with no regressions found in the covered cases." |
-| Authoring Bruno tests | "API tests reproduce the lost local tax before deployment; checks for unaffected items pass." |
-| Verifying working-as-intended | "Local tax still applies despite the state exemption; the supporting explanation is on the ticket." |
-| Recording lessons | "[Lessons PR] adds guidance to check local tax separately when changing state exemptions." |
-| Awaiting review | "Your requested local-tax coverage is added and ready for another look." |
-| Verifying in staging | "After deployment, API tests confirm local tax is preserved and unaffected items still pass." |
-| Blocked on question | "Deployment is confirmed; resuming verification." |
+The calling task specifies the content for its stage and gives examples. Adapt examples to the
+supported facts and use actual links; keep supporting technical evidence in the case record.
 
 For questions or unexpected results, state what needs attention and the next action:
 - "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix."
 - "API tests still show local tax being cleared after deployment; the fix session is investigating."
 - "The comparison found tax changes for unaffected items; the fix session is correcting them."
 - "No reusable lessons emerged from this case; moving to review."
-
-Investigation also replaces the root's provisional Cause with its accepted product finding,
-for example: "The state exemption is also clearing local tax for TIC 40030, causing eligible purchases to be undertaxed."
-Later stages preserve that finding while updating status and PR links.
 
 ## Questions
 

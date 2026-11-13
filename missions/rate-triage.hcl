@@ -125,7 +125,9 @@ mission "rate_triage" {
 
       Apply rate_case for ${inputs.issue}. Read the ticket title when creating the root.
       Use case_slack with status ":mag: Triaging" for a new case;
-      retain the recorded status on resumption. Save accepted state before routing.
+      retain the recorded status on resumption. For a new root with no accepted finding, use
+      "Cause: Under investigation." Preserve the accepted Cause and PR links on resumption.
+      Save accepted state before routing.
 
       Choose the entry for ${inputs.issue}; do not create/message a session or investigate tax
       behavior.
@@ -311,6 +313,8 @@ mission "rate_triage" {
 
       Collect the result through check_session. Apply rate_investigation's evidence and completion
       criteria; ask for any missing support. Assessment handles the accepted verdict and next route.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply;
+      keep session progress and report recovery in the case record.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -362,6 +366,8 @@ mission "rate_triage" {
 
       Collect the result with check_session and apply rate_investigation's acceptance criteria.
       Assessment handles the supported verdict and routing.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply;
+      keep session progress and report recovery in the case record.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -405,6 +411,8 @@ mission "rate_triage" {
 
       Reuse an already supported result without restarting work. Otherwise collect the follow-up
       and apply rate_investigation's acceptance criteria before handing it to assessment.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply;
+      keep session progress and report recovery in the case record.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -451,6 +459,8 @@ mission "rate_triage" {
       Apply rate_investigation's acceptance criteria. Keep inherited claims attributed until
       Devin checks their evidence. Hand the result to assessment with the actual session ownership
       and resumability described by the output contract.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply;
+      keep session progress and report recovery in the case record.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -514,10 +524,12 @@ mission "rate_triage" {
 
       # 3. Finish or pause
 
-      Before routing an accepted investigation, supply case_slack with a short product-language
-      summary of the established cause and affected behavior. Replace the root's provisional
-      Cause; preserve any remaining uncertainty without describing settled
-      findings as still under investigation. Keep the detailed investigation update on Jira.
+      Before routing an accepted investigation, use case_slack to replace the root's provisional
+      Cause with the established problem and its effect, preserving remaining uncertainty.
+      Reply with the accepted finding and the Jira explanation link. For example: "TIC 99985
+      is missing from the catalog, so carbon credits default to taxable; <jira-url|the ticket>
+      details the affected jurisdictions." Keep the solution plan for the fix update and the
+      detailed product-language investigation explanation on Jira.
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
