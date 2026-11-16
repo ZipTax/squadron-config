@@ -186,11 +186,12 @@ After manual staging deployment, fresh Bruno CI results can reveal an ineffectiv
 Squadron delegates those findings to the existing owners and re-audits corrections. If a
 correction needs another staging deployment, the operator deploys it and requests the next check.
 Routine progress updates the Slack root; evidence stays in linked work. Thread messages
-are limited to questions, blockers, and the final ready-for-review summary.
+are limited to questions, blockers, the final ready-for-review summary, and corrections
+to a prior working-as-intended conclusion.
 
 The `review_followup` task in [rate_finalize](../missions/rate-finalize.hcl) owns this loop.
-While PRs remain open, each assessment or correction returns to review; passing staging
-checks does not end the loop. PRs merging or the operator explicitly ending review closes
+Every iteration that leaves the case open ends with a new human ask about what to do next;
+passing staging checks does not end the loop. PRs merging or the operator explicitly ending review closes
 it, even if staging checks remain unperformed. Production checks require an explicit request.
 An interrupted wait retains the next action for resumption.
 

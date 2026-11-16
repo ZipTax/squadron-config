@@ -307,6 +307,11 @@ mission "rate_finalize" {
 
       Use case_slack to update the root Cause with accepted findings. Keep the independent
       verification conclusion and evidence on Jira.
+      For WAI_REFUTED, also post a concise correction through case_slack with the Jira link
+      and the next action selected below. For example: "Verification found that the state
+      exemption incorrectly removes local tax. The case is returning to investigation.
+      <jira-url|Findings>." If the refire cap requires a decision, state that decision is
+      needed instead of promising another investigation. WAI_CONFIRMED needs no thread post.
 
       On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
       On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
@@ -490,8 +495,14 @@ mission "rate_finalize" {
       its PRs merge or the operator ends review. Production verification is outside this
       workflow unless explicitly requested by the operator.
       Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
-      Use case_slack's thread rules: questions, blockers, and the final ready-for-review
-      summary only. Routine corrections and assessed results update the root and linked work.
+      Use case_slack's thread rules. Routine corrections and assessed results update the
+      root and linked work; each open review iteration ends with a follow-up question.
+
+      Every iteration MUST end by checking step 4's completion criteria. If the case remains
+      open, save progress and call builtins.human.ask without timeout_seconds, then wait in
+      this task. A status update, explanation, or completed check does not replace that ask.
+      This applies after feedback, corrections, staging verification, and merge checks that
+      find open PRs. Only closing the case ends the loop without another question.
 
       # 1. Collect current work and wait
 
@@ -501,13 +512,17 @@ mission "rate_finalize" {
       2. Save progress and next entry rate_finalize/review_followup before each wait or
          session request. Use case_slack to publish root status ":eyes: Awaiting review"
          before asking for feedback.
-      3. Call builtins.human.ask without timeout_seconds. Summarize readiness with labeled PR
+      3. Call builtins.human.ask without timeout_seconds. On initial review, summarize readiness with labeled PR
          links, the accepted A/B outcome, Bruno's results before or after staging deployment,
          and material coverage limits or open product decisions. Keep the evidence behind those links.
          Ask "What should I review or change? Tell me when the fix is deployed to staging or
          the PRs are merged." Offer "Re-audit", "Verify staging (deployment done)", "Merge check",
          and "End review", with free text for detailed feedback. Use case_slack's writing guidance
          for the whole prompt, including additional_context.
+         On subsequent iterations, ask "What's next: review changes, re-audit, verify a new
+         staging deployment, check merges, or end review?" Adapt to remaining work and retain
+         the same choices and free text. Include only context needed for that decision,
+         rather than repeating the ready-for-review summary.
          Wait in this task; an interrupted ask retains active case state for resumption.
 
       While PRs remain open, return to the review ask after feedback or corrections.

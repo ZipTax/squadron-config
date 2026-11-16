@@ -1,8 +1,8 @@
 # Run rate cases from Slack
 
 1. Run `/squadron`, select `rate_triage`, and enter the Jira ticket key.
-2. Follow the case message for the cause, current status, and PRs. Only questions, blockers, and the final
-   ready-for-review prompt appear in its thread.
+2. Follow the case message for the cause, current status, and PRs. Questions, blockers, the final review
+   prompt, and corrections to a prior working-as-intended conclusion appear in its thread.
 3. Answer operator questions with the question's Answer control. Answer product questions
    on Jira, then tell Squadron that the answers are ready.
 4. At review, send feedback or request another audit through the review prompt. Squadron
@@ -13,8 +13,8 @@
    an explicit request.
 
 Investigation results are posted in product language on the ticket. The Slack message is
-updated for progress. Thread posts are limited to questions, blockers, and the final
-ready-for-review prompt with staging-deployment follow-up.
+updated for progress. Thread posts are limited to questions, blockers, the final ready-for-review prompt with
+staging-deployment follow-up, and refutations of a prior working-as-intended conclusion.
 Bruno tests the fix in the staging environment only. CI runs the tests automatically:
 should-change tests fail before deployment and pass afterward; guardrails pass throughout.
 
@@ -34,6 +34,8 @@ show Slack link syntax so labels become clickable rather than plain PR numbers.
 | Case opens | Cause: Under investigation. Status: :mag: Triaging | None |
 | Investigation starts | Status: :mag: Investigating | None |
 | Investigation accepted | Cause: The state exemption is also clearing local tax for TIC 40030, causing eligible purchases to be undertaxed. | None |
+| WAI confirmed | Cause explains the expected behavior | None; findings stay on Jira |
+| WAI refuted | Cause reflects the corrected finding | Brief correction, next action, and Jira findings link |
 | Fixing starts | Status: :hammer: Fixing | None |
 | Fix PR ready | Add `<fix-pr-url\|txc-sqlserver-database fix>` to PRs | None |
 | Case authoring starts | Status: :test_tube: Testing | None |
@@ -86,7 +88,8 @@ captures remain in the case record and linked work, rather than an appended Cont
 
 The review prompt keeps Squadron available for feedback after the initial audit. If you
 message a Devin session directly, ask Squadron to re-audit so it can collect that session's
-latest work and reassess the change. While PRs remain open, each round returns to the same review prompt flow.
+latest work and reassess the change. Every round that leaves the case open ends with a new "what's next?" question and waits
+for your answer, including after corrections, staging checks, or checks finding open PRs.
 Use its Answer control; ordinary Slack replies are conversation, not answers to Squadron.
 
 "Awaiting review" means the work is ready for your feedback. It does not mean the changes

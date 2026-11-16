@@ -19,11 +19,18 @@ in the ticket, PR, and CI.
   Use `blocked_run` when human input is required.
 - The final ready-for-review summary, including the request to follow up after staging
   deployment so the fix can be checked. Include this in the review prompt, not a second post.
+- Refutation of a prior working-as-intended conclusion: update Cause and post the corrected
+  understanding, its consequence, and the Jira findings link. This announces a reversal,
+  not routine investigation progress. WAI confirmation only updates Cause and Jira.
+
+After each review iteration that leaves the case open, ask what to do next through
+`builtins.human.ask`. Keep this follow-up question concise; the initial review summary
+does not need to be repeated.
 
 Do not post investigation summaries, PR announcements, coverage reports, expected test
 results, stage transitions, routine feedback completion, or closure announcements.
 Session inspections, ownership checks, routing decisions, and checkpoint changes are also
-not thread updates. An unexpected result is a thread update only when it blocks progress;
+not thread updates. An unexpected test result is a thread update only when it blocks progress;
 otherwise continue correction work and maintain the root status.
 
 ## 2. Compose the root
