@@ -6,40 +6,25 @@ See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-t
 
 ## 1. Decide what to publish
 
-Choose a root edit, an allowed thread reply, or no Slack update. Maintaining the root
-does not justify a thread post about the surrounding work. If no publication rule below
-applies, make no Slack update.
-For a thread reply, identify what the reader learns or can act on: a changed understanding
-of the problem, an artifact ready to review, evidence about whether the fix works, or a
-decision needed to continue. Activity alone is not meaningful progress.
+**Update the root** for investigation, fixing, PR creation, test authoring, assessed staging
+results, and other routine progress. Keep Cause, Status, and labeled PR links current.
+PRs and expected results do not warrant separate announcements; their details are available
+in the ticket, PR, and CI.
 
-**Update the root** when the case status, accepted Cause, or PR links change.
-A stage transition changes the root status; it does not need a thread reply.
-For a new PR, add only its labeled link to the root's PR list. Post its brief change summary
-as a separate thread reply. These are two distinct updates, not two copies of the summary.
+**Thread messages are only for:**
 
-**You may post a thread reply only for:**
+- Questions requiring human input. Use `builtins.human.ask`; it posts to the thread,
+  so do not duplicate it with a gateway post.
+- Blockers: explain what prevents progress, its consequence, and the action needed.
+  Use `blocked_run` when human input is required.
+- The final ready-for-review summary, including the request to follow up after staging
+  deployment so the fix can be checked. Include this in the review prompt, not a second post.
 
-- An accepted investigation, verification, or case outcome that changes the reader's
-  understanding of the issue.
-- A new PR or a substantive revision, with the change it proposes and its effect.
-- Completed test coverage, assessed test results, or a material coverage gap.
-- A lessons outcome, a response to review feedback, or case closure.
-- A question requiring human input, or its accepted resolution. Use `builtins.human.ask`
-  for the question; it posts to the thread, so do not duplicate it with a gateway post.
-
-**You may not post a thread reply solely to report:**
-
-- A task starting, finishing, handing off, or waiting for the next stage.
-- A status that is already shown on the root.
-- Session creation, suspension, resumability, ownership checks, or metadata corrections.
-- Routing decisions, checkpoint maintenance, or inventories of work not yet started.
-- Findings or artifacts already reported, without a meaningful change.
-
-For example, a report that the investigation session is suspended, no fix session exists,
-and development should start gets **no thread post**, even when the inspection corrected
-stale state. If a human decision is needed, ask for the needed action and explain its
-consequence using `blocked_run`; omit the session inventory and routing analysis.
+Do not post investigation summaries, PR announcements, coverage reports, expected test
+results, stage transitions, routine feedback completion, or closure announcements.
+Session inspections, ownership checks, routing decisions, and checkpoint changes are also
+not thread updates. An unexpected result is a thread update only when it blocks progress;
+otherwise continue correction work and maintain the root status.
 
 ## 2. Compose the root
 
@@ -70,65 +55,37 @@ PRs:
 - <bruno-pr-url|txc-bruno tests>
 ```
 
-## 3. Compose a permitted reply
+## 3. Write product-level summaries and permitted thread messages
 
-Write every update in product language: name the affected behavior, what changed or was
-established, and why it matters. A reader should understand it without knowing the database
-schema, repository layout, or orchestration. A short technical report is still a technical
-report; translate its meaning instead of shortening its vocabulary.
+State the affected behavior and consequence in product language. A reader should understand
+it without knowing the database schema, repository layout, or orchestration. Translate the
+meaning rather than compressing a technical report into one long sentence.
 
-Share artifacts with a labeled link and enough context to know why to open them. A PR
-proposes a correction; authored tests establish coverage; assessed results provide evidence.
-Keep those claims distinct. Include material limits or decisions that affect readiness.
-"Fix PR ready" and "tests complete" alone do not explain what was delivered or established.
-
-### Investigation summaries
-
-State the affected behavior and consequence in product language. For the root Cause, use
-at most 30 words; rewrite rather than compressing a report into one long sentence. In the
-reply, add only context needed to understand the finding and a labeled Jira link.
-Do not include database objects, column values, SQL expressions, internal pipeline names,
-row counts, or inventories of TICs. Include a date or identifier only when essential to
-understanding the outcome; keep the full scope and effective periods in the linked findings.
-
-For example, replace "20 StatesTaxMatrix rows have PercentTaxable=NULL, interpreted as 0%"
-with "Incorrect Washington tax settings exempt sales-tax-holiday items and software
+For the root Cause, replace "20 StatesTaxMatrix rows have PercentTaxable=NULL, interpreted
+as 0%" with "Incorrect Washington tax settings exempt sales-tax-holiday items and software
 maintenance that should be taxable during the applicable periods."
-The reply can be: "Investigation confirmed incorrect Washington exemptions for
-sales-tax-holiday items and software maintenance. <jira-url|Findings and applicable dates>."
+Keep database objects, column values, internal pipelines, row counts, and TIC inventories
+in the linked findings. Include a date or identifier only when essential to understanding
+an outcome or answering a question.
 
-### Artifacts, results, and questions
+Write questions and blockers as concisely as possible without losing context, consequence,
+or meaning. For example: "The ticket and published guidance disagree on the applicable
+rate. Please confirm the intended treatment on <jira-url|the ticket> so the fix can proceed."
+Apply the same guidance to every visible human-ask field, including `additional_context`;
+omit it when the question is self-contained. Do not paste internal reports or checkpoints.
 
-Follow your task's content instructions and examples. Adapt examples to supported
-facts and actual links. Write as concisely as you can without losing context, consequence,
-or meaning; include enough information to understand the result or answer the question.
-These writing and formatting rules also apply to every visible human-ask field, including
-`additional_context`. Use it only for context needed to answer the question; omit it when the
-question is self-contained. Do not paste checkpoint contents or lane-by-lane session reports.
-Use clickable `<actual-url|label>` links for PR, Jira, and CI references, using URLs from the
-case record or tool results. Bare PR numbers, run IDs, and commit hashes are not links.
+The final ready-for-review summary links the fix, tests, and lessons PRs, briefly states
+readiness and material limits, and requests feedback and staging follow-up. For example:
+"Ready for review: <fix-pr-url|Fix and cases>, <bruno-pr-url|API tests>, <lessons-pr-url|Lessons>.
+A/B checks support the correction; API tests reproduce the issue before deployment.
+Please follow up when the fix is deployed to staging. If applicable, provide any relevant
+deployment details so I can verify the fix."
+Adapt this to assessed facts; a PR proposes a correction, while test results provide evidence.
+Use clickable `<actual-url|label>` links from the case record or tool results. Keep detailed
+findings and evidence in Jira, PRs, and CI rather than reproducing them in Slack.
 
-Summarize the outcome and link to Jira, the PR, or CI for detail. Do not reproduce their reports
-or enumerate implementation changes and test cases in the reply.
-
-For PR and implementation summaries, describe the change and its effect at the level of
-the high-level approach. For example: "<fix-pr-url|Fix PR> adds a branch for TIC 40030 so
-local tax is preserved." Keep implementation details and supporting logs in linked work.
-
-Report the relevant case outcome, not the internal session report:
-
-- Artifact: "<fix-pr-url|Fix PR> adds a ZIP+4 override so affected addresses receive the
-  correct local tax. Staging verification is pending."
-- Coverage: "<bruno-pr-url|API tests> cover the corrected local tax and unchanged neighboring
-  addresses; the affected addresses still fail before deployment. <run-url|CI results>."
-- Result: "After deployment, local tax is still being cleared for affected addresses.
-  The fix needs further correction. <run-url|CI results>."
-- Question: "Please follow up when the fix is deployed to staging. If applicable, provide
-  any relevant deployment details so I can verify the fix."
-- Resolution: "Deployment is confirmed; resuming verification."
-
-After assessing an answer according to your task instructions, update the root status and
-report the accepted resolution. Follow `blocked_run` for human dependencies.
+After a question is answered, update the root status and resume work. A routine resolution
+or expected verification result needs no separate reply.
 
 ## 4. Deliver and record the update
 

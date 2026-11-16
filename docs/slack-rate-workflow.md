@@ -1,8 +1,8 @@
 # Run rate cases from Slack
 
 1. Run `/squadron`, select `rate_triage`, and enter the Jira ticket key.
-2. Follow the case message for the cause, current status, and PRs. Questions and concise
-   result summaries appear in its thread.
+2. Follow the case message for the cause, current status, and PRs. Only questions, blockers, and the final
+   ready-for-review prompt appear in its thread.
 3. Answer operator questions with the question's Answer control. Answer product questions
    on Jira, then tell Squadron that the answers are ready.
 4. At review, send feedback or request another audit through the review prompt. Squadron
@@ -12,7 +12,8 @@
 6. When the PRs are merged and requested checks are settled, tell Squadron to finish the case.
 
 Investigation results are posted in product language on the ticket. The Slack message is
-updated for progress, with questions and concise result summaries posted in its thread.
+updated for progress. Thread posts are limited to questions, blockers, and the final
+ready-for-review prompt with staging-deployment follow-up.
 Bruno tests the fix in the staging environment only. CI runs the tests automatically:
 should-change tests fail before deployment and pass afterward; guardrails pass throughout.
 
@@ -30,29 +31,28 @@ show Slack link syntax so labels become clickable rather than plain PR numbers.
 | --- | --- | --- |
 | Case opens | Cause: Under investigation. Status: :mag: Triaging | None |
 | Investigation starts | Status: :mag: Investigating | None |
-| Investigation accepted | Cause: The state exemption is also clearing local tax for TIC 40030, causing eligible purchases to be undertaxed. | "The state exemption is also clearing local tax for TIC 40030. `<jira-url\|Investigation on Jira>`" |
+| Investigation accepted | Cause: The state exemption is also clearing local tax for TIC 40030, causing eligible purchases to be undertaxed. | None |
 | Fixing starts | Status: :hammer: Fixing | None |
-| Fix PR ready | Add `<fix-pr-url\|txc-sqlserver-database fix>` to PRs | "`<fix-pr-url\|Fix PR>` adds a branch for TIC 40030 so local tax is preserved." |
+| Fix PR ready | Add `<fix-pr-url\|txc-sqlserver-database fix>` to PRs | None |
 | Case authoring starts | Status: :test_tube: Testing | None |
-| Cases ready | No change | "Cases now cover local-tax preservation for TIC 40030 and unaffected items. `<fix-pr-url\|Fix PR>`" |
+| Cases ready | No change | None |
 | Audit starts | Status: :microscope: Auditing | None |
-| A/B audit accepted | No change | "A/B checks support the correction, with no regressions found in the covered cases. `<run-url\|Comparison>`" |
+| A/B audit accepted | No change | None |
 | Bruno authoring starts | Status: :writing_hand: Authoring Bruno tests | None |
-| Bruno PR ready; pre-deployment CI assessed | Add `<bruno-pr-url\|txc-bruno tests>` to PRs | "`<bruno-pr-url\|API tests>` reproduce the lost local tax before deployment; unaffected items pass. `<run-url\|CI>`" |
+| Bruno PR ready; pre-deployment CI assessed | Add `<bruno-pr-url\|txc-bruno tests>` to PRs | None |
 | Lessons work starts | Status: :memo: Recording lessons | None |
-| Lessons PR ready | Add `<lessons-pr-url\|squadron-config lessons>` to PRs | "`<lessons-pr-url\|Lessons PR>` adds guidance to check local tax separately when changing state exemptions." |
+| Lessons PR ready | Add `<lessons-pr-url\|squadron-config lessons>` to PRs | None |
 | Review opens | Status: :eyes: Awaiting review | Review prompt for feedback, including: "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix." |
 | Operator confirms staging deployment | Status: :test_tube: Verifying in staging | None; the existing Bruno session reuses a post-deployment attempt or reruns the PR's API Tests check at the same head |
-| Post-deployment CI assessed | No change | "The previously failing local-tax tests now pass, and unaffected items still pass. `<run-url\|CI>`" |
+| Post-deployment CI assessed | Status: :eyes: Awaiting review | None |
 
-Each PR entry on the root is only a labeled link. The quoted summaries are replies, not text
-to append beneath those links. Detailed findings, implementation, and test evidence remain
-on Jira, the PR, or CI.
+Each PR entry on the root is only a labeled link. Routine progress and expected results
+update the root; detailed findings, implementation, and evidence stay in Jira, PRs, and CI.
 
 If a question blocks work, change the root to `:question: Blocked on question` and use the
-human-ask tool for the question. After accepting the answer, restore the work status and
-briefly report the resolution. If verification finds a failure, report the affected behavior
-and correction underway rather than the passing result in this example.
+human-ask tool. After accepting the answer, restore the work status without a separate
+resolution post. Unexpected results are posted only when they block progress; otherwise
+continue corrections and maintain the root status.
 
 ## Example: review prompt
 

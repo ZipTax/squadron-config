@@ -305,11 +305,8 @@ mission "rate_finalize" {
 
       # 4. Finish or pause
 
-      Use case_slack to report whether independent verification confirmed or refuted the prior
-      working-as-intended finding, with the Jira explanation link. For example: "Independent
-      verification confirms local tax still applies despite the state exemption: <jira-url|Evidence>."
-      If refuted, state the evidenced defect and the next action selected by routing or the operator.
-      Update Cause with accepted findings.
+      Use case_slack to update the root Cause with accepted findings. Keep the independent
+      verification conclusion and evidence on Jira.
 
       On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
       On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
@@ -421,9 +418,8 @@ mission "rate_finalize" {
       blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
       or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
 
-      Add accepted lessons PRs as labeled links in the root's PR list. In a separate thread reply,
-      summarize the reusable guidance they add and why it helps. For example: "<lessons-pr-url|Lessons PR> adds guidance to check local tax separately
-      when changing state exemptions." If none qualified, report that outcome briefly.
+      Add accepted lessons PRs as labeled links in the root using case_slack;
+      no separate lessons announcement.
 
       Save the lessons outcome and all confirmed PRs through rate_checkpoint. When this
       work is settled, leave the case active and hand it to review_followup.
@@ -492,9 +488,8 @@ mission "rate_finalize" {
       Keep ${inputs.issue} available for operator feedback, re-audit, and corrections until
       its PRs merge and requested checks are settled, or the operator ends review.
       Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
-      For review replies, state what changed in response to feedback, the assessed result,
-      remaining decisions, and relevant PR/evidence links. For example: "Your requested
-      local-tax coverage is added; the comparison supports the correction: <run-url|Results>."
+      Use case_slack's thread rules: questions, blockers, and the final ready-for-review
+      summary only. Routine corrections and assessed results update the root and linked work.
 
       # 1. Collect current work and wait
 
@@ -525,7 +520,7 @@ mission "rate_finalize" {
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
       4. Use verdict_loop to continue corrections while progress is being made. If progress
          stalls or more information is needed, ask the operator with the unresolved findings
-         and evidence. Preserve review history, post results in Slack, and return to the ask.
+         and evidence. Preserve review history, update the root, and return to the ask.
 
       Use blocked_run for an operator or product dependency, then resume this review task.
       Merge and deployment decisions remain with the operator.
@@ -551,10 +546,9 @@ mission "rate_finalize" {
       3. Send discrepancies and CI evidence to the appropriate existing owners and re-audit
          their corrections. A correction needing deployment waits for the operator's next
          manual deployment before its post-deployment check.
-      4. Save the staging deployment confirmation, CI evidence, and pending work. Reply with the
-         before/after result, unaffected-behavior checks, and CI link. For example: "After deployment,
-         the previously failing local-tax tests now pass and unaffected items still pass: <run-url|CI>."
-         If failures remain, name the behavior and corrective follow-up instead of reporting success.
+      4. Save the staging deployment confirmation, both CI attempt links, results, and pending
+         work. For expected results, use case_slack to update root status to ":eyes: Awaiting review";
+         keep the evidence in linked work. Post only if a blocker requires attention.
          Keep review open while verification or corrections remain.
 
       # 4. Finish or recover
@@ -565,7 +559,8 @@ mission "rate_finalize" {
       a no-PR case has an accepted disposition and no pending work. On explicit end review,
       record remaining work and close by operator choice. An interruption leaves this stage
       as the next entry rather than completing review.
-      On closure, post the accepted outcome and any remaining work recorded by operator choice.
+      On closure, update root status to ":white_check_mark: Closed" and retain any remaining
+      work recorded by operator choice in the case. Do not post a closure announcement.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 

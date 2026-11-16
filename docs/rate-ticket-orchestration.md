@@ -185,7 +185,8 @@ deployment. Squadron collects current session results and PR heads before assess
 After deployment, fresh Bruno CI results can reveal an ineffective fix or new regressions.
 Squadron delegates those findings to the existing owners and re-audits corrections. If a
 correction needs another deployment, the operator deploys it and requests the next check.
-Results and pending work are posted in Slack.
+Routine progress updates the Slack root; evidence stays in linked work. Thread messages
+are limited to questions, blockers, and the final ready-for-review summary.
 
 The `review_followup` task in [rate_finalize](../missions/rate-finalize.hcl) owns this loop.
 Review remains open until
