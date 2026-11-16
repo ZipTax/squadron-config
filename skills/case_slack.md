@@ -6,6 +6,10 @@ See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-t
 
 ## 1. Decide what to publish
 
+Task output is internal context for the commander and routing, not a draft Slack message.
+Before a gateway post, select an allowed case update below. If none applies, return the
+task result without posting. A completed inspection does not itself justify a message.
+
 **Update the root** when the case status, accepted Cause, or PR links change.
 A stage transition changes the root status; it does not need a thread reply.
 For a new PR, add only its labeled link to the root's PR list. Post its brief change summary
@@ -41,7 +45,7 @@ sections and commentary already present; preserving facts does not mean preservi
 
 - **Title:** ticket key and title.
 - **Cause:** the accepted problem and its effect, with uncertainty where needed. Keep it
-  to two sentences and about 25-30 words. Do not include the proposed solution or
+  to two sentences and at most 30 words. Do not include the proposed solution or
   implementation details. Use "Under investigation" until an accepted cause is available.
 - **Status:** the complete label specified in your task instructions, including its emoji.
 - **PRs:** one labeled link per line, using repository and purpose, such as
@@ -63,6 +67,23 @@ PRs:
 ```
 
 ## 3. Compose a permitted reply
+
+### Investigation summaries
+
+State the affected behavior and consequence in product language. For the root Cause, use
+at most 30 words; rewrite rather than compressing a report into one long sentence. In the
+reply, add only context needed to understand the finding and a labeled Jira link.
+Do not include database objects, column values, SQL expressions, internal pipeline names,
+row counts, or inventories of TICs. Include a date or identifier only when essential to
+understanding the outcome; keep the full scope and effective periods in the linked findings.
+
+For example, replace "20 StatesTaxMatrix rows have PercentTaxable=NULL, interpreted as 0%"
+with "Incorrect Washington tax settings exempt sales-tax-holiday items and software
+maintenance that should be taxable during the applicable periods."
+The reply can be: "Investigation confirmed incorrect Washington exemptions for
+sales-tax-holiday items and software maintenance. <jira-url|Findings and applicable dates>."
+
+### Artifacts, results, and questions
 
 Follow your task's content instructions and examples. Adapt examples to supported
 facts and actual links. Write as concisely as you can without losing context, consequence,
@@ -96,6 +117,8 @@ report the accepted resolution. Follow `blocked_run` for human dependencies.
 Use `rate_checkpoint` to maintain the case memory.
 
 1. Read the current case before writing so the update preserves newer findings and links.
+   Check the draft against the allowed update types and root/reply rules above. Rewrite
+   technical findings for the reader; omit internal coordination reports entirely.
 2. **Create a root:** read the ticket title and save the desired text with `root_post_pending: true`. Post with
    `root: true` and the `channel` specified in your task instructions, when provided. The gateway reuses an
    existing conversation regardless of that initial channel choice. Save the returned ID

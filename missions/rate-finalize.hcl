@@ -218,6 +218,11 @@ mission "rate_finalize" {
       Choose the remaining close-out work for ${inputs.issue}, entering at ${inputs.entry_stage}
       using the saved close reason.
 
+      Return session states, ownership discrepancies, and the recommended entry as internal
+      task output for routing, not as a Slack report. Load case_slack before any Slack write;
+      this entry task creates or restores the root without a handoff reply. Post a question only if an operator decision
+      is required to continue, using blocked_run.
+
       # 3. Inspect the handoff
 
       Check the investigation, fix, cases, and Bruno owners recorded in lanes.
