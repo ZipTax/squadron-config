@@ -6,46 +6,47 @@ See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-t
 
 ## 1. Decide what to publish
 
-**Update the root** when the case status, accepted Cause, or PR links change.
-A stage transition changes the root status; it does not need a thread reply.
-For a new PR, add only its labeled link to the root's PR list. Post its brief change summary
-as a separate thread reply. These are two distinct updates, not two copies of the summary.
+**Update the root** for investigation, fixing, PR creation, test authoring, assessed staging
+results, and other routine progress. Keep Cause, Status, and labeled PR links current.
+PRs and expected results do not warrant separate announcements; their details are available
+in the ticket, PR, and CI.
 
-**You may post a thread reply only for:**
+**Thread messages are only for:**
 
-- An accepted investigation, verification, or case outcome that changes the reader's
-  understanding of the issue.
-- A new PR or a substantive revision, with the change it proposes and its effect.
-- Completed test coverage, assessed test results, or a material coverage gap.
-- A lessons outcome, a response to review feedback, or case closure.
-- A question requiring human input, or its accepted resolution. Use `builtins.human.ask`
-  for the question; it posts to the thread, so do not duplicate it with a gateway post.
+- Questions requiring human input. Use `builtins.human.ask`; it posts to the thread,
+  so do not duplicate it with a gateway post.
+- Blockers: explain what prevents progress, its consequence, and the action needed.
+  Use `blocked_run` when human input is required.
+- The final ready-for-review summary, including the request to follow up after staging
+  deployment so the fix can be checked. Include this in the review prompt, not a second post.
+- Refutation of a prior working-as-intended conclusion: update Cause and post the corrected
+  understanding, its consequence, and the Jira findings link. This announces a reversal,
+  not routine investigation progress. WAI confirmation only updates Cause and Jira.
 
-**You may not post a thread reply solely to report:**
+For review follow-up questions, include only context needed for the next decision rather
+than repeating the initial review summary.
 
-- A task starting, finishing, handing off, or waiting for the next stage.
-- A status that is already shown on the root.
-- Session creation, suspension, resumability, ownership checks, or metadata corrections.
-- Routing decisions, checkpoint maintenance, or inventories of work not yet started.
-- Findings or artifacts already reported, without a meaningful change.
-
-For example, omit "Triage complete; findings intact, session suspended, no fix PR yet."
-Keep that bookkeeping in the case record. If it creates a human dependency, ask for the
-needed action and explain its consequence, following your task instructions and `blocked_run`.
+Do not post investigation summaries, PR announcements, coverage reports, expected test
+results, stage transitions, routine feedback completion, or closure announcements.
+Session inspections, ownership checks, routing decisions, and checkpoint changes are also
+not thread updates. An unexpected test result is a thread update only when it blocks progress;
+otherwise update only the root status.
 
 ## 2. Compose the root
 
-The root body must contain only the four fields below, in this order. Read the saved root
+The root body contains Title, Cause, Status, then PRs when present. Read the saved root
 before editing to preserve current facts and links, then render this format. Remove extra
 sections and commentary already present; preserving facts does not mean preserving prose.
 
 - **Title:** ticket key and title.
 - **Cause:** the accepted problem and its effect, with uncertainty where needed. Keep it
-  to two sentences and about 25-30 words. Do not include the proposed solution or
+  to two sentences and at most 30 words. Do not include the proposed solution or
   implementation details. Use "Under investigation" until an accepted cause is available.
 - **Status:** the complete label specified in your task instructions, including its emoji.
 - **PRs:** one labeled link per line, using repository and purpose, such as
   `txc-sqlserver-database fix`, `txc-bruno tests`, or `squadron-config lessons`.
+  If no PRs exist, omit the entire section, including the `PRs:` heading, so the gateway
+  mission links below it do not appear to be PR entries.
 
 Do not add change summaries, branch names, commit hashes, labels, database objects, row counts,
 test results, or audit commentary to the root. Do not annotate PR links with those details.
@@ -62,46 +63,51 @@ PRs:
 - <bruno-pr-url|txc-bruno tests>
 ```
 
-## 3. Compose a permitted reply
+## 3. Write product-level summaries and permitted thread messages
 
-Follow your task's content instructions and examples. Adapt examples to supported
-facts and actual links. Write as concisely as you can without losing context, consequence,
-or meaning; include enough information to understand the result or answer the question.
-These writing and formatting rules also apply to every visible human-ask field, including
-`additional_context`. Use it only for context needed to answer the question; omit it when the
-question is self-contained. Do not paste checkpoint contents or lane-by-lane session reports.
-Use clickable `<actual-url|label>` links for PR, Jira, and CI references, using URLs from the
-case record or tool results. Bare PR numbers, run IDs, and commit hashes are not links.
+State the affected behavior and consequence in product language. A reader should understand
+it without knowing the database schema, repository layout, or orchestration. Translate the
+meaning rather than compressing a technical report into one long sentence.
 
-Summarize the outcome and link to Jira, the PR, or CI for detail. Do not reproduce their reports
-or enumerate implementation changes and test cases in the reply.
+For the root Cause, replace "20 StatesTaxMatrix rows have PercentTaxable=NULL, interpreted
+as 0%" with "Incorrect Washington tax settings exempt sales-tax-holiday items and software
+maintenance that should be taxable during the applicable periods."
+Keep database objects, column values, internal pipelines, row counts, and TIC inventories
+in the linked findings. Include a date or identifier only when essential to understanding
+an outcome or answering a question.
 
-For PR and implementation summaries, describe the change and its effect at the level of
-the high-level approach. For example: "<fix-pr-url|Fix PR> adds a branch for TIC 40030 so
-local tax is preserved." Keep implementation details and supporting logs in linked work.
+Write questions and blockers as concisely as possible without losing context, consequence,
+or meaning. For example: "The ticket and published guidance disagree on the applicable
+rate. Please confirm the intended treatment on <jira-url|the ticket> so the fix can proceed."
+Apply the same guidance to every visible human-ask field, including `additional_context`;
+omit it when the question is self-contained. Do not paste internal reports or checkpoints.
 
-Report the relevant case outcome, not the internal session report:
+The final ready-for-review summary links the fix, tests, and lessons PRs, briefly states
+readiness and material limits, and requests feedback and staging follow-up. For example:
+"Ready for review: <fix-pr-url|Fix and cases>, <bruno-pr-url|API tests>, <lessons-pr-url|Lessons>.
+A/B checks support the correction; API tests reproduce the issue before staging deployment.
+Please follow up when the fix is deployed to staging. If applicable, provide any relevant
+deployment details so I can verify the fix."
+Adapt this to assessed facts; a PR proposes a correction, while test results provide evidence.
+Use clickable `<actual-url|label>` links from the case record or tool results so readers can
+open the detailed findings and evidence without reproducing them in Slack.
 
-- Result: "API tests still show local tax being cleared after deployment; the fix session
-  is investigating." Include the CI link.
-- Question: "Please follow up when the fix is deployed to staging. If applicable, provide
-  any relevant deployment details so I can verify the fix."
-- Resolution: "Deployment is confirmed; resuming verification."
-
-After assessing an answer according to your task instructions, update the root status and
-report the accepted resolution. Follow `blocked_run` for human dependencies.
+After a question is answered, update the root status. A routine resolution or expected
+verification result needs no separate reply.
 
 ## 4. Deliver and record the update
 
 Use `rate_checkpoint` to maintain the case memory.
 
 1. Read the current case before writing so the update preserves newer findings and links.
+   Check the draft against the allowed update types and root/reply rules above. Rewrite
+   technical findings for the reader; omit internal coordination reports entirely.
 2. **Create a root:** read the ticket title and save the desired text with `root_post_pending: true`. Post with
    `root: true` and the `channel` specified in your task instructions, when provided. The gateway reuses an
    existing conversation regardless of that initial channel choice. Save the returned ID
    immediately in `slack.root_message_id`, together with the full text and runtime's mission
    thread ID; clear `root_post_pending`. Later updates reuse this root.
-3. **Edit the root:** render only the four root fields using the latest case facts. Persist `root_text` with
+3. **Edit the root:** render the root fields above using the latest case facts, omitting PRs when empty. Persist `root_text` with
    `update_pending: true`, then call `gateway.edit` with the saved ID and complete text.
    On success, save `published_text` and clear `update_pending`.
 4. **Post a permitted reply:** routing comes from the mission thread; omit payload routing

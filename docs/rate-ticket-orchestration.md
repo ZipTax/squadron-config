@@ -182,15 +182,18 @@ After lessons, Squadron waits for feedback through its review prompt. Feedback m
 another audit, include changes requested directly from Devin, or report a manual staging
 deployment. Squadron collects current session results and PR heads before assessing the work.
 
-After deployment, fresh Bruno CI results can reveal an ineffective fix or new regressions.
+After manual staging deployment, fresh Bruno CI results can reveal an ineffective fix or new regressions.
 Squadron delegates those findings to the existing owners and re-audits corrections. If a
-correction needs another deployment, the operator deploys it and requests the next check.
-Results and pending work are posted in Slack.
+correction needs another staging deployment, the operator deploys it and requests the next check.
+Routine progress updates the Slack root; evidence stays in linked work. Thread messages
+are limited to questions, blockers, the final ready-for-review summary, and corrections
+to a prior working-as-intended conclusion.
 
 The `review_followup` task in [rate_finalize](../missions/rate-finalize.hcl) owns this loop.
-Review remains open until
-PRs merge and requested checks and corrections are settled, or the operator explicitly ends
-it. An interrupted wait retains the next action for resumption.
+Every iteration that leaves the case open ends with a new human ask about what to do next;
+passing staging checks does not end the loop. PRs merging or the operator explicitly ending review closes
+it, even if staging checks remain unperformed. Production checks require an explicit request.
+An interrupted wait retains the next action for resumption.
 
 ## Retain accepted state and source evidence
 
