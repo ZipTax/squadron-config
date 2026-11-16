@@ -6,13 +6,9 @@ See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-t
 
 ## 1. Decide what to publish
 
-Before composing a message, distinguish reporting to the commander from publishing to Slack.
-Session inspections and handoff checks inform the commander's decisions; report those
-findings back without a gateway post. Using this skill to maintain the root does not make
-other work from the same assignment publishable.
-
-Choose a root edit, an allowed thread reply, or no Slack update. If no publication rule
-below applies, finish the assigned work and report back without posting.
+Choose a root edit, an allowed thread reply, or no Slack update. Maintaining the root
+does not justify a thread post about the surrounding work. If no publication rule below
+applies, make no Slack update.
 For a thread reply, identify what the reader learns or can act on: a changed understanding
 of the problem, an artifact ready to review, evidence about whether the fix works, or a
 decision needed to continue. Activity alone is not meaningful progress.
@@ -42,9 +38,8 @@ as a separate thread reply. These are two distinct updates, not two copies of th
 
 For example, a report that the investigation session is suspended, no fix session exists,
 and development should start gets **no thread post**, even when the inspection corrected
-stale state. Report the findings to the commander and retain the bookkeeping in the case
-record. If it creates a human dependency, ask for the
-needed action and explain its consequence, following your task instructions and `blocked_run`.
+stale state. If a human decision is needed, ask for the needed action and explain its
+consequence using `blocked_run`; omit the session inventory and routing analysis.
 
 ## 2. Compose the root
 
