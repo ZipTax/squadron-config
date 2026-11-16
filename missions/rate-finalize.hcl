@@ -423,8 +423,7 @@ mission "rate_finalize" {
       blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
       or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
 
-      Add accepted lessons PRs as labeled links in the root using case_slack;
-      no separate lessons announcement.
+      Add accepted lessons PRs as labeled links in the root using case_slack.
 
       Save the lessons outcome and all confirmed PRs through rate_checkpoint. When this
       work is settled, leave the case active and hand it to review_followup.
@@ -488,111 +487,94 @@ mission "rate_finalize" {
       3. Verify a reported staging deployment.
       4. Finish or recover.
 
-      Repeat feedback, correction, and staging verification while PRs remain open.
-      Staging deployment is manual and does not change the Bruno PR head.
-
-      Keep ${inputs.issue} available for operator feedback, re-audit, and corrections until
-      its PRs merge or the operator ends review. Production verification is outside this
-      workflow unless explicitly requested by the operator.
-      Use rate_case for context, rate_checkpoint for progress, and case_slack for updates.
-      Use case_slack's thread rules. Routine corrections and assessed results update the
-      root and linked work; each open review iteration ends with a follow-up question.
-
-      Every iteration MUST end by checking step 4's completion criteria. If the case remains
-      open, save progress and call builtins.human.ask without timeout_seconds, then wait in
-      this task. A status update, explanation, or completed check does not replace that ask.
-      This applies after feedback, corrections, staging verification, and merge checks that
-      find open PRs. Only closing the case ends the loop without another question.
+      Keep ${inputs.issue} available for feedback until its PRs merge or the operator ends
+      review. Feedback may require corrections, another audit, or verification after manual
+      staging deployment. Use rate_case for context, rate_checkpoint for progress, and
+      case_slack for root updates and questions.
 
       # 1. Collect current work and wait
 
-      1. Collect current PR states, heads, and session results through
-         delegated_session, including lessons PRs. On resume, reconcile the saved pending
-         action before resending work. If the completion criteria below are met, finish.
-      2. Save progress and next entry rate_finalize/review_followup before each wait or
-         session request. Use case_slack to publish root status ":eyes: Awaiting review"
-         before asking for feedback.
-      3. Call builtins.human.ask without timeout_seconds. On initial review, summarize readiness with labeled PR
-         links, the accepted A/B outcome, Bruno's results before or after staging deployment,
-         and material coverage limits or open product decisions. Keep the evidence behind those links.
-         Ask "What should I review or change? Tell me when the fix is deployed to staging or
-         the PRs are merged." Offer "Re-audit", "Verify staging (deployment done)", "Merge check",
-         and "End review", with free text for detailed feedback. Use case_slack's writing guidance
-         for the whole prompt, including additional_context.
-         On subsequent iterations, ask "What's next: review changes, re-audit, verify a new
-         staging deployment, check merges, or end review?" Adapt to remaining work and retain
-         the same choices and free text. Include only context needed for that decision,
-         rather than repeating the ready-for-review summary.
-         Wait in this task; an interrupted ask retains active case state for resumption.
-
-      While PRs remain open, return to the review ask after feedback or corrections.
-      Expected failures before staging deployment do not verify the fix; retain staging
-      verification as pending until the operator confirms manual staging deployment and
-      the resulting Bruno checks are assessed. Merged PRs end this loop under step 4.
+      1. Collect current PR states, heads, and session results through delegated_session,
+         including lessons PRs. On resume, reconcile the saved pending action before
+         resending work. Check step 4's completion criteria before assigning more work.
+      2. If the case remains open, save next entry rate_finalize/review_followup and use
+         case_slack to set root status ":eyes: Awaiting review". End EVERY iteration with
+         builtins.human.ask without timeout_seconds and wait in this task, so the operator
+         can direct the next correction, confirm staging deployment, or finish review.
+         This is the common return point after steps 2 and 3 and an incomplete merge check.
+      3. For the initial ask, summarize readiness with labeled PR links, the accepted A/B
+         outcome, Bruno's results before staging deployment, and material limits or open
+         decisions. Ask "What should I review or change? Please follow up when the fix is
+         deployed to staging. If applicable, provide any relevant deployment details so I
+         can verify the fix. Let me know when the PRs are merged."
+         For later asks, briefly address the operator's last request and ask "What's next?"
+         Use case_slack for wording and links, including additional_context.
+         Offer the same actions with free text for detailed feedback:
+         - "Re-audit": assess current work and direct corrections through step 2.
+         - "Verify staging (deployment done)": verify the confirmed staging deployment in step 3.
+         - "Merge check": check PR states and apply step 4's completion criteria.
+         - "End review": close by operator choice under step 4.
 
       # 2. Assess feedback and direct corrections
 
       1. Save feedback and collect current PR states and affected session results, including
-         changes the operator requested directly from Devin. Apply step 4's completion rules
-         before assigning more work. Ask for any unrecorded feedback.
+         changes the operator requested directly from Devin. Ask for any unrecorded feedback.
       2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
          through delegated_session, preserving each owner's file lane.
-      3. Use case_slack to publish root status ":microscope: Auditing" before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
-         changed work with fresh captures. Have the Bruno owner review automatic staging CI:
+      3. Use case_slack to publish root status ":microscope: Auditing". Use evidence_gate,
+         ab_audit, and txc_rate_audit to assess changed work with fresh captures.
+         Have the Bruno owner review automatic staging CI:
          should-change tests fail before staging deployment and pass after it;
          guardrails normally pass in both states.
          If an accepted case-specific limitation prevents guardrails from passing before
          staging deployment, preserve its evidence and verify those checks after staging
-         deployment. Accepting the limitation does not establish a pass or complete staging verification.
+         deployment. Expected failures or accepted limitations allow review to continue,
+         but leave staging verification pending while PRs remain open.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
       4. Use verdict_loop to continue corrections while progress is being made. If progress
          stalls or more information is needed, ask the operator with the unresolved findings
-         and evidence. Preserve review history, update the root, and return to the ask.
+         and evidence. Return to step 1 after the requested work is assessed.
 
       Use blocked_run for an operator or product dependency, then resume this review task.
-      Merge and staging deployment decisions remain with the operator.
 
       # 3. Verify a reported staging deployment
 
-      1. When the operator confirms this case's fix is deployed to staging, use case_slack
-         to publish root status ":test_tube: Verifying in staging".
+      1. The operator deploys the fix to staging manually; this does not change the Bruno
+         PR head. After confirmation, use case_slack to set ":test_tube: Verifying in staging".
          Include the saved attempt link from before staging deployment and a staging deployment
-         cutoff: use the operator's reported staging deployment time, or the time their confirmation was
-         received. Use the existing reply timestamp when available; no extra operator ask.
+         cutoff: the reported staging deployment time, or the confirmation's receipt time.
+         This identifies attempts that exercised the deployed fix without another operator question.
          Ask the existing Bruno session to follow the bruno-regression playbook's staging
          verification steps: reuse an API Tests attempt on the current PR head that started
          after that cutoff, or rerun all jobs of the latest pull_request API Tests
          run at that head so results appear in the PR checks. Start at most one attempt;
          wait for an in-progress attempt rather than starting another. Do not use
          workflow_dispatch or push a commit to trigger verification.
-         Record both attempt-specific links and tested revisions; keep verification pending if the
-         matching PR run is unavailable or the attempt cannot start or finish.
+         Keep verification pending if the matching PR run is unavailable or the attempt
+         cannot start or finish.
       2. Compare results with the saved attempt from before staging deployment.
-         Both should-change tests and guardrails should now pass. Investigate unchanged failures, new failures, or an unexpected lack
-         of change even when the SQL A/B audit was satisfactory.
+         Both should-change tests and guardrails should now pass. Investigate unchanged or
+         new failures even when A/B was satisfactory: it assessed directional correctness
+         and regressions, while Bruno checks the behavior actually deployed to staging.
       3. Send discrepancies and CI evidence to the appropriate existing owners and re-audit
-         their corrections. If a correction needs another staging deployment, return to the
-         review ask for the operator's confirmation before rerunning Bruno. An earlier staging
-         deployment does not verify a later correction.
-      4. Save the staging deployment confirmation, both CI attempt links, results, and pending
-         work. For expected results, use case_slack to update root status to ":eyes: Awaiting review";
-         keep the evidence in linked work. Post only if a blocker requires attention.
-         Return to the review ask after assessment or corrections while PRs remain open;
-         a passing staging check does not end review.
+         their corrections using step 2. If those corrections need another staging deployment,
+         await new operator confirmation through step 1 before rerunning Bruno; the earlier
+         deployment does not contain the corrected fix.
+      4. Save the staging confirmation, both attempt-specific CI links, tested revisions,
+         and assessed results.
+         Return to step 1: passing staging checks makes the work ready for the operator's
+         next decision, not automatically merged or finished.
 
       # 4. Finish or recover
 
-      On a merge check, confirm every case PR's state through the sessions. Report remaining
-      open PRs and return to the ask; obtain operator disposition for closed-unmerged PRs.
-      Close when all case PRs are merged; pending staging checks do not keep merged work open.
-      Retain any unperformed checks in the case without claiming they passed. Do not schedule
-      production checks unless the operator explicitly requested them; handle such a request
-      as explicit follow-up, not a default completion requirement.
-      A no-PR case closes when it has an accepted disposition and no pending work. On explicit end review,
-      record remaining work and close by operator choice. An interruption leaves this stage
-      as the next entry rather than completing review.
-      On closure, update root status to ":white_check_mark: Closed" and retain any remaining
-      work recorded by operator choice in the case. Do not post a closure announcement.
+      On a merge check, confirm every case PR's state through the sessions. If any remain
+      open, identify them in the next step 1 question; ask for disposition of closed-unmerged PRs.
+      Close when all case PRs are merged, or when a no-PR case has an accepted disposition
+      and no pending work. On "End review", close by operator choice and retain remaining work.
+      Merge ends this workflow even if staging checks remain unperformed; retain that fact
+      without claiming verification passed. Production checks require an explicit request.
+      On closure, use case_slack to set ":white_check_mark: Closed".
+      An interrupted wait retains review_followup as the next entry so the operator can resume.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 

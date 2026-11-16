@@ -71,7 +71,7 @@ Use Slack `<url|label>` syntax to produce the same clickable labels in the actua
 > - Lessons: [SQL guidance](https://github.com/FedTax/txc-sqlserver-database/pull/376), [Bruno guidance](https://github.com/FedTax/txc-bruno/pull/114)
 >
 > A/B checks support the correction with no unexpected regressions in the covered cases.
-> Before deployment, Bruno reproduces the issue and checks for unchanged behavior pass.
+> Before staging deployment, Bruno reproduces the issue and checks for unchanged behavior pass.
 > LA/KS/SD still lack usable staging coverage.
 >
 > Product decisions remain on TN treatment and the holiday period, NC merchant status,
@@ -80,16 +80,23 @@ Use Slack `<url|label>` syntax to produce the same clickable labels in the actua
 > What should I review or change? Please follow up when the fix is deployed to staging.
 > If applicable, provide any relevant deployment details so I can verify the fix.
 
-Keep the existing choices: **Re-audit**, **Verify staging (deployment done)**, **Merge check**,
-**End review**, and free-text feedback. Session ownership, commit hashes, and detailed
-captures remain in the case record and linked work, rather than an appended Context report.
+The prompt offers four actions, plus free-text feedback:
+
+| Action | What Squadron does |
+| --- | --- |
+| Re-audit | Assess current work, including direct Devin changes, and direct corrections to the existing owners. |
+| Verify staging (deployment done) | Reuse or rerun the Bruno PR check against the manually deployed fix. |
+| Merge check | Check every case PR; close if all are merged, otherwise ask what to do about remaining PRs. |
+| End review | Close by your choice, retaining any remaining work. |
+
 
 ## Review and follow-up
 
 The review prompt keeps Squadron available for feedback after the initial audit. If you
 message a Devin session directly, ask Squadron to re-audit so it can collect that session's
-latest work and reassess the change. Every round that leaves the case open ends with a new "what's next?" question and waits
-for your answer, including after corrections, staging checks, or checks finding open PRs.
+latest work and reassess the change. Each round that leaves the case open ends with a
+"what's next?" question, so you can direct another iteration or confirm staging deployment
+without starting a new mission.
 Use its Answer control; ordinary Slack replies are conversation, not answers to Squadron.
 
 "Awaiting review" means the work is ready for your feedback. It does not mean the changes

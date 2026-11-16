@@ -350,8 +350,8 @@ mission "rate_fix" {
       # 4. Finish or pause
 
       When the fix PR is ready, add its labeled link to the root's PR list using case_slack.
-      Keep implementation details and limits in the PR. If findings need revision, have the
-      investigation session assess them before changing the accepted Cause.
+      If findings need revision, have the investigation session assess them before changing
+      the accepted Cause.
 
       Completed work proceeds to case authoring. For needs_human, use blocked_run and
       rate_checkpoint with next entry develop.
@@ -468,8 +468,7 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
-      Keep the root's PR links current using case_slack. Record coverage and material gaps
-      in the PR and case handoff for the auditor.
+      Keep the root's PR links current using case_slack.
 
       Completed coverage proceeds to audit, including justified limits for the auditor to assess.
       For needs_human, use blocked_run and rate_checkpoint with next entry author_tests.
@@ -582,9 +581,7 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
-      Record the assessed A/B outcome, limits, and evidence in the case and linked work.
-      A/B establishes directional correctness and regression checks; Bruno verifies the
-      deployed fix. Use case_slack for root updates or a blocker, not a routine results post.
+      Use case_slack for root status updates and any blocker requiring attention.
 
       Use verdict_loop: continue while making progress; ask the operator when progress
       stalls or more information is needed. Preserve the supported verdict. On FIX_IS_NO_OP, ask Devin to verify
@@ -706,8 +703,7 @@ mission "rate_fix" {
 
       # 4. Finish or pause
 
-      Add the Bruno PR's labeled link to the root using case_slack. Record coverage, assessed
-      CI results, and remaining verification in the PR and case handoff; no thread announcement.
+      Add the Bruno PR's labeled link to the root using case_slack.
 
       Completed work proceeds to finalization. Continue technical corrections while making
       progress. If progress stalls or more information is needed, ask the operator with

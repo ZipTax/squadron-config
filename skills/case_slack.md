@@ -23,19 +23,18 @@ in the ticket, PR, and CI.
   understanding, its consequence, and the Jira findings link. This announces a reversal,
   not routine investigation progress. WAI confirmation only updates Cause and Jira.
 
-After each review iteration that leaves the case open, ask what to do next through
-`builtins.human.ask`. Keep this follow-up question concise; the initial review summary
-does not need to be repeated.
+For review follow-up questions, include only context needed for the next decision rather
+than repeating the initial review summary.
 
 Do not post investigation summaries, PR announcements, coverage reports, expected test
 results, stage transitions, routine feedback completion, or closure announcements.
 Session inspections, ownership checks, routing decisions, and checkpoint changes are also
 not thread updates. An unexpected test result is a thread update only when it blocks progress;
-otherwise continue correction work and maintain the root status.
+otherwise update only the root status.
 
 ## 2. Compose the root
 
-The root body contains Title, Cause, Status, and PRs only when PRs exist, in that order. Read the saved root
+The root body contains Title, Cause, Status, then PRs when present. Read the saved root
 before editing to preserve current facts and links, then render this format. Remove extra
 sections and commentary already present; preserving facts does not mean preserving prose.
 
@@ -86,15 +85,15 @@ omit it when the question is self-contained. Do not paste internal reports or ch
 The final ready-for-review summary links the fix, tests, and lessons PRs, briefly states
 readiness and material limits, and requests feedback and staging follow-up. For example:
 "Ready for review: <fix-pr-url|Fix and cases>, <bruno-pr-url|API tests>, <lessons-pr-url|Lessons>.
-A/B checks support the correction; API tests reproduce the issue before deployment.
+A/B checks support the correction; API tests reproduce the issue before staging deployment.
 Please follow up when the fix is deployed to staging. If applicable, provide any relevant
 deployment details so I can verify the fix."
 Adapt this to assessed facts; a PR proposes a correction, while test results provide evidence.
-Use clickable `<actual-url|label>` links from the case record or tool results. Keep detailed
-findings and evidence in Jira, PRs, and CI rather than reproducing them in Slack.
+Use clickable `<actual-url|label>` links from the case record or tool results so readers can
+open the detailed findings and evidence without reproducing them in Slack.
 
-After a question is answered, update the root status and resume work. A routine resolution
-or expected verification result needs no separate reply.
+After a question is answered, update the root status. A routine resolution or expected
+verification result needs no separate reply.
 
 ## 4. Deliver and record the update
 
