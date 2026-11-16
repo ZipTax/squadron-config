@@ -13,6 +13,9 @@ other work from the same assignment publishable.
 
 Choose a root edit, an allowed thread reply, or no Slack update. If no publication rule
 below applies, finish the assigned work and report back without posting.
+For a thread reply, identify what the reader learns or can act on: a changed understanding
+of the problem, an artifact ready to review, evidence about whether the fix works, or a
+decision needed to continue. Activity alone is not meaningful progress.
 
 **Update the root** when the case status, accepted Cause, or PR links change.
 A stage transition changes the root status; it does not need a thread reply.
@@ -39,7 +42,8 @@ as a separate thread reply. These are two distinct updates, not two copies of th
 
 For example, a report that the investigation session is suspended, no fix session exists,
 and development should start gets **no thread post**, even when the inspection corrected
-stale state. Report the findings to the commander and retain the bookkeeping in the case record. If it creates a human dependency, ask for the
+stale state. Report the findings to the commander and retain the bookkeeping in the case
+record. If it creates a human dependency, ask for the
 needed action and explain its consequence, following your task instructions and `blocked_run`.
 
 ## 2. Compose the root
@@ -72,6 +76,16 @@ PRs:
 ```
 
 ## 3. Compose a permitted reply
+
+Write every update in product language: name the affected behavior, what changed or was
+established, and why it matters. A reader should understand it without knowing the database
+schema, repository layout, or orchestration. A short technical report is still a technical
+report; translate its meaning instead of shortening its vocabulary.
+
+Share artifacts with a labeled link and enough context to know why to open them. A PR
+proposes a correction; authored tests establish coverage; assessed results provide evidence.
+Keep those claims distinct. Include material limits or decisions that affect readiness.
+"Fix PR ready" and "tests complete" alone do not explain what was delivered or established.
 
 ### Investigation summaries
 
@@ -108,8 +122,12 @@ local tax is preserved." Keep implementation details and supporting logs in link
 
 Report the relevant case outcome, not the internal session report:
 
-- Result: "API tests still show local tax being cleared after deployment; the fix session
-  is investigating." Include the CI link.
+- Artifact: "<fix-pr-url|Fix PR> adds a ZIP+4 override so affected addresses receive the
+  correct local tax. Staging verification is pending."
+- Coverage: "<bruno-pr-url|API tests> cover the corrected local tax and unchanged neighboring
+  addresses; the affected addresses still fail before deployment. <run-url|CI results>."
+- Result: "After deployment, local tax is still being cleared for affected addresses.
+  The fix needs further correction. <run-url|CI results>."
 - Question: "Please follow up when the fix is deployed to staging. If applicable, provide
   any relevant deployment details so I can verify the fix."
 - Resolution: "Deployment is confirmed; resuming verification."
