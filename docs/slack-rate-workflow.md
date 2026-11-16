@@ -9,7 +9,8 @@
    checks the current work and directs corrections to the existing sessions.
 5. After you deploy to staging, tell Squadron through the review prompt. It reviews fresh
    Bruno CI results, delegates unexpected results for correction, and updates Slack.
-6. When the PRs are merged and requested checks are settled, tell Squadron to finish the case.
+6. When the PRs are merged, tell Squadron to finish the case. Production checks require
+   an explicit request.
 
 Investigation results are posted in product language on the ticket. The Slack message is
 updated for progress. Thread posts are limited to questions, blockers, and the final
@@ -85,10 +86,12 @@ captures remain in the case record and linked work, rather than an appended Cont
 
 The review prompt keeps Squadron available for feedback after the initial audit. If you
 message a Devin session directly, ask Squadron to re-audit so it can collect that session's
-latest work and reassess the change. Each round returns to the same review prompt flow.
+latest work and reassess the change. While PRs remain open, each round returns to the same review prompt flow.
 Use its Answer control; ordinary Slack replies are conversation, not answers to Squadron.
 
 "Awaiting review" means the work is ready for your feedback. It does not mean the changes
-have been merged. You can also explicitly end the review and retain the case for later use.
+have been merged. Merged PRs finish the workflow, even if a staging check remains pending;
+Squadron retains that limitation without claiming verification passed. You can also explicitly
+end the review and retain the case for later use.
 
 For Slack credentials and channel selection, see [Slack setup](slack-setup.md).
