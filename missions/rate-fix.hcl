@@ -239,11 +239,6 @@ mission "rate_fix" {
 
       Read the diagnosis, complete findings, and cited evidence from the maintained case.
 
-      Return session states, ownership discrepancies, and the recommended entry as internal
-      task output for routing, not as a Slack report. Load case_slack before any Slack write;
-      this entry task creates or restores the root without a handoff reply. Post a question only if an operator decision
-      is required to continue, using blocked_run.
-
       # 3. Inspect the handoff
 
       Check the investigation, fix, and cases owners recorded in lanes.

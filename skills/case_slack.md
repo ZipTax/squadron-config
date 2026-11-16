@@ -6,9 +6,13 @@ See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-t
 
 ## 1. Decide what to publish
 
-Task output is internal context for the commander and routing, not a draft Slack message.
-Before a gateway post, select an allowed case update below. If none applies, return the
-task result without posting. A completed inspection does not itself justify a message.
+Before composing a message, distinguish reporting to the commander from publishing to Slack.
+Session inspections and handoff checks inform the commander's decisions; report those
+findings back without a gateway post. Using this skill to maintain the root does not make
+other work from the same assignment publishable.
+
+Choose a root edit, an allowed thread reply, or no Slack update. If no publication rule
+below applies, finish the assigned work and report back without posting.
 
 **Update the root** when the case status, accepted Cause, or PR links change.
 A stage transition changes the root status; it does not need a thread reply.
@@ -33,8 +37,9 @@ as a separate thread reply. These are two distinct updates, not two copies of th
 - Routing decisions, checkpoint maintenance, or inventories of work not yet started.
 - Findings or artifacts already reported, without a meaningful change.
 
-For example, omit "Triage complete; findings intact, session suspended, no fix PR yet."
-Keep that bookkeeping in the case record. If it creates a human dependency, ask for the
+For example, a report that the investigation session is suspended, no fix session exists,
+and development should start gets **no thread post**, even when the inspection corrected
+stale state. Report the findings to the commander and retain the bookkeeping in the case record. If it creates a human dependency, ask for the
 needed action and explain its consequence, following your task instructions and `blocked_run`.
 
 ## 2. Compose the root

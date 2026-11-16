@@ -130,11 +130,6 @@ mission "rate_triage" {
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
       count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
-      Return session states, ownership discrepancies, and the recommended entry as internal
-      task output for routing, not as a Slack report. Load case_slack before any Slack write;
-      this entry task creates or restores the root without a handoff reply. Post a question only if an operator decision
-      is required to continue, using blocked_run.
-
       # 3. Inspect existing work
 
       Apply delegated_session for candidate validation, resumability, and provenance.
@@ -519,13 +514,10 @@ mission "rate_triage" {
 
       Before routing an accepted investigation, use case_slack to replace the root's provisional
       Cause with the established problem and its effect, preserving remaining uncertainty.
-      Load case_slack and apply its investigation-summary guidance to both the Cause and reply.
-      For example, Cause: "Incorrect Washington tax settings exempt sales-tax-holiday items
-      and software maintenance that should be taxable during the applicable periods."
-      Reply: "Investigation confirmed incorrect Washington exemptions for sales-tax-holiday
-      items and software maintenance. <jira-url|Findings and applicable dates>."
-      Keep the detailed product-language investigation explanation on Jira; retain complete
-      technical findings in the case handoff.
+      Reply with the accepted finding and the Jira explanation link. For example: "TIC 99985
+      is missing from the catalog, so carbon credits default to taxable; <jira-url|the ticket>
+      details the affected jurisdictions." Keep the detailed product-language investigation
+      explanation on Jira.
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
