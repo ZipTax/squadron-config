@@ -9,6 +9,9 @@ This repo defines the agents, models, plugins, skills, and missions used to auto
 A task's objective goes to its commander. The commander delegates tool work to the Squadron
 agents selected by the task's `agents` field. Those agents use their configured tools to
 coordinate Devin sessions and perform other assigned actions, such as Slack updates.
+Tool availability is determined at the delegated agent: a tool absent from the commander's
+own tool list may still be available through that agent. Skills guide the agent's tool use;
+they are not separate agents or capabilities to look for in the commander's tool list.
 
 | Definition | Responsibility |
 | --- | --- |
