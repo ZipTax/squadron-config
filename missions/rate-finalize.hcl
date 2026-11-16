@@ -527,9 +527,12 @@ mission "rate_finalize" {
          should-change tests fail before staging deployment and pass after it;
          guardrails normally pass in both states.
          If an accepted case-specific limitation prevents guardrails from passing before
-         staging deployment, preserve its evidence and verify those checks after staging
-         deployment. Expected failures or accepted limitations allow review to continue,
-         but leave staging verification pending while PRs remain open.
+         staging deployment, include those checks in the staging verification still required.
+         When failures are expected until staging deployment, return to step 1 and ask the
+         operator to confirm when the fix is deployed to staging. Hold this task open on that
+         no-timeout ask until confirmation, then perform step 3. "Known to fail until deploy"
+         explains the result; it does not complete review. Only step 4's closure conditions
+         end the wait without staging verification.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
       4. Use verdict_loop to continue corrections while progress is being made. If progress
          stalls or more information is needed, ask the operator with the unresolved findings
