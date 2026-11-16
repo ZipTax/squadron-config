@@ -28,7 +28,7 @@ otherwise continue correction work and maintain the root status.
 
 ## 2. Compose the root
 
-The root body must contain only the four fields below, in this order. Read the saved root
+The root body contains Title, Cause, Status, and PRs only when PRs exist, in that order. Read the saved root
 before editing to preserve current facts and links, then render this format. Remove extra
 sections and commentary already present; preserving facts does not mean preserving prose.
 
@@ -39,6 +39,8 @@ sections and commentary already present; preserving facts does not mean preservi
 - **Status:** the complete label specified in your task instructions, including its emoji.
 - **PRs:** one labeled link per line, using repository and purpose, such as
   `txc-sqlserver-database fix`, `txc-bruno tests`, or `squadron-config lessons`.
+  If no PRs exist, omit the entire section, including the `PRs:` heading, so the gateway
+  mission links below it do not appear to be PR entries.
 
 Do not add change summaries, branch names, commit hashes, labels, database objects, row counts,
 test results, or audit commentary to the root. Do not annotate PR links with those details.
@@ -99,7 +101,7 @@ Use `rate_checkpoint` to maintain the case memory.
    existing conversation regardless of that initial channel choice. Save the returned ID
    immediately in `slack.root_message_id`, together with the full text and runtime's mission
    thread ID; clear `root_post_pending`. Later updates reuse this root.
-3. **Edit the root:** render only the four root fields using the latest case facts. Persist `root_text` with
+3. **Edit the root:** render the root fields above using the latest case facts, omitting PRs when empty. Persist `root_text` with
    `update_pending: true`, then call `gateway.edit` with the saved ID and complete text.
    On success, save `published_text` and clear `update_pending`.
 4. **Post a permitted reply:** routing comes from the mission thread; omit payload routing

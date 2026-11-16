@@ -22,8 +22,9 @@ upon completion for reference or reuse.
 
 ## Example: root changes and thread replies
 
-One root stays at the top: ticket title, short Cause, Status, and labeled PR links, followed
-by the gateway's mission links. The table shows edits to that same root and separate replies.
+One root stays at the top: ticket title, short Cause, Status, and labeled PR links when
+PRs exist, followed by the gateway's mission links. Omit the PRs heading and list until
+there is a PR, so mission links do not look like PR entries. The table shows edits to that same root and separate replies.
 Example findings are illustrative. Replace URL placeholders with actual URLs; the examples
 show Slack link syntax so labels become clickable rather than plain PR numbers.
 
