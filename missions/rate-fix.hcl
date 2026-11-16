@@ -214,11 +214,6 @@ mission "rate_fix" {
 
   task "enter_fix" {
     objective = <<-EOT
-      1. Validate the start event.
-      2. Restore the case and Slack root.
-      3. Inspect the handoff.
-      4. Select the entry.
-
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
@@ -252,14 +247,18 @@ mission "rate_fix" {
 
       # 4. Select the entry
 
-      Missing or empty findings require report recovery through delegated_session in the
-      selected work stage before it acts on the requirement; preserve any legacy authority.
-      Use the requested entry unless a writing lane needs an owner: a dead fix owner changes
-      an author_tests/audit/bruno_tests entry to develop; a dead cases owner changes an
-      audit/bruno_tests entry to author_tests. When both are dead, develop comes first because
-      cases must cover the adopted fix. These stages adopt existing artifacts rather than recreate
-      them. A missing investigation session alone does not prevent audit from asking other
-      available Devin sessions for evidence.
+      Select the entry in this order:
+      1. If the requested entry is author_tests, audit, or bruno_tests and the fix owner is
+         absent or confirmed unable to continue, select develop to adopt the existing fix.
+      2. Otherwise, if the requested entry is audit or bruno_tests and the cases owner is
+         absent or confirmed unable to continue, select author_tests to adopt the existing cases.
+      3. Otherwise retain the requested entry. A missing investigation session alone does
+         not prevent audit from asking another available Devin session for evidence.
+      A failed status read does not establish that an owner cannot continue; recover its
+      state through delegated_session before selecting replacement work.
+      When both writing owners need replacement, recover the fix first so cases cover the
+      adopted implementation. Flag missing findings for report recovery through delegated_session
+      in the selected stage before it acts; preserve legacy authority. Save the entry before routing.
     EOT
     agents = [agents.session_scout]
 
@@ -309,11 +308,6 @@ mission "rate_fix" {
 
   task "develop" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Delegate to Devin.
-      3. Assess the result.
-      4. Finish or pause.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `develop`.
@@ -321,7 +315,7 @@ mission "rate_fix" {
 
       Obtain a reviewable fix for ${inputs.issue} in ${inputs.repo_url} from the supplied diagnosis.
 
-      # 2. Delegate to Devin
+      # 2. Brief the existing owner or create a replacement
 
       Use delegated_session to resume the registered owner. When a new owner is needed, call
       plugins.devin.code_develop with !rate-fix in the task, `prompt_mode: "raw"`,
@@ -336,18 +330,17 @@ mission "rate_fix" {
       An existing PR is an adoption task, not a rewrite.
       If its branch is unknown, have Devin resolve it from that PR before making changes.
 
-      # 3. Assess the result
+      # 3. Assess the result and resolve gaps
 
-      Collect Devin's result with check_session. Require a PR for completed work and investigate
-      any reported contradiction with the diagnosis. Have Devin resolve missing support or
-      contradictions in the affected finding before accepting completed work.
-      A missed applicable path within the diagnosis goes back to the fix owner, not to a human
-      asked whether inconsistent checkout, import, or filing behavior is acceptable.
-      Require the fix owner’s impact_radius assessment and test recommendation from the actual
-      diff, maintained in the PR’s Impact radius section. Accept it when the rationale supports
-      the proposed coverage; otherwise ask the fix owner to resolve the specific gap.
+      1. Collect the result with check_session and require a PR before accepting completion.
+      2. Check reported contradictions or missing support against the diagnosis. Return
+         gaps and missed applicable paths to the fix owner for correction, then reassess
+         in this task. A path already required by the diagnosis is not an operator decision.
+      3. Assess the fix owner's impact_radius and test recommendation from the actual diff
+         and maintained PR Impact radius section. Accept supported coverage or return the
+         specific gap to the owner before proceeding.
 
-      # 4. Finish or pause
+      # 4. Complete the stage or retain its pending work
 
       When the fix PR is ready, add its labeled link to the root's PR list using case_slack.
       If findings need revision, have the investigation session assess them before changing
@@ -434,11 +427,6 @@ mission "rate_fix" {
 
   task "author_tests" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Delegate to Devin.
-      3. Assess the result.
-      4. Finish or pause.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `author_tests`.
@@ -446,27 +434,27 @@ mission "rate_fix" {
 
       Obtain ratevariant coverage for ${inputs.issue} on the existing fix branch.
 
-      # 2. Delegate to Devin
+      # 2. Brief the existing owner or create a replacement
 
       Read the fix PR/branch from artifacts and resume the cases owner in lanes through
       delegated_session. If a replacement is needed, call
       plugins.devin.code_develop on ${inputs.repo_url}, with !ratevariant-cases in the task,
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-cases"]`. Ask it to adopt existing cases.
 
-      Supply the PR, prior coverage, outstanding questions, and the stored diagnosis.
+      Supply the PR, prior coverage, outstanding questions, diagnosis, and latest accepted
+      per-issue findings. Recover missing report context through delegated_session.
 
       Devin selects situations and investigates fixtures using the playbook. Case YAML describes
       inputs, not expected outputs.
 
-      Supply the latest accepted findings, using delegated_session for report recovery.
+      # 3. Assess the result and resolve gaps
 
-      # 3. Assess the result
+      Collect the result with check_session. For each affected root, require offline validation
+      and either coverage or an evidenced gap. If support is missing, ask the cases owner to
+      investigate and reassess its response in this task. Preserve the accepted per-issue
+      requirements; do not invent a fixture to fill missing evidence.
 
-      Collect the result with check_session. Require offline validation and coverage or an
-      evidenced gap for each affected root. Ask Devin to investigate missing support rather than
-      inventing a fixture yourself. Case authoring preserves the accepted per-issue requirements.
-
-      # 4. Finish or pause
+      # 4. Complete the stage or retain its pending work
 
       Keep the root's PR links current using case_slack.
 
@@ -533,11 +521,6 @@ mission "rate_fix" {
 
   task "audit" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Work with Devin.
-      3. Assess the evidence.
-      4. Finish or pause.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `audit`.
@@ -545,9 +528,10 @@ mission "rate_fix" {
 
       Judge the ratevariant evidence for ${inputs.issue} and coordinate evidenced corrections.
 
-      # 2. Work with Devin
+      # 2. Obtain predictions and run evidence
 
-      Read the fix PR, cases mode, and lane owners from the case. Check available sessions
+      Read the fix PR, cases mode, lane owners, and accepted per-issue findings from the case.
+      Recover missing findings through delegated_session. Check available sessions
       and use send_message/check_session for bounded evidence requests.
       Do not use code_qa. A missing investigation owner is not a reason to stop: ask an available
       Devin session with relevant context to investigate. Evidence gathering does not change its
@@ -563,34 +547,31 @@ mission "rate_fix" {
       and recommendation. If a migration changes, have the cases owner update its alteration
       too. Use session_lane when a request includes editing shared PR content.
 
-      Supply the latest accepted findings, using delegated_session for report recovery.
+      # 3. Select the verdict and perform its required action
 
-      # 3. Assess the evidence
+      Apply evidence_gate, ab_audit, and txc_rate_audit to captures for each required mode,
+      using run details from the automatic GitHub result comment. Obtain predictions before
+      examining results. A plan, diff, absent diff, or author assurance is not sufficient evidence.
 
-      Apply evidence_gate, ab_audit, and txc_rate_audit. Obtain predictions before examining results.
-      Assess captures for the required modes using the run details in the automatic GitHub
-      result comment. A successful plan, a diff, an absent diff, or an author's assurance is
-      not enough to pass.
+      - CASES_INADEQUATE: request an evidenced coverage correction from the cases owner.
+      - FIX_OR_TICKET_WRONG: request an implementation correction from the fix owner.
+      - SATISFACTORY: accept only with support for the findings' treatment and dates as well
+        as the A/B outcome. Return missing support to the appropriate owner before accepting.
+      - FIX_IS_NO_OP: require positive proof of correct prior behavior or a dead changed
+        branch. Ask Devin to verify read-only, post the product-level finding using
+        writing-ticket-updates, and add a PR note. Stop case work; do not close or revert the PR.
 
-      CASES_INADEQUATE calls for an evidenced coverage correction; FIX_OR_TICKET_WRONG calls for
-      an implementation correction. Keep expected-output analysis outside case YAML. A
-      SATISFACTORY result requires support for the implemented findings' treatment and dates;
-      a passing A/B does not supply missing support. Have Devin resolve gaps in the affected
-      finding before accepting that result. FIX_IS_NO_OP requires positive evidence of correct prior behavior
-      or a dead changed branch, not just failure to reproduce.
+      For corrections, use verdict_loop and repeat steps 2-3 in this task while making progress.
+      Keep expected-output analysis outside case YAML.
 
-      # 4. Finish or pause
+      # 4. Complete the stage or retain its pending work
 
       Use case_slack for root status updates and any blocker requiring attention.
 
-      Use verdict_loop: continue while making progress; ask the operator when progress
-      stalls or more information is needed. Preserve the supported verdict. On FIX_IS_NO_OP, ask Devin to verify
-      read-only, post the product-level finding using writing-ticket-updates, and add a PR note;
-      do not close or revert the PR. Stop further case work.
-
-      Terminal CASES_INADEQUATE or FIX_OR_TICKET_WRONG does not proceed. Use blocked_run and
-      rate_checkpoint when a human answer is needed. A coverage limit for a reviewer does not
-      require inventing a Jira question.
+      Route SATISFACTORY to Bruno authoring or FIX_IS_NO_OP to finalization as declared below.
+      If corrections stall or need a human answer, use blocked_run and rate_checkpoint,
+      retaining the supported verdict and pending work. Terminal CASES_INADEQUATE or
+      FIX_OR_TICKET_WRONG does not proceed. A coverage limit alone does not require a Jira question.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
@@ -666,11 +647,6 @@ mission "rate_fix" {
 
   task "bruno_tests" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Delegate to Devin.
-      3. Assess the result.
-      4. Finish or pause.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `bruno_tests`.
@@ -678,7 +654,7 @@ mission "rate_fix" {
 
       Obtain API regression coverage for ${inputs.issue} after a SATISFACTORY audit.
 
-      # 2. Delegate to Devin
+      # 2. Brief the existing owner or create a replacement
 
       Read the fix PR and branch from artifacts.fix_pr.
       Resume the checkpoint's Bruno owner through delegated_session. When a new owner is needed,
@@ -686,30 +662,31 @@ mission "rate_fix" {
       https://github.com/FedTax/txc-bruno, !bruno-regression in the task, `prompt_mode: "raw"`,
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
-      Supply the ticket, PR, accepted audit results, investigation findings, and open questions.
+      Supply the ticket, PR, accepted audit results, latest per-issue investigation findings,
+      and open questions. Recover missing report context through delegated_session.
       Devin authors and reviews the regressions following !bruno-regression; CI runs them in staging.
 
-      Supply the latest accepted findings, using delegated_session for report recovery.
+      # 3. Assess the result and resolve gaps
 
-      # 3. Assess the result
+      1. Collect the result with check_session. Require cited authority for assertions and
+         an explicit reason for each unwritten scenario.
+      2. Assess CI against staging deployment state: should-change tests fail before the fix
+         is deployed to staging and pass afterward; guardrails pass in both states.
+         Send unexpected results to the appropriate owners for correction and reassess
+         in this task while progress is being made.
+      3. Save the assessed attempt-specific CI link as the baseline before staging deployment;
+         a run-level link changes its displayed result when CI is rerun.
 
-      Collect Devin's result with check_session. Require cited authority for assertions and an
-      explicit reason for unwritten scenarios. Assess CI results against deployment state:
-      should-change tests fail before deployment and pass afterward; guardrails pass in both.
-      Expected pre-deployment failures demonstrate the regression and allow this stage to finish.
-      Save the assessed attempt-specific CI link in the case record as the pre-deployment
-      baseline; a run-level link changes its displayed result when CI is rerun.
-      Send unexpected results to the owning sessions for assessment and correction.
-
-      # 4. Finish or pause
+      # 4. Complete the stage or retain its pending work
 
       Add the Bruno PR's labeled link to the root using case_slack.
 
-      Completed work proceeds to finalization. Continue technical corrections while making
-      progress. If progress stalls or more information is needed, ask the operator with
-      the remaining failures and evidence.
-      Save failed work with next entry bruno_tests so it can resume after direction.
-      For needs_human, use blocked_run and rate_checkpoint with next entry bruno_tests.
+      - Authored tests and assessed CI match the staging state: complete this stage and route
+        to finalization. Expected failures before staging deployment demonstrate the regression;
+        the final review task waits for staging deployment and verifies the deployed fix.
+      - Corrections stall or need information: ask the operator with the remaining failures
+        and evidence. Use blocked_run and rate_checkpoint for needs_human, retaining
+        bruno_tests as the next entry for failed or blocked work.
     EOT
     agents  = [agents.test_authoring_coordinator]
 

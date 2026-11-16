@@ -104,12 +104,6 @@ mission "rate_triage" {
 
   task "discover_sessions" {
     objective = <<-EOT
-      1. Validate the start event.
-      2. Restore the case and Slack root.
-      3. Inspect existing work.
-      4. Assess ownership.
-      5. Finish discovery.
-
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
@@ -130,39 +124,43 @@ mission "rate_triage" {
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
       count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
-      # 3. Inspect existing work
+      # 3. Find and validate existing work
 
-      Apply delegated_session for candidate validation, resumability, and provenance.
-      Read the Jira Devin Sessions field ${vars.jira_sessions_field} using getJiraIssue with
-      cloudId "${vars.jira_cloud_id}". Extract its tag/URL lines from the ADF paragraphs. Only
-      if that field is empty, absent, or refused, fall back to find_sessions(tags: ["${inputs.issue}"]).
-      Check candidate sessions for actual lane work and verdicts; a writeback-only session is
-      never an investigation owner. A refused read is not evidence that no session exists.
+      1. Read the Jira Devin Sessions field ${vars.jira_sessions_field} using getJiraIssue
+         with cloudId "${vars.jira_cloud_id}". Extract tag/URL lines from the ADF paragraphs.
+      2. If the field is empty, absent, or refused, call find_sessions(tags: ["${inputs.issue}"]).
+      3. Validate candidates through delegated_session. Check actual lane work, verdicts,
+         and resumability; a writeback-only session cannot own investigation. Treat a refused
+         read as unavailable history, not proof that no session exists.
 
-      # 4. Assess ownership
+      # 4. Select the owner and recover the handoff
 
-      Honor explicit inputs: live override "${inputs.wip_investigation_session_id}", terminated
-      context override "${inputs.stale_investigation_session_id}", WAI challenge "${inputs.wai_challenge}" or the saved context.wai_challenge.
-      Otherwise keep the checkpoint's exact lane owner; discovery ranking is only for a lane
-      without recorded ownership. Record other candidates and disagreements without blending
-      reports. If indexes fail, check recorded ids and label unverified checkpoint facts recorded;
-      only with no usable history or checkpoint may you start blind, history_provenance none.
+      Select ownership in this order:
+      1. Honor live override "${inputs.wip_investigation_session_id}" or terminated-context
+         override "${inputs.stale_investigation_session_id}" when supplied.
+      2. Otherwise retain the checkpoint's exact owner. Rank discovered candidates only
+         when that lane has no recorded owner.
+      3. If indexes failed, check recorded IDs and label unverified facts as recorded.
+         Set history_provenance to none only when neither usable history nor a checkpoint exists.
+      Preserve other candidates and disagreements separately so reports are not blended.
+      Carry WAI challenge "${inputs.wai_challenge}" or the saved context.wai_challenge.
 
       Honor recorded entry stage "${inputs.entry_stage}" after validating checkpoint ownership.
       For a fix-lane resumption, recover mechanism, disposition, affected_roots, per-issue findings, and cited evidence
       from the checkpoint and its recorded investigation report. Reading that accepted report
       restores the handoff; it does not require a fresh investigation or a messageable author.
 
-      # 5. Finish discovery
+      # 5. Select the continuation and finish
 
       Apply blocked_run's trigger-label entry step using editJiraIssue label removal only.
       The selected work stage delegates interpretation of new answers; discovery does not decide
       whether a tax or product question is settled.
 
-      For an active case, prefer its downstream resume stage (develop, author_tests, audit,
-      bruno_tests, record_learnings, or review_followup) when its verdict and required artifacts remain valid. Carry its state
-      and selected entry forward. If contradictory or incomplete, leave resume_stage blank and
-      explain why investigation must reconsider the premise. Otherwise select one entry mode:
+      If an active case has a valid verdict and the required artifacts for its recorded
+      downstream stage, select that resume_stage and carry its state forward: develop,
+      author_tests, audit, bruno_tests, record_learnings, or review_followup.
+      Otherwise leave resume_stage blank, explain any contradictory or incomplete premise,
+      and select the first applicable investigation entry:
 
       - confirm_wai: a WAI challenge is present or a prior verify-wai result refuted WAI; preserve
         the rebuttal and evidence in prior_context.
@@ -170,8 +168,9 @@ mission "rate_triage" {
       - forward: its report is readable but the owner is terminated/expired; preserve attribution.
       - start: no investigation owner is known.
 
-      Leave the answer assessment to the routed stage. Do not mine PR descriptions for
-      workflow state; use artifact links and returned session evidence to identify the fix.
+      Save the selected entry and accepted state before completing discovery. Leave answer
+      assessment to the routed stage. Identify a fix from artifact links and session evidence,
+      not workflow state inferred from PR prose.
     EOT
     agents = [agents.session_scout]
 
@@ -282,10 +281,6 @@ mission "rate_triage" {
 
   task "start_investigation" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Delegate to Devin.
-      3. Assess and finish.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `start_investigation`.
@@ -301,7 +296,7 @@ mission "rate_triage" {
       reported behavior. If discovery could not establish prior history, tell Devin that existing
       work may be unknown; do not turn this operational caveat into a requested ticket update.
 
-      # 3. Assess and finish
+      # 3. Collect the supported result and hand off
 
       Collect the result through check_session. Apply rate_investigation's evidence and completion
       criteria; ask for any missing support. Assessment handles the accepted verdict and next route.
@@ -327,10 +322,6 @@ mission "rate_triage" {
 
   task "confirm_wai" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Delegate to Devin.
-      3. Assess and finish.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `confirm_wai`.
@@ -353,7 +344,7 @@ mission "rate_triage" {
       account is correct. Ask Devin to annotate the prior Jira conclusion as under investigation
       using writing-ticket-updates, so readers do not mistake it for a settled answer.
 
-      # 3. Assess and finish
+      # 3. Collect the supported result and hand off
 
       Collect the result with check_session and apply rate_investigation's acceptance criteria.
       Assessment handles the supported verdict and routing.
@@ -379,10 +370,6 @@ mission "rate_triage" {
 
   task "continue_investigation" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Work with Devin.
-      3. Assess and finish.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `continue_investigation`.
@@ -392,12 +379,14 @@ mission "rate_triage" {
 
       # 2. Work with Devin
 
-      Call check_session first. If work remains, send_message with only the
-      unanswered question and new evidence, following rate_investigation and delegated_session.
-      Do not repeat the full investigation brief. If the selected session is no longer messageable,
-      report the discovery discrepancy rather than silently replacing it on this continuation path.
+      Call check_session before sending work, then select the applicable path:
+      - Supported result already available: proceed to step 3 without restarting investigation.
+      - Work remains and the owner is messageable: use send_message with the unanswered
+        question and new evidence, following rate_investigation and delegated_session.
+      - Owner is no longer messageable: report the discovery discrepancy; do not silently
+        replace the owner on this continuation path.
 
-      # 3. Assess and finish
+      # 3. Collect the supported result and hand off
 
       Reuse an already supported result without restarting work. Otherwise collect the follow-up
       and apply rate_investigation's acceptance criteria before handing it to assessment.
@@ -423,10 +412,6 @@ mission "rate_triage" {
 
   task "forward_investigation" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Work with Devin.
-      3. Assess and finish.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `forward_investigation`.
@@ -443,7 +428,7 @@ mission "rate_triage" {
       `prompt_mode: "raw"`, and tags `["${inputs.issue}", "rate-investigation"]`. Supply the attributed report
       and the specific gaps, following rate_investigation; do not ask for a restart from zero.
 
-      # 3. Assess and finish
+      # 3. Collect the supported result and hand off
 
       Apply rate_investigation's acceptance criteria. Keep inherited claims attributed until
       Devin checks their evidence. Hand the result to assessment with the actual session ownership
@@ -482,10 +467,6 @@ mission "rate_triage" {
 
   task "assess_investigation" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Obtain and assess evidence.
-      3. Finish or pause.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `assess_investigation`.
@@ -495,33 +476,32 @@ mission "rate_triage" {
       Repository: ${inputs.repo_url}; base branch: ${inputs.base_branch}. Read the WAI refire
       count from the case, using ${inputs.wai_refire_count} only for legacy recovery.
 
-      # 2. Obtain and assess evidence
+      # 2. Resolve evidence gaps before accepting a disposition
 
-      Retrieve the Devin result with check_session and apply rate_investigation.
-      Use Devin's per-issue findings as the requirement. Recover older reports through
-      delegated_session before accepting the handoff; return unfinished research to Devin.
-      Confirm the selected session actually investigated: a comment-only session is a discovery
-      error, not evidence that an investigation found nothing. Ask Devin bounded questions for
-      missing or contradictory support. Use delegated_session when the original session cannot
-      answer; do not infer a verdict from a summary.
+      1. Retrieve the Devin result with check_session. Confirm that the selected session
+         investigated; a comment-only session is a discovery error, not an empty finding.
+      2. Apply rate_investigation to the per-issue findings. Recover older report formats
+         through delegated_session before assessing the handoff.
+      3. If support is missing or contradictory, ask Devin bounded questions and reassess
+         the returned evidence in this task. If the original owner cannot answer, use
+         delegated_session to recover evidence. Accept a disposition only when supported;
+         a summary alone does not establish a verdict.
 
       For an existing fix PR, also check its owner's resumability so implementation can adopt the
       PR if needed. Query discovery's structured output and the investigation result to preserve
       the known PR even when its owner is unavailable. Preserve the strength of the findings and
       all outstanding questions.
 
-      # 3. Finish or pause
+      # 3. Publish the accepted Cause and select the outcome
 
-      Before routing an accepted investigation, use case_slack to replace the root's provisional
-      Cause with the established problem and its effect, preserving remaining uncertainty.
-      Keep the detailed product-language investigation explanation on Jira; do not post
-      a separate investigation summary in Slack.
-
-      Use the declared routes for a supported result. A proven unsupported disposition needs the
-      limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
-      Use txc_production_evidence for production-tool gaps and blocked_run for the resulting
-      operator dependency. Use sme_writeback for supported product findings or questions.
-      Preserve insufficient_production_evidence when the data cannot support a conclusion.
+      - Supported disposition: use case_slack to replace the provisional Cause with the
+        established problem and effect, including remaining uncertainty. Keep the detailed
+        product-language explanation on Jira through sme_writeback. For a proven unsupported
+        disposition, complete rate_investigation's limitation writeback. Select the declared route.
+      - EVIDENCE_INCOMPLETE: do not route onward. Use txc_production_evidence for production-tool
+        gaps and preserve insufficient_production_evidence when the data cannot support a
+        conclusion. Use blocked_run for an operator dependency and sme_writeback for product questions.
+      Publish no separate investigation summary in Slack.
     EOT
     agents = [agents.taxcloud_legacy_sql_investigator]
 
