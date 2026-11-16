@@ -305,7 +305,7 @@ mission "rate_triage" {
 
       Collect the result through check_session. Apply rate_investigation's evidence and completion
       criteria; ask for any missing support. Assessment handles the accepted verdict and next route.
-      Hand findings to assess_investigation for the root Cause update.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -357,7 +357,7 @@ mission "rate_triage" {
 
       Collect the result with check_session and apply rate_investigation's acceptance criteria.
       Assessment handles the supported verdict and routing.
-      Hand findings to assess_investigation for the root Cause update.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -401,7 +401,7 @@ mission "rate_triage" {
 
       Reuse an already supported result without restarting work. Otherwise collect the follow-up
       and apply rate_investigation's acceptance criteria before handing it to assessment.
-      Hand findings to assess_investigation for the root Cause update.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -448,7 +448,7 @@ mission "rate_triage" {
       Apply rate_investigation's acceptance criteria. Keep inherited claims attributed until
       Devin checks their evidence. Hand the result to assessment with the actual session ownership
       and resumability described by the output contract.
-      Hand findings to assess_investigation for the root Cause update.
+      Hand findings to assess_investigation for the root Cause and accepted-result reply.
     EOT
     agents  = [agents.taxcloud_legacy_sql_investigator]
 
@@ -514,8 +514,10 @@ mission "rate_triage" {
 
       Before routing an accepted investigation, use case_slack to replace the root's provisional
       Cause with the established problem and its effect, preserving remaining uncertainty.
-      Keep the detailed product-language investigation explanation on Jira; do not post
-      a separate investigation summary in Slack.
+      Reply with the accepted finding and the Jira explanation link. For example: "TIC 99985
+      is missing from the catalog, so carbon credits default to taxable; <jira-url|the ticket>
+      details the affected jurisdictions." Keep the detailed product-language investigation
+      explanation on Jira.
 
       Use the declared routes for a supported result. A proven unsupported disposition needs the
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
