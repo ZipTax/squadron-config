@@ -38,7 +38,9 @@ The root body contains Title, Cause, Status, then PRs when present. Read the sav
 before editing to preserve current facts and links, then render this format. Remove extra
 sections and commentary already present; preserving facts does not mean preserving prose.
 
-- **Title:** ticket key and title.
+- **Title:** link the ticket key to its Jira ticket, followed by the title, so readers can
+  open the ticket from the header. Use Slack `<ticket-url|ticket-key>` syntax and the
+  ticket's actual browse URL.
 - **Cause:** the accepted problem and its effect, with uncertainty where needed. Keep it
   to two sentences and at most 30 words. Do not include the proposed solution or
   implementation details. Use "Under investigation" until an accepted cause is available.
@@ -55,7 +57,7 @@ The gateway appends the mission links and requester footer; do not recreate it i
 Use Slack mrkdwn with line breaks, `*bold*` titles, and `<url|label>` links:
 
 ```text
-*DEV-10679: NEW TIC - Carbon Credits - TIC 99985*
+*<https://taxcloud.atlassian.net/browse/DEV-10679|DEV-10679>: NEW TIC - Carbon Credits - TIC 99985*
 Cause: Carbon credits are missing from the tax catalog, so purchases default to taxable even in jurisdictions where they should be exempt.
 Status: :writing_hand: Authoring Bruno tests
 PRs:
