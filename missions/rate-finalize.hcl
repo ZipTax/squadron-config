@@ -508,6 +508,11 @@ mission "rate_finalize" {
          for the whole prompt, including additional_context.
          Wait in this task; an interrupted ask retains active case state for resumption.
 
+      While deployment is pending, retain post-deployment verification as pending and return
+      to the review ask after assessing feedback. Accepting expected pre-deployment failures
+      settles their interpretation, not verification or final review. Keep this task available
+      for deployment confirmation unless the operator explicitly ends review.
+
       # 2. Assess feedback and direct corrections
 
       1. Save feedback and collect affected session results and PR heads, including changes
@@ -517,6 +522,9 @@ mission "rate_finalize" {
       3. Use case_slack to publish root status ":microscope: Auditing" before re-auditing. Use evidence_gate, ab_audit, and txc_rate_audit to re-audit
          changed work with fresh captures. Have the Bruno owner review automatic staging CI:
          should-change tests fail before deployment and pass afterward; guardrails pass throughout.
+         If an accepted case-specific limitation prevents guardrails from passing before
+         deployment, preserve its evidence and verify those checks afterward; accepting the
+         limitation does not establish a pass or settle post-deployment verification.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
       4. Use verdict_loop to continue corrections while progress is being made. If progress
          stalls or more information is needed, ask the operator with the unresolved findings
