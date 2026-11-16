@@ -492,6 +492,12 @@ mission "rate_finalize" {
       staging deployment. Use rate_case for context, rate_checkpoint for progress, and
       case_slack for root updates and questions.
 
+      Delegate the Slack update, operator question, and Devin follow-ups to the task agent.
+      These tools belong to the agent; their absence from the commander's tool list does
+      not make them unavailable. Skills such as case_slack and delegated_session guide
+      that agent's tool use. If the task agent reports a missing capability,
+      obtain its tool error or unavailable-tool details before treating the work as interrupted.
+
       # 1. Collect current work and wait
 
       1. Collect current PR states, heads, and session results through delegated_session,
@@ -499,8 +505,9 @@ mission "rate_finalize" {
          resending work. Check step 4's completion criteria before assigning more work.
       2. If the case remains open, save next entry rate_finalize/review_followup and use
          case_slack to set root status ":eyes: Awaiting review". End EVERY iteration with
-         builtins.human.ask without timeout_seconds and wait in this task, so the operator
-         can direct the next correction, confirm staging deployment, or finish review.
+         a delegated builtins.human.ask without timeout_seconds. Wait for the answer through
+         the task agent so the operator can direct the next correction, confirm staging
+         deployment, or finish review.
          This is the common return point after steps 2 and 3 and an incomplete merge check.
       3. For the initial ask, summarize readiness with labeled PR links, the accepted A/B
          outcome, Bruno's results before staging deployment, and material limits or open
@@ -578,13 +585,15 @@ mission "rate_finalize" {
       without claiming verification passed. Production checks require an explicit request.
       On closure, use case_slack to set ":white_check_mark: Closed".
       An interrupted wait retains review_followup as the next entry so the operator can resume.
+      Saving that entry does not keep the mission running: while awaiting an answer, keep
+      the delegated ask active rather than submitting interrupted and calling task_complete.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
     output {
       field "outcome" {
         type        = "string"
-        description = "merged | closed_by_operator | no_prs | interrupted. interrupted retains active case state and review_followup as the next entry."
+        description = "merged | closed_by_operator | no_prs | interrupted. interrupted is for an actual interrupted wait or an evidenced failure preventing continuation, not an unanswered active ask or the commander's lack of direct tool access; retain active case state and review_followup as the next entry."
         required    = true
       }
       field "summary" {
