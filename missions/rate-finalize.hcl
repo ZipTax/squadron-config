@@ -1,4 +1,6 @@
 mission "rate_finalize" {
+  max_parallel = 10
+
   commander {
     model = models.anthropic.claude_opus_4_7
 
