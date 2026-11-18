@@ -1,5 +1,31 @@
 # Communicate progress or updates via Slack
 
+## FORBIDDEN
+
+These restrictions apply to root edits, thread posts, and every human-ask field,
+including `additional_context`.
+
+- **Do not publish internal coordination reports:** session inventories, ownership or
+  resumability checks, handoff comparisons, absence checks, routing decisions, or
+  "everything lines up" summaries. Shortening these reports does not make them publishable.
+- **Do not publish session/checkpoint diagnostics:** session IDs, activity timestamps,
+  suspended/archived flags, checkpoint revisions, field dumps, serialized output, trigger
+  label checks, or history-provenance bookkeeping.
+- **Do not announce routine progress in the thread:** discovery complete, investigation
+  starting/finished, PR opened, tests authored, expected test results, stage transitions,
+  routine feedback completion, or closure. Update the root's permitted fields instead.
+- **Do not paste technical reports into Slack:** SQL/schema details, branch names, commit
+  hashes, test-case inventories, or raw logs. Link the relevant work and describe the
+  product consequence only when the message qualifies under section 1.
+- **Do not duplicate a human ask with a gateway post.** Put the ready-for-review summary
+  in the review ask itself.
+
+Before sending, check the message against these prohibitions and section 1's allowed
+message types. If it is only a coordination report, **send nothing**. For example,
+"Read-Only Triage Report: session suspended, fix/cases absent, no discrepancies" gets
+no thread post. If a real blocker needs human action, ask for that action and explain its
+consequence without attaching the internal report.
+
 Use these instructions to choose what belongs in Slack, compose the update, and maintain
 the saved root message.
 See the [example flow](../docs/slack-rate-workflow.md#example-root-changes-and-thread-replies) for root edits versus thread posts.
@@ -26,10 +52,7 @@ in the ticket, PR, and CI.
 For review follow-up questions, include only context needed for the next decision rather
 than repeating the initial review summary.
 
-Do not post investigation summaries, PR announcements, coverage reports, expected test
-results, stage transitions, routine feedback completion, or closure announcements.
-Session inspections, ownership checks, routing decisions, and checkpoint changes are also
-not thread updates. An unexpected test result is a thread update only when it blocks progress;
+An unexpected test result is a thread update only when it blocks progress;
 otherwise update only the root status.
 
 ## 2. Compose the root
