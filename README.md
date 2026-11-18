@@ -31,6 +31,13 @@ When writing a task objective:
    separate participants; reusing an agent profile does not identify an existing Devin session.
 3. Put repeated procedures in skills and task-specific decisions in the objective. Supply
    Devin with the relevant assignment and context; it does not inherit the mission objective.
+4. Use numbered workflow sections for required actions in execution order. Put each
+   condition beside its action and name where to continue, repeat, wait, or finish.
+   Explain consequences where they determine the action, rather than repeating the sequence
+   in a separate outline.
+5. Keep correction loops within their task: Squadron runs each task at most once.
+   Complete a task only when its acceptance or pause conditions are met; routing cannot
+   return to that task to finish an omitted step.
 
 For the rate workflow, see [phase ownership and routing](docs/rate-ticket-orchestration.md).
 

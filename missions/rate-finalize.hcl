@@ -197,11 +197,6 @@ mission "rate_finalize" {
 
   task "enter_finalize" {
     objective = <<-EOT
-      1. Validate the start event.
-      2. Restore the case and Slack root.
-      3. Inspect the handoff.
-      4. Select the entry.
-
       # 1. Validate the start event
 
       Before routing or side effects, if start event "${inputs.start_event_id}" is nonempty,
@@ -232,8 +227,11 @@ mission "rate_finalize" {
 
       # 4. Select the entry
 
-      Resume review_followup when the checkpoint records an unfinished review. Otherwise
-      select verify_wai for an unverified WAI claim, or record_learnings for accepted work.
+      Select the first applicable entry:
+      - Unfinished review in the checkpoint: resume review_followup.
+      - Unverified WAI claim: select verify_wai for an independent check.
+      - Accepted work: select record_learnings.
+      Save the selected entry and accepted state before routing.
     EOT
     agents = [agents.session_scout]
 
@@ -275,11 +273,6 @@ mission "rate_finalize" {
 
   task "verify_wai" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Delegate to Devin.
-      3. Assess the result.
-      4. Finish or pause.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `verify_wai`.
@@ -299,29 +292,30 @@ mission "rate_finalize" {
       Have the independent Devin session use the issue scopes in context.findings to
       re-derive the disputed behavior rather than treating prior conclusions as proof.
 
-      # 3. Assess the result
+      # 3. Establish a supported verdict
 
-      Collect evidence with check_session and apply evidence_gate. Confirmation requires positive
-      proof of correct behavior, not an absent reproduction. Refutation requires evidence of the
-      missed defect. Ask Devin to investigate any gap rather than choosing a side without support.
+      Collect evidence with check_session and apply evidence_gate.
+      - Positive proof of correct behavior: accept WAI_CONFIRMED.
+      - Positive evidence of a missed defect: accept WAI_REFUTED.
+      - Missing support: ask the independent session to investigate and reassess in this task.
+        If a human answer is needed, use blocked_run and rate_checkpoint; do not manufacture
+        a verdict from an absent reproduction.
 
-      # 4. Finish or pause
+      # 4. Publish the finding and take its route
 
-      Use case_slack to update the root Cause with accepted findings. Keep the independent
-      verification conclusion and evidence on Jira.
-      For WAI_REFUTED, also post a concise correction through case_slack with the Jira link
-      and the next action selected below. For example: "Verification found that the state
-      exemption incorrectly removes local tax. The case is returning to investigation.
-      <jira-url|Findings>." If the refire cap requires a decision, state that decision is
-      needed instead of promising another investigation. WAI_CONFIRMED needs no thread post.
+      Update the root Cause using case_slack, then follow the accepted verdict:
+      - WAI_CONFIRMED: ask Devin to explain the finding on Jira using writing-ticket-updates.
+        Route to record_learnings; no thread post is needed.
+      - WAI_REFUTED: preserve the prior reasoning and evidenced rebuttal as a challenge,
+        not a predetermined answer. Ask Devin to annotate the prior Jira comment as under
+        investigation. If the stored wai_refire_count < 1, select the declared triage route.
+        Otherwise use blocked_run and rate_checkpoint to ask for a decision with both
+        positions and evidence; do not re-fire investigation.
 
-      On WAI_CONFIRMED, ask Devin to explain the finding on Jira using writing-ticket-updates.
-      On WAI_REFUTED, allow the declared triage route only when the stored wai_refire_count < 1.
-      Preserve the prior reasoning and evidenced rebuttal as a challenge, not a predetermined
-      answer. Ask Devin to annotate the prior comment as under investigation. At a repeated
-      standoff, use blocked_run and rate_checkpoint to ask for the decision with both positions
-      and their evidence, rather than re-firing. Use the same pause workflow if the verification
-      itself needs a human answer; do not manufacture confirmation or refutation.
+      For WAI_REFUTED, post a concise correction with the Jira link and actual next action
+      through case_slack. Example when routing to investigation: "Verification found that
+      the state exemption incorrectly removes local tax. The case is returning to investigation.
+      <jira-url|Findings>." When the refire cap applies, say a decision is needed instead.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
@@ -380,40 +374,35 @@ mission "rate_finalize" {
 
   task "record_learnings" {
     objective = <<-EOT
-      1. Restore the case and publish the stage status.
-      2. Read the accepted findings.
-      3. Gather and record worthwhile lessons.
-      4. Finish.
-
       # 1. Restore the case and publish the stage status
 
       Apply rate_case for ${inputs.issue} at `record_learnings`.
       Use case_slack to publish root status ":memo: Recording lessons".
 
-      Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
-      worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
+      # 2. Collect and accept lesson proposals
 
-      # 2. Read the accepted findings
+      1. Read the verdict, close reason, diagnosis, per-issue findings, audit findings, and
+         PRs from the case. Recover missing report context through delegated_session.
+      2. Use enter_finalize's reachable_sessions and learnings_capture to ask each distinct
+         work session for difficult-to-discover, reusable lessons. Check rate_case_log for
+         duplicates and supporting cases when assessing its proposals.
+      3. Resolve support gaps through learnings_capture. Accept only supported lessons;
+         when none qualifies, skip writeback and proceed to step 4.
 
-      Read the verdict, close reason, diagnosis, complete findings, audit findings, and PRs
-      from the case. Ask sessions for lessons from their work.
-      Recover missing report context through delegated_session before drawing on it.
+      # 3. Complete the accepted writeback
 
-      # 3. Gather and record worthwhile lessons
+      1. Follow learnings_capture to reuse or create one writeback session for all accepted
+         lessons across repositories. Use !rate-learning-writeback with title
+         "${inputs.issue} — record learnings" and tags `["${inputs.issue}", "learnings"]`.
+         Supply base branches keyed by repository URL:
+         {"${inputs.repo_url}": "${inputs.base_branch}"} plus other destination repositories;
+         missing or blank entries use the repository default branch.
+      2. Record the owner in the learning-writeback lane so final review can direct later
+         documentation corrections to the same session.
+      3. Assess the returned diff through learnings_capture. Return deficiencies to that
+         owner and reassess within this task until the writeback is settled or blocked.
 
-      Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
-      distinct Devin session through learnings_capture. Check rate_case_log for duplication or
-      supporting cases when assessing their proposals.
-
-      Use `!rate-learning-writeback` as the writeback playbook. Supply base branches as an object
-      keyed by repository URL: {"${inputs.repo_url}": "${inputs.base_branch}"} plus any other
-      destination repository; a blank or missing entry means that repository's default branch.
-      Use one writeback session for all accepted lessons across repositories, reusing the owner in
-      the checkpoint's learning-writeback lane. Title a new session "${inputs.issue} — record learnings"
-      and tag it with `["${inputs.issue}", "learnings"]`.
-      Record that owner so operator review can direct later documentation corrections to it.
-
-      # 4. Finish
+      # 4. Complete the handoff or resolve a blocker
 
       Append one line to rate_case_log/cases.md using mission file tools, even if nothing qualified:
       <date> | ${inputs.issue} | <mechanism> | <verdict> | <writeback destination or none>
@@ -484,111 +473,111 @@ mission "rate_finalize" {
 
   task "review_followup" {
     objective = <<-EOT
-      1. Collect current work and wait.
-      2. Assess feedback and direct corrections.
-      3. Verify a reported staging deployment.
-      4. Finish or recover.
-
       Keep ${inputs.issue} available for feedback until its PRs merge or the operator ends
-      review. Feedback may require corrections, another audit, or verification after manual
-      staging deployment. Use rate_case for context, rate_checkpoint for progress, and
-      case_slack for root updates and questions.
+      review. Perform the numbered steps below; all returns stay inside this task.
+      Use rate_case for context, rate_checkpoint for progress, and case_slack for Slack updates.
 
-      Delegate the Slack update, operator question, and Devin follow-ups to the task agent.
-      These tools belong to the agent; their absence from the commander's tool list does
-      not make them unavailable. Skills such as case_slack and delegated_session guide
-      that agent's tool use. If the task agent reports a missing capability,
-      obtain its tool error or unavailable-tool details before treating the work as interrupted.
+      Delegate tool work to the task agent. Its human-ask, Slack, and Devin tools remain
+      available even though they are absent from the commander's tool list. Skills guide
+      that agent's tool use. Obtain its tool error or unavailable-tool details before
+      concluding that a missing capability prevents continuation.
 
-      # 1. Collect current work and wait
+      # 1. Restore current work and check completion
 
-      1. Collect current PR states, heads, and session results through delegated_session,
-         including lessons PRs. On resume, reconcile the saved pending action before
-         resending work. Check step 4's completion criteria before assigning more work.
-      2. If the case remains open, save next entry rate_finalize/review_followup and use
-         case_slack to set root status ":eyes: Awaiting review". End EVERY iteration with
-         a delegated builtins.human.ask without timeout_seconds. Wait for the answer through
-         the task agent so the operator can direct the next correction, confirm staging
-         deployment, or finish review.
-         This is the common return point after steps 2 and 3 and an incomplete merge check.
-      3. For the initial ask, summarize readiness with labeled PR links, the accepted A/B
-         outcome, Bruno's results before staging deployment, and material limits or open
-         decisions. Ask "What should I review or change? Please follow up when the fix is
-         deployed to staging. If applicable, provide any relevant deployment details so I
-         can verify the fix. Let me know when the PRs are merged."
-         For later asks, briefly address the operator's last request and ask "What's next?"
-         Use case_slack for wording and links, including additional_context.
-         Offer the same actions with free text for detailed feedback:
-         - "Re-audit": assess current work and direct corrections through step 2.
-         - "Verify staging (deployment done)": verify the confirmed staging deployment in step 3.
-         - "Merge check": check PR states and apply step 4's completion criteria.
-         - "End review": close by operator choice under step 4.
+      Collect current PR states, heads, and session results through delegated_session,
+      including lessons PRs. On resume, reconcile the saved pending action before resending work.
+      - At least one case PR exists and all case PRs are merged: go to step 6.
+      - No PRs exist, and the case has an accepted disposition with no pending work: go to step 6.
+      - Otherwise: continue to step 2. If any PR is closed without merging, include the
+        disposition needed in that question.
 
-      # 2. Assess feedback and direct corrections
+      # 2. Ask for the next action and wait
 
-      1. Save feedback and collect current PR states and affected session results, including
-         changes the operator requested directly from Devin. Ask for any unrecorded feedback.
+      1. Save next entry rate_finalize/review_followup and set root status ":eyes: Awaiting review"
+         through case_slack. Prepare the question before delegating the human ask:
+         - Initial review: summarize readiness with labeled PR links, the accepted A/B outcome,
+           Bruno's results before staging deployment, and material limits or open decisions.
+           Ask "What should I review or change? Please follow up when the fix is deployed to
+           staging. If applicable, provide any relevant deployment details so I can verify
+           the fix. Let me know when the PRs are merged."
+         - Follow-up: briefly address the last request and ask "What's next?" If staging
+           deployment is still needed, ask the operator to confirm when it is done.
+         Apply case_slack to the whole prompt, including additional_context.
+      2. Offer "Re-audit", "Verify staging (deployment done)", "Merge check", and "End review",
+         with free text for feedback. Delegate builtins.human.ask without timeout_seconds.
+      3. Wait for the answer through the task agent. EVERY open iteration must reach this
+         wait so the operator can direct the next correction or confirm staging deployment.
+         Saving a continuation alone does not keep the mission running; keep the ask active
+         instead of submitting interrupted and calling task_complete.
+         If the wait is actually interrupted, retain active case state and this task as the
+         next entry for resumption. On an answer, continue to step 3.
+
+      # 3. Select the requested action
+
+      Save the answer and select the applicable action:
+      - Feedback, requested changes, or "Re-audit": go to step 4.
+      - Confirmed staging deployment or "Verify staging (deployment done)": go to step 5.
+      - Reported merges or "Merge check": return to step 1 to verify PR states and either
+        close or identify remaining PRs in the next question.
+      - "End review": go to step 6 and close by operator choice.
+      - Missing information needed to act: return to step 2 with the specific question.
+      If the answer requests multiple actions, perform corrections before verifying the
+      corrected work. Request new staging confirmation when those corrections need deployment.
+
+      # 4. Direct corrections and assess the revised work
+
+      1. Collect affected session results and current PR heads, including changes requested
+         directly from Devin. Ask for unrecorded feedback when needed to assess the work.
       2. Direct investigation, fix, case, Bruno, and lesson changes to their recorded owners
          through delegated_session, preserving each owner's file lane.
-      3. Use case_slack to publish root status ":microscope: Auditing". Use evidence_gate,
-         ab_audit, and txc_rate_audit to assess changed work with fresh captures.
-         Have the Bruno owner review automatic staging CI:
-         should-change tests fail before staging deployment and pass after it;
-         guardrails normally pass in both states.
-         If an accepted case-specific limitation prevents guardrails from passing before
-         staging deployment, include those checks in the staging verification still required.
-         When failures are expected until staging deployment, return to step 1 and ask the
-         operator to confirm when the fix is deployed to staging. Hold this task open on that
-         no-timeout ask until confirmation, then perform step 3. "Known to fail until deploy"
-         explains the result; it does not complete review. Only step 4's closure conditions
-         end the wait without staging verification.
+      3. Set root status ":microscope: Auditing" through case_slack and apply evidence_gate
+         to the affected work:
+         - Fix or A/B cases: use ab_audit and txc_rate_audit with fresh captures.
+         - Bruno tests: have the owner assess automatic staging CI. Should-change tests fail
+           before staging deployment and pass after it; guardrails normally pass in both states.
+           Include any accepted pre-staging guardrail limitation in the checks still required.
+         - Lessons: check the revised guidance against the accepted lesson and its evidence.
          Record assessed heads and evidence so an earlier pass cannot approve a later commit.
-      4. Use verdict_loop to continue corrections while progress is being made. If progress
-         stalls or more information is needed, ask the operator with the unresolved findings
-         and evidence. Return to step 1 after the requested work is assessed.
+      4. If corrections are needed, use verdict_loop and repeat steps 4.2-4.3 while making
+         progress. For an operator or product dependency, use blocked_run and retain this
+         review task as the continuation.
+      5. If the answer also requested staging verification and the confirmed deployment still
+         covers the corrected fix, continue to step 5. Otherwise return to step 1.
+         When failures are expected until staging deployment, the next step 2 question must
+         hold the task open for deployment confirmation; "known to fail until deploy" is
+         not completion. Only step 6 closes without that check.
 
-      Use blocked_run for an operator or product dependency, then resume this review task.
+      # 5. Verify the confirmed staging deployment
 
-      # 3. Verify a reported staging deployment
+      1. Set root status ":test_tube: Verifying in staging" through case_slack. Send the existing
+         Bruno session the current Bruno PR, saved baseline attempt link, and staging cutoff:
+         the reported staging deployment time or the confirmation's receipt time.
+         Manual staging deployment does not move the PR head, so ask the session to follow
+         !bruno-regression's staging-verification steps: reuse a qualifying attempt or rerun
+         all jobs of the latest pull_request API Tests run at that head. Require at most one
+         new attempt and wait for an in-progress attempt; use neither workflow_dispatch nor
+         a trigger commit so verification remains on the existing PR checks.
+      2. Compare the returned result with the baseline from before staging deployment.
+         Require both should-change tests and guardrails to pass. Investigate unchanged or
+         new failures even if A/B was satisfactory: A/B assessed directional correctness
+         and regressions; Bruno checks the behavior actually deployed to staging.
+      3. Save the staging confirmation, both attempt-specific CI links, tested revisions,
+         and assessed results. If the run cannot start or finish, retain verification as
+         pending and use blocked_run for any required operator action.
+      4. Select the continuation:
+         - Corrections required: send discrepancies and CI evidence to the existing owners
+           through step 4. If corrections need deployment, retain staging verification as
+           pending for the next step 2 question; the earlier deployment lacks the fix.
+         - Results accepted, or verification pending without a correction to make: return
+           to step 1. A passing staging check returns to review while PRs remain open;
+           it does not automatically merge or finish the work.
 
-      1. The operator deploys the fix to staging manually; this does not change the Bruno
-         PR head. After confirmation, use case_slack to set ":test_tube: Verifying in staging".
-         Include the saved attempt link from before staging deployment and a staging deployment
-         cutoff: the reported staging deployment time, or the confirmation's receipt time.
-         This identifies attempts that exercised the deployed fix without another operator question.
-         Ask the existing Bruno session to follow the bruno-regression playbook's staging
-         verification steps: reuse an API Tests attempt on the current PR head that started
-         after that cutoff, or rerun all jobs of the latest pull_request API Tests
-         run at that head so results appear in the PR checks. Start at most one attempt;
-         wait for an in-progress attempt rather than starting another. Do not use
-         workflow_dispatch or push a commit to trigger verification.
-         Keep verification pending if the matching PR run is unavailable or the attempt
-         cannot start or finish.
-      2. Compare results with the saved attempt from before staging deployment.
-         Both should-change tests and guardrails should now pass. Investigate unchanged or
-         new failures even when A/B was satisfactory: it assessed directional correctness
-         and regressions, while Bruno checks the behavior actually deployed to staging.
-      3. Send discrepancies and CI evidence to the appropriate existing owners and re-audit
-         their corrections using step 2. If those corrections need another staging deployment,
-         await new operator confirmation through step 1 before rerunning Bruno; the earlier
-         deployment does not contain the corrected fix.
-      4. Save the staging confirmation, both attempt-specific CI links, tested revisions,
-         and assessed results.
-         Return to step 1: passing staging checks makes the work ready for the operator's
-         next decision, not automatically merged or finished.
+      # 6. Close the case
 
-      # 4. Finish or recover
-
-      On a merge check, confirm every case PR's state through the sessions. If any remain
-      open, identify them in the next step 1 question; ask for disposition of closed-unmerged PRs.
-      Close when all case PRs are merged, or when a no-PR case has an accepted disposition
-      and no pending work. On "End review", close by operator choice and retain remaining work.
-      Merge ends this workflow even if staging checks remain unperformed; retain that fact
-      without claiming verification passed. Production checks require an explicit request.
-      On closure, use case_slack to set ":white_check_mark: Closed".
-      An interrupted wait retains review_followup as the next entry so the operator can resume.
-      Saving that entry does not keep the mission running: while awaiting an answer, keep
-      the delegated ask active rather than submitting interrupted and calling task_complete.
+      Close only for step 1's completion criteria or the operator's explicit "End review".
+      Retain remaining work or unperformed staging checks without claiming they passed.
+      Merged PRs end this workflow; production checks require an explicit request.
+      Set root status ":white_check_mark: Closed" through case_slack and complete the task.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
