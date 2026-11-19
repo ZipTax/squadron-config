@@ -45,8 +45,7 @@ conflict before affected work rather than guessing a procedure.
    Only after the evidence supports the proposed change, open the PR on the requested base
    and confirm the `ratevariant` label is present. Include query/result references, execution
    time, scope, observed values, freshness/completeness limits, and what they establish in
-   the PR's review/testing context. Production checks are read-only; A/B coverage remains
-   the cases lane's work against the dated staging snapshot.
+   the PR's review/testing context. Production checks are read-only.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
    contradictions, impact radius and test recommendation, and the accepted `findings`
    unchanged. Apply each finding only to its stated scope and period; do not substitute
