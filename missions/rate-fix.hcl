@@ -620,7 +620,7 @@ mission "rate_fix" {
       }
       field "confirmed_findings" {
         type        = "string"
-        description = "Accepted findings with supporting case captures, PR head, and plan/run references. Include bugs, reachability, value discrepancies, blast radius, and path inconsistencies where applicable."
+        description = "Accepted findings with supporting case captures, PR head, and plan/run references. Include the accepted state/TIC criteria or explicit full-suite decision and scope rationale for downstream Bruno coverage. Include bugs, reachability, value discrepancies, blast radius, and path inconsistencies where applicable."
         required    = true
       }
       field "open_questions" {
@@ -689,6 +689,10 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
       Supply the ticket, PR, accepted audit results, investigation findings, and open questions.
+      Explicitly include the accepted state/TIC criteria or full-suite decision and rationale
+      from audit.confirmed_findings (context.audit_findings on resume). If absent, recover
+      the decision from the audit evidence before briefing Bruno; missing scope is not an
+      accepted full-suite decision.
       Devin authors and reviews the regressions following !bruno-regression; CI runs them in staging.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
