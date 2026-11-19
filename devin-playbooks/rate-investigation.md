@@ -107,10 +107,9 @@ and invalidation gates. Return its candidate-remedy assessment and citations in
 the proven findings and named gap. Do not implement remedies here.
 
 Snapshot evidence establishes behavior in that dated copy, not current production state.
-A proven local mechanism can be handed off with a bounded production verification query in
-`unknowns`, but this does not authorize a fix PR: the fix session must complete production-data
-checks before opening one. An unproven production claim stays unproven. When governed production
-access is available, record observations in `production_evidence` using the attached schema: status,
+A proven local mechanism can proceed with a bounded production verification query in
+`unknowns`; an unproven production claim stays unproven. When governed production access is
+available, record observations in `production_evidence` using the attached schema: status,
 query reference, time, catalog objects, bounded scope, conclusion, and ticket gap outcome.
 Distinguish no matching rows, missing history, refused access, and truncated output. Keep
 raw results in the evidence source. Production observations do not replace SQL Server proof.
