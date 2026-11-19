@@ -23,24 +23,10 @@ Check that the scenario data exists in staging. Report scenarios needing unavail
 merchant configuration, and scenarios outside this lane's V3 surface, with the reason and
 what would be needed. Do not silently omit a required scenario or soften its assertion.
 
-## Use the accepted test scope
-
-Reuse the states/TICs accepted by Squadron during the ratevariant audit, based on the
-fix PR's maintained `Impact radius` assessment. Include the API-observable changed
-scenarios and guardrails in that scope. If the supplied criteria omit required coverage,
-report the gap to Squadron for adjustment before relying on a scoped run. Use the full
-suite when the accepted scope is broad or no state/TIC scope can be established.
-
-Set the Bruno PR's `bruno-filters` block to the accepted criteria using the
-[Bruno README](https://github.com/FedTax/txc-bruno#pr-filters). Preserve the rest of the
-PR description. Omit the block for full coverage. Description edits alone do not start
-a run; set the scope before pushing the test commit so CI receives it.
-
-Preview the selection with the repository's offline selector and confirm every authored
-scenario and required guardrail is included. Unlike ratevariant, Bruno does not
-automatically retain added or modified requests. Review CI's selection counts with its
-results; missing tags keep requests included, so a scoped run may cover more than the
-requested states/TICs. Use the same scope for the pre- and post-deployment comparison.
+Use the accepted audit's state/TIC scope and the fix PR's maintained `Impact radius`
+assessment for Bruno coverage. Report any required API scenario or guardrail outside
+that scope to Squadron for adjustment. Follow the Bruno README for request tags, PR
+filters, and offline validation; use full coverage when the accepted scope is unbounded.
 
 ## Author, review, and deliver
 
@@ -49,30 +35,28 @@ requested states/TICs. Use the same scope for the pre- and post-deployment compa
 2. Create `V3/Tax/Regression/<TICKET>[-TIC-NNNNN]/` with `folder.bru` and scenario files,
    following the existing conventions for requests, documentation, environment variables,
    and Merchant 20. Cover each API-observable changed scenario and guardrail with a
-   representative test; avoid enumerating redundant permutations.
-   Tag each request with every relevant origin/destination state and item TIC, including
-   freight, mixed carts, scripted setup/imports, and guardrails. Follow the Bruno README's
-   tag conventions (`state_IL`, `tic_0`; one tag per line without commas). Use `state_-`
-   or `tic_-` only when that dimension does not apply; leave unknown coverage untagged
-   and report the gap. Preserve existing tags and validate files with Bruno's parser
-   before pushing. Do not copy ratevariant's colon-separated tag syntax into Bruno.
+   representative test; avoid enumerating redundant permutations. Tag every relevant
+   origin/destination state and item TIC, including scripted setup and guardrails, using
+   the repository conventions. Report unknown coverage rather than marking it not applicable.
 3. Assert the corrected values. Changed scenarios are expected to fail before deployment;
    unchanged guardrails may already pass. If evidence says a changed scenario already
    passes, check for prior/partial deployment or an ineffective regression and report what
    you found. Do not force a failure or weaken the expected value.
-4. Review the assertions and automatic CI results. CI runs the tests in staging;
-   the authoring session does not execute them. Before deployment, should-change
-   assertions fail and guardrails pass. After deployment, both pass. Investigate
-   results that differ from those expectations without weakening assertions.
-   Record the assessed attempt URL (`.../actions/runs/<id>/attempts/<n>`) in
-   `validation.result_reference` so later reruns preserve the pre-deployment baseline.
-5. Commit and open/update the Bruno PR. Describe covered behavior, cited expectations,
-   unwritten scenarios, and the observed CI results. Link the Bruno PR from
-   the SQL fix PR while preserving its current description. Keep session history in the
+4. Commit and open/update the Bruno PR with the accepted filters. Describe covered behavior,
+   cited expectations, unwritten scenarios, and the scope rationale; add observed CI results
+   after review. Link the Bruno PR from the SQL fix PR while preserving its current description. Keep session history in the
    ticket registration, not the PR body. Never commit secrets or environment files.
    Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
    resolved), with or without a colon, directly before a PR or issue reference in a PR title,
    description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
+5. Review the assertions and automatic CI results. CI runs the tests in staging;
+   the authoring session does not execute them. Before deployment, should-change
+   assertions fail and guardrails pass. After deployment, both pass. Investigate
+   results that differ from those expectations without weakening assertions. Confirm the
+   selected requests include every authored scenario and required guardrail before treating
+   CI as coverage evidence; tagged new requests are not automatically retained by the filter.
+   Record the assessed attempt URL (`.../actions/runs/<id>/attempts/<n>`) in
+   `validation.result_reference` so later reruns preserve the pre-deployment baseline.
 
 Return the attached schema's PR URL, scenarios with authority, `unwritten`, and `validation`.
 Finish when authoring and review are complete and CI matches the deployment state:
@@ -92,7 +76,9 @@ using `writing-ticket-updates`.
 When Squadron requests verification after the operator confirms deployment:
 
 1. Find the current Bruno PR head and its latest `pull_request` API Tests run
-   (`api-tests.yml`). Check attempt start times, since a rerun retains the original run ID.
+   (`api-tests.yml`). Check its recorded selection against the assessed pre-deployment
+   scope; editing the PR description does not change the filters captured by that run.
+   Check attempt start times, since a rerun retains the original run ID.
 2. Compare the attempt's `run_started_at` with the deployment cutoff supplied by Squadron
    (the reported deployment time, or the time Squadron received confirmation).
    Reuse an attempt at that head that started after that cutoff.

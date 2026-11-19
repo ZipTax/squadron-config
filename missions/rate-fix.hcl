@@ -689,9 +689,6 @@ mission "rate_fix" {
       and tags `["${inputs.issue}", "bruno"]`. Ensure Devin can read the SQL repository skills too.
 
       Supply the ticket, PR, accepted audit results, investigation findings, and open questions.
-      Include the accepted state/TIC criteria or full-suite decision and scope rationale from
-      the audit, based on the fix PR's maintained Impact radius assessment. Bruno reuses that
-      scope; resolve any API coverage gap the author reports before accepting a scoped run.
       Devin authors and reviews the regressions following !bruno-regression; CI runs them in staging.
 
       Supply the latest accepted findings, using delegated_session for report recovery.
