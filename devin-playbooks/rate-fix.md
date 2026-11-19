@@ -31,11 +31,22 @@ conflict before affected work rather than guessing a procedure.
 2. Implement the briefed scope, including both data and code when disposition is `both`.
    An unsupported general remedy is not an implementation task unless the caller has
    explicitly scoped a feasible partial fix.
-3. Open the fix PR on the requested base and confirm the `ratevariant` label is present.
-   Attempt outstanding production checks through `prod-sql-insights` and record the evidence
-   with its freshness limits. Preserve unresolved checks and exact data or access gaps in
-   the PR's review/testing context because a snapshot-proven mechanism does not establish
-   today's production rows.
+3. Before opening the fix PR, including a draft, use `prod-sql-insights` to execute bounded,
+   read-only production-data checks for the affected entities, configuration, and period.
+   Inspect the results against the supplied diagnosis and proposed change. You own this
+   prerequisite; do not wait for Squadron or a reviewer to request it. Code inspection,
+   production schema files, staging snapshots, passing tests, and an inherited summary do
+   not substitute for checking production data. An attempted query is not a completed check.
+   Resolve missing access or data through the skill's tool-gap procedure. If the evidence
+   remains unavailable or insufficient, stop without a fix PR and report the exact blocker
+   and checks attempted; use `needs_human` when access or deployment requires an operator.
+   Report contradictory results without silently changing the diagnosis. Do not defer these
+   checks to review or rollout, even for a procedure-only fix.
+   Only after the evidence supports the proposed change, open the PR on the requested base
+   and confirm the `ratevariant` label is present. Include query/result references, execution
+   time, scope, observed values, freshness/completeness limits, and what they establish in
+   the PR's review/testing context. Production checks are read-only; A/B coverage remains
+   the cases lane's work against the dated staging snapshot.
 4. Return the attached schema's PR identifiers, branch, label status, summary,
    contradictions, impact radius and test recommendation, and the accepted `findings`
    unchanged. Apply each finding only to its stated scope and period; do not substitute
@@ -56,8 +67,10 @@ those corrections; describe observed historical impact only when it matters to t
 ## Continue or adopt existing work
 
 On adoption, check out the existing PR branch, inspect the diff against the diagnosis, and
-report ownership and discrepancies. Do not rewrite, revert, or open another PR. On a later
-correction, change only the evidenced finding and push to that same branch without force.
+report ownership and discrepancies. Apply the same production-data prerequisite before
+reporting adoption complete or pushing a correction; recheck any affected scope the existing
+evidence does not cover. Do not rewrite, revert, or open another PR. On a later correction,
+change only the evidenced finding and push to that same branch without force.
 Report migration changes and the affected artifacts.
 Read the current PR description before editing it and preserve other authors' content.
 Session registration belongs on the ticket; do not add process history to the PR body.

@@ -175,7 +175,7 @@ Common data issues live in these FedTax tables (check schema definitions and ref
 - `dbo.TICs` — TIC definitions, ParentTIC, isSSUTA flags
 - `dbo.TDSDataNonSsuta` — non-SSUTA jurisdiction boundary data
 
-When production data is needed, read
+Before proposing a fix PR, read
 `FedTax/txc-databricks/.claude/skills/prod-sql-insights/SKILL.md` and follow it to discover
 and use the configured Databricks MCP tools. That skill owns tool selection and evidence
 interpretation because the available queries and their limits depend on what is deployed.
@@ -238,7 +238,21 @@ Perform a structured QA review before creating the PR:
 
 ## Step 5: Create the PR
 
-Create a PR targeting the `main` branch. The PR description should include:
+Before opening a fix PR, including a draft, execute bounded, read-only production-data
+checks through `prod-sql-insights` for the affected accounts, configuration, records, and
+period. Inspect the results against the proposed fix. You own this prerequisite; do not wait
+for Squadron or a reviewer to request it. Code inspection, production schema files, staging
+snapshots, and passing tests do not substitute for production data. An attempted query alone
+does not pass. Follow the skill's tool-gap procedure if needed; if access or evidence remains
+insufficient, stop without a fix PR and report the blocker and checks attempted. Do not defer
+verification to review or rollout. Apply the same prerequisite when updating an existing fix
+PR, rechecking any changed scope the existing evidence does not cover.
+
+Once the production evidence supports the fix, create a PR targeting the `main` branch.
+The PR description should include:
+
+- **Production-data evidence**: query/result references, execution time, scope, observed values,
+  freshness/completeness limits, and how the observations support the fix
 - **Jira ticket link**: link to the original ticket
 - **Problem summary**: what the customer reported
 - **Likely cause**: what the evidence shows, kept separate from your theory of why
