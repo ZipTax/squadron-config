@@ -45,6 +45,8 @@ carry the amendment. No search, no new section.
 
 Lead with what a future session should do, when, and why. Keep only details needed to make that
 decision; link the evidence instead of retelling it. A clearer ticket narrative is not a lesson.
+The brief's technical detail is evidence to verify, not wording to retain: carry a detail into
+guidance only when the reader needs it to act.
 
 - Check behavior after the fix, or a repeatable remedy and its prerequisites. Correct obsolete
   guidance directly; do not append an exception while leaving the contradictory rule intact.

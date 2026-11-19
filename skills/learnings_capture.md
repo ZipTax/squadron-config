@@ -83,9 +83,12 @@ The new session does not inherit that context. If the owner is unavailable, reco
 before replacing it; do not start parallel writeback sessions for the same ticket.
 
 The playbook owns documentation scope, destination checks, writing style, and delivery.
-Supply Devin with the finding, why it matters, supporting evidence, intended future use, and
-relevant constraints. Suggested destinations and wording are input to evaluate, not requirements
-to copy; label them as suggestions. Collect Devin’s structured result and assess the actual diff:
+Lead each lesson in the handoff with a short practical instruction: what to do differently,
+when, and why. Link the source session and evidence. Keep code traces, line numbers, run
+comparisons, and debugging history in those references; include a technical detail inline only
+when it changes the instruction's scope or use. Evidence is for verification, not prose for
+Devin to preserve. Suggested destinations and wording remain suggestions to evaluate.
+Collect Devin’s structured result and assess the actual diff:
 
 - `recorded`: read the diff and apply the same acceptance test; a pushed PR is not proof of a useful lesson.
 - `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
