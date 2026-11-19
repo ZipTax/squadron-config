@@ -11,8 +11,9 @@ Use `delegated_session`: follow up with `send_message`, then collect the respons
 `check_session`. Include the task context and the session's part of the work, and make the
 request read-only. Ask for no quota; “nothing worth recording” is a complete answer.
 
-Ask for lessons in product terms: what the product does, whom it affects, and the remedy.
-Do not request file paths, queries, or tool output; one evidence reference per lesson is enough.
+Ask for a concrete future decision or action, its conditions, and the mistake it prevents.
+Include product or tool mechanics only when they change that action; one evidence reference
+per lesson is enough. A description of work performed is not a lesson.
 
 For each proposed lesson, ask Devin to explain:
 
@@ -38,8 +39,15 @@ Accept guidance about behavior after the fix or a repeatable remedy with clear p
 Check it against the final implementation; reject incident recaps and removed defects presented
 as current limitations. Include corrections to related obsolete guidance in the writeback scope.
 
-Reduce an accepted proposal to its durable part: what a future session should do differently.
-Keep historical details only when they explain a reusable check, remedy, or constraint.
+Before dispatching, state the proposed instruction in one or two sentences without the ticket's
+narrative. If it adds no action, decision, or constraint beyond existing guidance, reject it.
+A short paragraph can still be useless or wrong. Do not accept prose merely because it cites a run.
+
+| Reject | Accept only the supported instruction |
+| --- | --- |
+| “The snapshot's local rates expired; expect state-only tax.” | “Check local coverage for the case date. Missing local data does not establish the correct rate.” |
+| “The cart still overcharges; record this as case law.” | Keep the unresolved defect with the fix. Record a remedy only once its behavior is established. |
+| “This ticket also showed that equal totals hide attribution changes.” | If guidance already says to check jurisdiction codes, add nothing unless this case changes that instruction. |
 
 Identify the owning repository from the proposal. Use the writeback playbook supplied by
 the task to select the appropriate reference.
@@ -75,7 +83,7 @@ Supply Devin with the finding, why it matters, supporting evidence, intended fut
 relevant constraints. Suggested destinations and wording are input to evaluate, not requirements
 to copy; label them as suggestions. Collect Devin’s structured result and assess the actual diff:
 
-- `recorded`: accept only the supplied lesson, supported by cited evidence, in the returned documentation PRs.
+- `recorded`: read the diff and apply the same acceptance test; a pushed PR is not proof of a useful lesson.
 - `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
 - `blocked`: report the failed step and what is needed, without treating failure as no lessons.
 
