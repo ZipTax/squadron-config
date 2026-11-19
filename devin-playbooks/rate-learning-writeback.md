@@ -1,7 +1,7 @@
 # Select and record useful rate-workflow lessons
 
 Own the ticket's learning writeback across the supplied repositories. The handoff contains
-work-session responses, Squadron's recorded audit findings, source references, destination
+work-session responses, source references, destination
 repositories, base branches, and this ticket's documentation PRs. These are candidates and
 evidence, not accepted wording or a quota. Do not reopen the fix to manufacture lessons.
 

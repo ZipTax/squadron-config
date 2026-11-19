@@ -33,8 +33,8 @@ response. An unavailable session is not a session that reported no lessons.
 Check the recorded investigation, fix, ratevariant-cases, and Bruno owners, including any
 independent verification session that worked on the case. Ask each distinct available session;
 record explicit “none” and unavailable responses separately. Do not silently omit investigation.
-Squadron owns the A/B audit, not a Devin audit session: include its recorded audit findings as
-source material, with attribution, rather than asking for a nonexistent session.
+Squadron owns the A/B audit; there is no Devin audit session to ask. Do not forward the audit
+as a source of lessons. Consult it only when needed to verify a session-proposed lesson.
 
 Pass the responses unchanged, or provide accessible references to their full text, with their
 source sessions and evidence. Do not merge them into “accepted lessons,” rewrite them into
@@ -50,8 +50,7 @@ repositories. Recover and reuse an existing writeback session before starting on
 `send_message`.
 
 When none exists, use delegated_session and devin_code with the task-supplied writeback playbook
-and `prompt_mode: "raw"`. Supply the source responses and Squadron audit findings, their
-attribution and evidence, destination repositories, base branches keyed by repository, and the
+and `prompt_mode: "raw"`. Supply the source responses, their attribution and evidence, destination repositories, base branches keyed by repository, and the
 ticket's existing documentation PRs; do not supply documentation PRs from other tickets.
 The new session does not inherit that context. If the owner is unavailable, recover its work
 before replacing it; do not start parallel writeback sessions for the same ticket.

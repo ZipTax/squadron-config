@@ -395,15 +395,15 @@ mission "rate_finalize" {
 
       # 2. Read the accepted findings
 
-      Read the verdict, close reason, diagnosis, complete findings, audit findings, and PRs
+      Read the verdict, close reason, diagnosis, complete findings and PRs
       from the case. Ask sessions for lessons from their work.
       Recover missing report context through delegated_session before drawing on it.
 
       # 3. Gather and record worthwhile lessons
 
       Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
-      distinct Devin session through learnings_capture. Include the recorded investigation owner
-      and Squadron's own audit findings. Pass source responses with attribution; do not compose
+      distinct Devin session through learnings_capture. Include the recorded investigation owner.
+      Pass source responses with attribution; do not compose
       an intermediate accepted-lessons brief.
 
       Use `!rate-learning-writeback` as the writeback playbook. Supply base branches as an object

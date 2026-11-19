@@ -20,7 +20,7 @@ Connection settings belong in [Slack setup](slack-setup.md) and
 3. **Add API regressions.** The Bruno owner authors and reviews tests; CI runs them in
    staging. Before deployment, should-change tests fail and guardrails pass. Those expected
    failures demonstrate the regression and allow the work to proceed to review.
-4. **Record lessons.** Squadron collects work-session discoveries and its recorded audit findings.
+4. **Record lessons.** Squadron collects discoveries proposed by the work sessions.
    One writeback Devin selects useful lessons and edits guidance, with one documentation PR per
    repository. Squadron reviews those PRs without expanding their scope or technical detail.
 5. **Review and follow up.** Squadron accepts feedback, collects current session work,
