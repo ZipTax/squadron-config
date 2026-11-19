@@ -33,8 +33,7 @@ conflict before affected work rather than guessing a procedure.
    explicitly scoped a feasible partial fix.
 3. Before opening the fix PR, including a draft, use `prod-sql-insights` to execute bounded,
    read-only production-data checks for the affected entities, configuration, and period.
-   Inspect the results against the supplied diagnosis and proposed change. You own this
-   prerequisite; do not wait for Squadron or a reviewer to request it. Code inspection,
+   Inspect the results against the supplied diagnosis and proposed change. Code inspection,
    production schema files, staging snapshots, passing tests, and an inherited summary do
    not substitute for checking production data. An attempted query is not a completed check.
    Resolve missing access or data through the skill's tool-gap procedure. If the evidence

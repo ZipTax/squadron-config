@@ -240,9 +240,8 @@ Perform a structured QA review before creating the PR:
 
 Before opening a fix PR, including a draft, execute bounded, read-only production-data
 checks through `prod-sql-insights` for the affected accounts, configuration, records, and
-period. Inspect the results against the proposed fix. You own this prerequisite; do not wait
-for Squadron or a reviewer to request it. Code inspection, production schema files, staging
-snapshots, and passing tests do not substitute for production data. An attempted query alone
+period. Inspect the results against the proposed fix. Code inspection, production schema
+files, staging snapshots, and passing tests do not substitute for production data. An attempted query alone
 does not pass. Follow the skill's tool-gap procedure if needed; if access or evidence remains
 insufficient, stop without a fix PR and report the blocker and checks attempted. Do not defer
 verification to review or rollout. Apply the same prerequisite when updating an existing fix
