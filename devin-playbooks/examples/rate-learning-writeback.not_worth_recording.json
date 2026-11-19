@@ -1,0 +1,11 @@
+{
+  "outcome": "not_worth_recording",
+  "learning": "",
+  "evidence": [
+    "https://example.invalid/session/report"
+  ],
+  "destination_pr_url": "",
+  "files_changed": [],
+  "reason": "The source reports a single failed credential and retry. It establishes neither a reusable restriction nor a remedy beyond checking the documented authentication requirements. No documentation change is warranted.",
+  "destination_pr_urls": []
+}

@@ -20,8 +20,9 @@ Connection settings belong in [Slack setup](slack-setup.md) and
 3. **Add API regressions.** The Bruno owner authors and reviews tests; CI runs them in
    staging. Before deployment, should-change tests fail and guardrails pass. Those expected
    failures demonstrate the regression and allow the work to proceed to review.
-4. **Record lessons.** Assess lessons from the work sessions. One writeback session records
-   accepted, durable guidance, with one documentation PR per repository.
+4. **Record lessons.** Squadron collects work-session discoveries and its recorded audit findings.
+   One writeback Devin selects useful lessons and edits guidance, with one documentation PR per
+   repository. Squadron reviews those PRs without expanding their scope or technical detail.
 5. **Review and follow up.** Squadron accepts feedback, collects current session work,
    re-audits changed commits, and directs corrections to the existing owners.
 6. **Verify after staging deployment.** The operator deploys manually and tells Squadron.
@@ -87,7 +88,7 @@ from another mission or recovery without earlier task outputs in the current run
 | Fix session | Implement the accepted remedy |
 | Ratevariant-cases session | Author A/B fixtures and supply captures and coverage evidence |
 | Bruno session | Author API regressions and review automatic staging CI results |
-| Learning-writeback session | Record accepted lessons in maintained guidance |
+| Learning-writeback session | Evaluate collected proposals and make useful amendments to maintained guidance |
 | Bridge | Resume a recorded Jira wait when an explicit ready signal arrives |
 
 Session ownership separates implementation from test construction and evidence acceptance.

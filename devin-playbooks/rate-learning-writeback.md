@@ -1,17 +1,24 @@
-# Record accepted rate-workflow lessons
+# Select and record useful rate-workflow lessons
 
-Own the ticket's learning writeback across all supplied repositories in this session. The brief
-supplies accepted findings, originating sessions and evidence, intended future uses, destination
-repositories, base branches keyed by repository, and this ticket's existing documentation PRs.
-Do not invent lessons or reopen the underlying fix to produce them.
+Own the ticket's learning writeback across the supplied repositories. The handoff contains
+work-session responses, Squadron's recorded audit findings, source references, destination
+repositories, base branches, and this ticket's documentation PRs. These are candidates and
+evidence, not accepted wording or a quota. Do not reopen the fix to manufacture lessons.
 
-## Check the evidence and destination
+## Check usefulness, evidence, and destination
 
-Read repository instructions, the cited evidence, and relevant existing guidance. Confirm
-that the finding is supported and adds useful guidance. If it is already documented, return
-`already_documented` with the location instead of creating another entry. If support is
-missing or contradictory, return `blocked` with the precise gap; do not choose configuration
-values, run a new investigation, or turn an unresolved hypothesis into a rule.
+Think as the next maintainer, who has a different ticket and none of this session's context:
+what decision or action would this instruction improve, under what conditions, and what mistake
+would it prevent? Keep a proposal only when the supplied evidence supports that answer and
+existing guidance does not already provide it. Reject routine observations, incident recaps,
+and unresolved defects presented as expected behavior. Explain exclusions briefly in `reason`.
+
+Read repository instructions, cited evidence, and related guidance. Select and combine overlapping
+proposals by the future action they support, not by ticket or source-session headings. If existing
+guidance covers all useful proposals, return `already_documented`. If none is worth preserving,
+return `not_worth_recording` without a PR. Missing evidence that prevents assessment is `blocked`,
+not proof that no lesson exists. Do not choose unresolved implementation values or run a fresh
+investigation.
 
 Select the relevant maintained guidance in the supplied repositories using these rules:
 
@@ -124,6 +131,6 @@ Review each diff using the SQL repository's `review-learning-pr` checklist, read
 repository when it is not checked out: a maintainer unfamiliar with the case must be able to
 explain the finding, its consequence, applicable conditions, and what remains unproven. Run applicable documentation
 checks. Return every documentation PR URL in `destination_pr_urls`. Return `recorded` only when
-all accepted lessons are recorded or already documented and all changes are pushed. Return
+all proposals have been assessed, useful amendments are pushed, and exclusions are explained. Return
 `blocked` if the assignment cannot be completed, with the failed step and what is needed.
 Use the attached schema and return without waiting for a person.
