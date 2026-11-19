@@ -23,6 +23,25 @@ Check that the scenario data exists in staging. Report scenarios needing unavail
 merchant configuration, and scenarios outside this lane's V3 surface, with the reason and
 what would be needed. Do not silently omit a required scenario or soften its assertion.
 
+## Use the accepted test scope
+
+Reuse the states/TICs accepted by Squadron during the ratevariant audit, based on the
+fix PR's maintained `Impact radius` assessment. Include the API-observable changed
+scenarios and guardrails in that scope. If the supplied criteria omit required coverage,
+report the gap to Squadron for adjustment before relying on a scoped run. Use the full
+suite when the accepted scope is broad or no state/TIC scope can be established.
+
+Set the Bruno PR's `bruno-filters` block to the accepted criteria using the
+[Bruno README](https://github.com/FedTax/txc-bruno#pr-filters). Preserve the rest of the
+PR description. Omit the block for full coverage. Description edits alone do not start
+a run; set the scope before pushing the test commit so CI receives it.
+
+Preview the selection with the repository's offline selector and confirm every authored
+scenario and required guardrail is included. Unlike ratevariant, Bruno does not
+automatically retain added or modified requests. Review CI's selection counts with its
+results; missing tags keep requests included, so a scoped run may cover more than the
+requested states/TICs. Use the same scope for the pre- and post-deployment comparison.
+
 ## Author, review, and deliver
 
 1. Work on the existing Bruno branch/PR when continuing; otherwise create a ticket branch.
@@ -31,6 +50,12 @@ what would be needed. Do not silently omit a required scenario or soften its ass
    following the existing conventions for requests, documentation, environment variables,
    and Merchant 20. Cover each API-observable changed scenario and guardrail with a
    representative test; avoid enumerating redundant permutations.
+   Tag each request with every relevant origin/destination state and item TIC, including
+   freight, mixed carts, scripted setup/imports, and guardrails. Follow the Bruno README's
+   tag conventions (`state_IL`, `tic_0`; one tag per line without commas). Use `state_-`
+   or `tic_-` only when that dimension does not apply; leave unknown coverage untagged
+   and report the gap. Preserve existing tags and validate files with Bruno's parser
+   before pushing. Do not copy ratevariant's colon-separated tag syntax into Bruno.
 3. Assert the corrected values. Changed scenarios are expected to fail before deployment;
    unchanged guardrails may already pass. If evidence says a changed scenario already
    passes, check for prior/partial deployment or an ineffective regression and report what
