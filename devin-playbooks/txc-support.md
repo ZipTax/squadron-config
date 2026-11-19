@@ -175,7 +175,7 @@ Common data issues live in these FedTax tables (check schema definitions and ref
 - `dbo.TICs` — TIC definitions, ParentTIC, isSSUTA flags
 - `dbo.TDSDataNonSsuta` — non-SSUTA jurisdiction boundary data
 
-Before proposing a fix PR, read
+When production data is needed, read
 `FedTax/txc-databricks/.claude/skills/prod-sql-insights/SKILL.md` and follow it to discover
 and use the configured Databricks MCP tools. That skill owns tool selection and evidence
 interpretation because the available queries and their limits depend on what is deployed.
