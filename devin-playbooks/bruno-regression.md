@@ -44,8 +44,8 @@ filters, and offline validation; use full coverage when the accepted scope is un
    you found. Do not force a failure or weaken the expected value.
 4. Commit and open/update the Bruno PR with the accepted filters. Describe covered behavior,
    cited expectations, unwritten scenarios, and the scope rationale; add observed CI results
-   after review. Link the Bruno PR from the SQL fix PR while preserving its current description. Keep session history in the
-   ticket registration, not the PR body. Never commit secrets or environment files.
+   after review. Link the Bruno PR from the SQL fix PR while preserving its current
+   description. Keep session history in the ticket registration, not the PR body. Never commit secrets or environment files.
    Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
    resolved), with or without a colon, directly before a PR or issue reference in a PR title,
    description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
@@ -55,6 +55,8 @@ filters, and offline validation; use full coverage when the accepted scope is un
    results that differ from those expectations without weakening assertions. Confirm the
    selected requests include every authored scenario and required guardrail before treating
    CI as coverage evidence; tagged new requests are not automatically retained by the filter.
+   Keep expected pre-deployment failures selected so the same should-change scenarios and
+   guardrails can verify the deployment. Do not narrow filters to obtain a passing run.
    Record the assessed attempt URL (`.../actions/runs/<id>/attempts/<n>`) in
    `validation.result_reference` so later reruns preserve the pre-deployment baseline.
 
@@ -89,7 +91,12 @@ When Squadron requests verification after the operator confirms deployment:
    before rerunning. If an older attempt is still running, wait for it before rerunning
    after deployment. Do not use `workflow_dispatch` or push a commit: rerunning the PR
    event keeps verification in the PR's checks without changing the test revision.
-4. Return both pre- and post-deployment attempt URLs (`.../actions/runs/<id>/attempts/<n>`),
+4. Compare the selected scenarios with the saved pre-deployment attempt. Should-change
+   tests must now pass and guardrails must remain passing. Report unchanged or new failures
+   to Squadron for correction by the owning sessions, even when the A/B audit passed.
+   If revisions or selection differ, explain the coverage change; excluded or unexecuted
+   scenarios do not establish that the deployment passed.
+5. Return both pre- and post-deployment attempt URLs (`.../actions/runs/<id>/attempts/<n>`),
    tested heads, and assessed results so the comparison survives another rerun.
    If no matching PR run exists or it cannot be rerun,
    report the blocker and leave verification pending.
