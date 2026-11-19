@@ -23,6 +23,11 @@ Check that the scenario data exists in staging. Report scenarios needing unavail
 merchant configuration, and scenarios outside this lane's V3 surface, with the reason and
 what would be needed. Do not silently omit a required scenario or soften its assertion.
 
+Use the accepted audit's state/TIC scope and the fix PR's maintained `Impact radius`
+assessment for Bruno coverage. Report any required API scenario or guardrail outside
+that scope to Squadron for adjustment. Follow the Bruno README for request tags, PR
+filters, and offline validation; use full coverage when the accepted scope is unbounded.
+
 ## Author, review, and deliver
 
 1. Work on the existing Bruno branch/PR when continuing; otherwise create a ticket branch.
@@ -30,24 +35,30 @@ what would be needed. Do not silently omit a required scenario or soften its ass
 2. Create `V3/Tax/Regression/<TICKET>[-TIC-NNNNN]/` with `folder.bru` and scenario files,
    following the existing conventions for requests, documentation, environment variables,
    and Merchant 20. Cover each API-observable changed scenario and guardrail with a
-   representative test; avoid enumerating redundant permutations.
+   representative test; avoid enumerating redundant permutations. Tag every relevant
+   origin/destination state and item TIC, including scripted setup and guardrails, using
+   the repository conventions. Report unknown coverage rather than marking it not applicable.
 3. Assert the corrected values. Changed scenarios are expected to fail before deployment;
    unchanged guardrails may already pass. If evidence says a changed scenario already
    passes, check for prior/partial deployment or an ineffective regression and report what
    you found. Do not force a failure or weaken the expected value.
-4. Review the assertions and automatic CI results. CI runs the tests in staging;
-   the authoring session does not execute them. Before deployment, should-change
-   assertions fail and guardrails pass. After deployment, both pass. Investigate
-   results that differ from those expectations without weakening assertions.
-   Record the assessed attempt URL (`.../actions/runs/<id>/attempts/<n>`) in
-   `validation.result_reference` so later reruns preserve the pre-deployment baseline.
-5. Commit and open/update the Bruno PR. Describe covered behavior, cited expectations,
-   unwritten scenarios, and the observed CI results. Link the Bruno PR from
-   the SQL fix PR while preserving its current description. Keep session history in the
-   ticket registration, not the PR body. Never commit secrets or environment files.
+4. Commit and open/update the Bruno PR with the accepted filters. Describe covered behavior,
+   cited expectations, unwritten scenarios, and the scope rationale; add observed CI results
+   after review. Link the Bruno PR from the SQL fix PR while preserving its current
+   description. Keep session history in the ticket registration, not the PR body. Never commit secrets or environment files.
    Never put a GitHub closing keyword (close, closes, closed, fix, fixes, fixed, resolve, resolves,
    resolved), with or without a colon, directly before a PR or issue reference in a PR title,
    description, or commit message; merging the PR closes the referenced item. Write `Related: #359`.
+5. Review the assertions and automatic CI results. CI runs the tests in staging;
+   the authoring session does not execute them. Before deployment, should-change
+   assertions fail and guardrails pass. After deployment, both pass. Investigate
+   results that differ from those expectations without weakening assertions. Confirm the
+   selected requests include every authored scenario and required guardrail before treating
+   CI as coverage evidence; tagged new requests are not automatically retained by the filter.
+   Keep expected pre-deployment failures selected so the same should-change scenarios and
+   guardrails can verify the deployment. Do not narrow filters to obtain a passing run.
+   Record the assessed attempt URL (`.../actions/runs/<id>/attempts/<n>`) in
+   `validation.result_reference` so later reruns preserve the pre-deployment baseline.
 
 Return the attached schema's PR URL, scenarios with authority, `unwritten`, and `validation`.
 Finish when authoring and review are complete and CI matches the deployment state:
@@ -67,7 +78,9 @@ using `writing-ticket-updates`.
 When Squadron requests verification after the operator confirms deployment:
 
 1. Find the current Bruno PR head and its latest `pull_request` API Tests run
-   (`api-tests.yml`). Check attempt start times, since a rerun retains the original run ID.
+   (`api-tests.yml`). Check its recorded selection against the assessed pre-deployment
+   scope; editing the PR description does not change the filters captured by that run.
+   Check attempt start times, since a rerun retains the original run ID.
 2. Compare the attempt's `run_started_at` with the deployment cutoff supplied by Squadron
    (the reported deployment time, or the time Squadron received confirmation).
    Reuse an attempt at that head that started after that cutoff.
@@ -78,7 +91,12 @@ When Squadron requests verification after the operator confirms deployment:
    before rerunning. If an older attempt is still running, wait for it before rerunning
    after deployment. Do not use `workflow_dispatch` or push a commit: rerunning the PR
    event keeps verification in the PR's checks without changing the test revision.
-4. Return both pre- and post-deployment attempt URLs (`.../actions/runs/<id>/attempts/<n>`),
+4. Compare the selected scenarios with the saved pre-deployment attempt. Should-change
+   tests must now pass and guardrails must remain passing. Report unchanged or new failures
+   to Squadron for correction by the owning sessions, even when the A/B audit passed.
+   If revisions or selection differ, explain the coverage change; excluded or unexecuted
+   scenarios do not establish that the deployment passed.
+5. Return both pre- and post-deployment attempt URLs (`.../actions/runs/<id>/attempts/<n>`),
    tested heads, and assessed results so the comparison survives another rerun.
    If no matching PR run exists or it cannot be rerun,
    report the blocker and leave verification pending.
