@@ -49,8 +49,12 @@ A short paragraph can still be useless or wrong. Do not accept prose merely beca
 | “The cart still overcharges; record this as case law.” | Keep the unresolved defect with the fix. Record a remedy only once its behavior is established. |
 | “This ticket also showed that equal totals hide attribution changes.” | If guidance already says to check jurisdiction codes, add nothing unless this case changes that instruction. |
 
-Identify the owning repository from the proposal. Use the writeback playbook supplied by
-the task to select the appropriate reference.
+Identify the owning repository from the proposal. Require Devin to search related skills and
+references using multiple related terms, synonyms, and affected objects before proposing a new
+section or entry. A ticket-name search is not enough. Amend the closest existing instruction;
+permit a new section only when the search finds no suitable home. Have Devin report the terms
+searched, closest guidance found, and why it cannot be amended. Reject an unsupported “nothing
+found.” Use the supplied writeback playbook to select the appropriate reference.
 
 ## Separate a supported lesson from unfinished work
 

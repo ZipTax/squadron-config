@@ -36,9 +36,15 @@ constraint. What remains is often narrower than the brief.
 
 ## Write for the next maintainer
 
-Amend the closest existing instruction. Lead with what a future session should do, when, and
-why. Keep only details needed to make that decision; link the evidence instead of retelling it.
-A clearer account of the ticket is not a useful writeback by itself.
+Amend the closest existing instruction. Add a new section, file, or case-law entry only after
+thoroughly searching related skills and references with multiple related terms, synonyms, and
+affected objects—not just the ticket number or proposed heading. Read the nearest matches.
+If guidance partly covers the lesson, amend it; if it fully covers it, add nothing. A new section
+requires explaining in `reason` the terms searched, closest guidance found, and why none can
+carry the amendment. No search, no new section.
+
+Lead with what a future session should do, when, and why. Keep only details needed to make that
+decision; link the evidence instead of retelling it. A clearer ticket narrative is not a lesson.
 
 - Check behavior after the fix, or a repeatable remedy and its prerequisites. Correct obsolete
   guidance directly; do not append an exception while leaving the contradictory rule intact.
@@ -62,6 +68,37 @@ These examples illustrate edits, not a required template:
 Use the smallest amendment that carries the lesson, usually a sentence or short paragraph.
 Do not repeat it as an introduction, incident narrative, and closing checklist. Keep qualifications
 beside their claims. Do not commit release status, deployment instructions, or coordination state.
+
+### Worked edit: preserve the action, remove the incident
+
+Original, verbatim from [SQL #388 before review](https://github.com/FedTax/txc-sqlserver-database/blob/5dc64ec93571196a4d26da2d9c5971d4eb93c80f/.claude/skills/ratevariant-case-data/SKILL.md):
+
+> - **An origin override also changes the ZIP+4 as a destination.** A live TX ZIP+4 override
+>   is read by remote-seller destination lookups as well as origin lookups. When it and the ZIP5
+>   row have the same total but different local jurisdictions, cart and import cases can match
+>   while the Reports ETL attributes the tax to another jurisdiction. Include a Reports ETL
+>   remote-seller case that captures jurisdiction codes, and describe matching cart and import
+>   cases as masked. For DEV-10657, the 78665-5697 override kept the remote-seller total at 8.25%
+>   but moved its 2% from Round Rock (`63500`) to ESD 9 (`5246692`)
+>   ([PR #387 results](https://github.com/FedTax/txc-sqlserver-database/pull/387#issuecomment-6958889326)).
+
+**Why it is bad:** the address, rates, and district IDs retell the incident without changing
+what to test. “Describe matching cases as masked” also overstates the limitation: they can
+verify unchanged totals, just not jurisdiction attribution.
+
+**Edit:**
+
+> **Test origin and destination uses of an override.** A TX ZIP+4 override used for origin
+> sourcing can also affect remote-seller destination lookups. Test both uses. When totals match
+> but jurisdictions differ, include a Reports ETL case capturing jurisdiction codes; matching
+> cart/import totals alone do not verify attribution
+> ([evidence](https://github.com/FedTax/txc-sqlserver-database/pull/387#issuecomment-6958889326)).
+
+**Why it is better:** it names the action, its scope, and the limit of the evidence. The link
+retains the supporting case without copying it. This belongs beside existing override coverage
+instructions, not in another ticket-named section. Search “override,” “destination,” “equal
+totals,” and “jurisdiction attribution” before choosing that location; merge into an existing
+bullet if it already covers both uses.
 
 ## Deliver the documentation change
 
