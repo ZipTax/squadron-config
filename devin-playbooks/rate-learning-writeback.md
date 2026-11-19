@@ -1,17 +1,24 @@
-# Record accepted rate-workflow lessons
+# Select and record useful rate-workflow lessons
 
-Own the ticket's learning writeback across all supplied repositories in this session. The brief
-supplies accepted findings, originating sessions and evidence, intended future uses, destination
-repositories, base branches keyed by repository, and this ticket's existing documentation PRs.
-Do not invent lessons or reopen the underlying fix to produce them.
+Own the ticket's learning writeback across the supplied repositories. The handoff contains
+work-session responses, source references, destination
+repositories, base branches, and this ticket's documentation PRs. These are candidates and
+evidence, not accepted wording or a quota. Do not reopen the fix to manufacture lessons.
 
-## Check the evidence and destination
+## Check usefulness, evidence, and destination
 
-Read repository instructions, the cited evidence, and relevant existing guidance. Confirm
-that the finding is supported and adds useful guidance. If it is already documented, return
-`already_documented` with the location instead of creating another entry. If support is
-missing or contradictory, return `blocked` with the precise gap; do not choose configuration
-values, run a new investigation, or turn an unresolved hypothesis into a rule.
+Think as the next maintainer, who has a different ticket and none of this session's context:
+what decision or action would this instruction improve, under what conditions, and what mistake
+would it prevent? Keep a proposal only when the supplied evidence supports that answer and
+existing guidance does not already provide it. Reject routine observations, incident recaps,
+and unresolved defects presented as expected behavior. Explain exclusions briefly in `reason`.
+
+Read repository instructions, cited evidence, and related guidance. Select and combine overlapping
+proposals by the future action they support, not by ticket or source-session headings. If existing
+guidance covers all useful proposals, return `already_documented`. If none is worth preserving,
+return `not_worth_recording` without a PR. Missing evidence that prevents assessment is `blocked`,
+not proof that no lesson exists. Do not choose unresolved implementation values or run a fresh
+investigation.
 
 Select the relevant maintained guidance in the supplied repositories using these rules:
 
@@ -36,43 +43,71 @@ constraint. What remains is often narrower than the brief.
 
 ## Write for the next maintainer
 
-Read a relevant existing entry for style. The DEV-10223 entry in the SQL repository's
-`ratevariant-audit/references/case-law.md`, revised in
-[PR #288, commit 2c571e6](https://github.com/FedTax/txc-sqlserver-database/commit/2c571e6f1f06539a817f5c3081f4585256ad3249),
-illustrates the intended clarity; use its approach, not its tax facts or a fixed template.
+Amend the closest existing instruction. Add a new section, file, or case-law entry only after
+thoroughly searching related skills and references with multiple related terms, synonyms, and
+affected objects—not just the ticket number or proposed heading. Read the nearest matches.
+If guidance partly covers the lesson, amend it; if it fully covers it, add nothing. A new section
+requires explaining in `reason` the terms searched, closest guidance found, and why none can
+carry the amendment. No search, no new section.
 
-- Verify the brief's claims, counts, and remedies before adopting its wording. Report where
-  the evidence does not support the brief.
-- Lead with behavior after the fix or a repeatable remedy and its prerequisites. State the scope
-  as broadly as the evidence supports, and no broader. Describe behavior and consequences;
-  include implementation details when needed to understand or verify them. Check against the final implementation; keep history
-  only when it explains the rule.
-  Correct related obsolete guidance within scope instead of leaving contradictory instructions.
-- For example, write “TX remote sellers use ZIP5 unless a live override covers the ZIP, ZIP+4,
-  state, and date,” not “ZIP+4 overrides are ignored and need a code change” after that defect is fixed
-  ([SQL PR #304](https://github.com/FedTax/txc-sqlserver-database/pull/304)).
-- Retain the conditions, period, and case facts needed to understand the evidence. Introduce
-  participants before comparing values, and link the supporting ticket, PR, or commit rather
-  than reproducing row IDs, endpoint syntax, timings, run IDs, snapshot-specific permissions,
-  or session history without a practical reason.
-- Preserve uncertainty and unmet requirements. Omitting a test whose expected value lacks
-  authority leaves a coverage gap; documenting that omission does not satisfy the requirement.
-  Distinguish observed results from inference. Do not make a successful one-off method mandatory.
-- Use short, connected paragraphs for distinct findings. Avoid repeating the lesson as an
-  introduction, incident narrative, and closing rules list. Keep mechanics in one canonical
-  reference and point other guidance at it.
-- Record each lesson at the smallest size that carries it, in the closest existing section.
-  Named examples and cross-references are fine when they help; avoid mandatory case lists and
-  explaining the same lesson in more than one place. If a lesson grows past a short paragraph,
-  check whether it records history or more than one lesson.
-- For example, DEV-8752's brief proposed a case-law entry naming four required guardrail cases
-  and the run history of a ZIP+4 lookup that bypassed the override gate. The reusable lesson was
-  one bullet in `ratevariant-case-data`: model the correction in the table the tested branch
-  reads, and include no-override destinations as unchanged-behavior guardrails
-  ([SQL PR #353](https://github.com/FedTax/txc-sqlserver-database/pull/353)).
+Lead with what a future session should do, when, and why. Keep only details needed to make that
+decision; link the evidence instead of retelling it. A clearer ticket narrative is not a lesson.
+The brief's technical detail is evidence to verify, not wording to retain: carry a detail into
+guidance only when the reader needs it to act.
 
-Prefer a focused amendment to maintained guidance. Do not create a ticket-specific fix
-narrative or commit release status, deployment instructions, run logs, or coordination state.
+- Check behavior after the fix, or a repeatable remedy and its prerequisites. Correct obsolete
+  guidance directly; do not append an exception while leaving the contradictory rule intact.
+- Separate observed results from guarantees. A snapshot, failed credential, denied query, or
+  successful workaround does not establish a permanent restriction or mandatory procedure.
+- Preserve what the evidence does not prove. Matching A/B totals do not verify attribution or
+  an absolute rate; an omitted test is still a coverage gap. Do not turn an unobservable result
+  into “never test this” or an unresolved defect into expected behavior.
+- Keep one canonical instruction. If it already covers the action, return `already_documented`;
+  another ticket example does not require another case-law entry. Add mechanics only where they
+  affect use of that instruction. Leave run counts, snapshot inventories, and open work in the PR.
+
+These examples illustrate edits, not a required template:
+
+| Bad | Better |
+| --- | --- |
+| “Two runs matched; the third exposed the filing difference.” | “When totals match but jurisdictions differ, capture Reports jurisdiction codes; matching totals alone do not verify attribution.” |
+| “Merchant 20 returned zero in three states. Skip those tests.” | “Verify the control for the address, date and merchant. Resolve an unexpected zero or use a verified alternative before deriving assertions from it.” |
+| “We added the missing TIC to the cart list; mirror it in ETL.” | “Check each path's list semantics before editing: one list may grant an exemption while another excludes it.” |
+
+Use the smallest amendment that carries the lesson, usually a sentence or short paragraph.
+Do not repeat it as an introduction, incident narrative, and closing checklist. Keep qualifications
+beside their claims. Do not commit release status, deployment instructions, or coordination state.
+
+### Worked edit: preserve the action, remove the incident
+
+Original, verbatim from [SQL #388 before review](https://github.com/FedTax/txc-sqlserver-database/blob/5dc64ec93571196a4d26da2d9c5971d4eb93c80f/.claude/skills/ratevariant-case-data/SKILL.md):
+
+> - **An origin override also changes the ZIP+4 as a destination.** A live TX ZIP+4 override
+>   is read by remote-seller destination lookups as well as origin lookups. When it and the ZIP5
+>   row have the same total but different local jurisdictions, cart and import cases can match
+>   while the Reports ETL attributes the tax to another jurisdiction. Include a Reports ETL
+>   remote-seller case that captures jurisdiction codes, and describe matching cart and import
+>   cases as masked. For DEV-10657, the 78665-5697 override kept the remote-seller total at 8.25%
+>   but moved its 2% from Round Rock (`63500`) to ESD 9 (`5246692`)
+>   ([PR #387 results](https://github.com/FedTax/txc-sqlserver-database/pull/387#issuecomment-6958889326)).
+
+**Why it is bad:** the address, rates, and district IDs retell the incident without changing
+what to test. “Describe matching cases as masked” also overstates the limitation: they can
+verify unchanged totals, just not jurisdiction attribution.
+
+**Edit:**
+
+> **Test origin and destination uses of an override.** A TX ZIP+4 override used for origin
+> sourcing can also affect remote-seller destination lookups. Test both uses. When totals match
+> but jurisdictions differ, include a Reports ETL case capturing jurisdiction codes; matching
+> cart/import totals alone do not verify attribution
+> ([evidence](https://github.com/FedTax/txc-sqlserver-database/pull/387#issuecomment-6958889326)).
+
+**Why it is better:** it names the action, its scope, and the limit of the evidence. The link
+retains the supporting case without copying it. This belongs beside existing override coverage
+instructions, not in another ticket-named section. Search “override,” “destination,” “equal
+totals,” and “jurisdiction attribution” before choosing that location; merge into an existing
+bullet if it already covers both uses.
 
 ## Deliver the documentation change
 
@@ -96,6 +131,6 @@ Review each diff using the SQL repository's `review-learning-pr` checklist, read
 repository when it is not checked out: a maintainer unfamiliar with the case must be able to
 explain the finding, its consequence, applicable conditions, and what remains unproven. Run applicable documentation
 checks. Return every documentation PR URL in `destination_pr_urls`. Return `recorded` only when
-all accepted lessons are recorded or already documented and all changes are pushed. Return
+all proposals have been assessed, useful amendments are pushed, and exclusions are explained. Return
 `blocked` if the assignment cannot be completed, with the failed step and what is needed.
 Use the attached schema and return without waiting for a person.

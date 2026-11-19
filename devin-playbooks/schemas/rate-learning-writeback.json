@@ -6,13 +6,14 @@
       "enum": [
         "recorded",
         "already_documented",
+        "not_worth_recording",
         "blocked"
       ],
-      "description": "recorded means all accepted lessons are recorded or already documented and all changes are pushed; already_documented means all lessons were already covered; blocked means some assigned work remains incomplete."
+      "description": "recorded means all proposals were assessed and useful amendments are pushed; already_documented means existing guidance covers all useful proposals; not_worth_recording means none adds worthwhile guidance; blocked means assessment or delivery could not be completed. Explain exclusions in reason."
     },
     "learning": {
       "type": "string",
-      "description": "The supplied reusable lesson and its applicable conditions; do not invent a lesson to fill this field."
+      "description": "The selected reusable lesson and its conditions, or empty when none qualifies. Do not invent a lesson to fill this field."
     },
     "evidence": {
       "type": "array",
@@ -34,7 +35,7 @@
     },
     "reason": {
       "type": "string",
-      "description": "What was recorded, where the lesson is already documented, or the failed step and evidence or decision needed to proceed."
+      "description": "What was recorded, covered, or excluded and why; for blocked, the failed step and what is needed. Justify new sections with search terms and nearest existing guidance."
     },
     "destination_pr_urls": {
       "type": "array",

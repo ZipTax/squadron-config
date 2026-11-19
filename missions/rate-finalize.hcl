@@ -372,7 +372,7 @@ mission "rate_finalize" {
   }
 
   # ---------------------------------------------------------------------------
-  # Task — record_learnings. Prepares accepted lessons before final operator review. Reached from enter_finalize
+  # Task — record_learnings. Collects discoveries and reviews writeback before final operator review. Reached from enter_finalize
   # (rate_fix's completed lane or FIX_IS_NO_OP, rate_triage's unsupported
   # disposition) and from verify_wai's WAI_CONFIRMED. Most cases record nothing,
   # and that is a valid outcome.
@@ -391,25 +391,27 @@ mission "rate_finalize" {
       Use case_slack to publish root status ":memo: Recording lessons".
 
       Ask the Devin sessions that worked on ${inputs.issue} for difficult-to-discover,
-      worthwhile lessons, following learnings_capture for the requests, assessment, and writeback.
+      worthwhile lessons, following learnings_capture for collection, writeback, and PR review.
 
       # 2. Read the accepted findings
 
-      Read the verdict, close reason, diagnosis, complete findings, audit findings, and PRs
+      Read the verdict, close reason, diagnosis, complete findings and PRs
       from the case. Ask sessions for lessons from their work.
       Recover missing report context through delegated_session before drawing on it.
 
       # 3. Gather and record worthwhile lessons
 
       Use enter_finalize's reachable_sessions to request worthwhile, reusable lessons from each
-      distinct Devin session through learnings_capture. Check rate_case_log for duplication or
-      supporting cases when assessing their proposals.
+      distinct Devin session through learnings_capture. Include the recorded investigation owner.
+      Pass source responses with attribution; do not compose
+      an intermediate accepted-lessons brief.
 
       Use `!rate-learning-writeback` as the writeback playbook. Supply base branches as an object
       keyed by repository URL: {"${inputs.repo_url}": "${inputs.base_branch}"} plus any other
       destination repository; a blank or missing entry means that repository's default branch.
-      Use one writeback session for all accepted lessons across repositories, reusing the owner in
-      the checkpoint's learning-writeback lane. Title a new session "${inputs.issue} — record learnings"
+      Use one writeback session to select and record worthwhile lessons across repositories,
+      reusing the owner in the checkpoint's learning-writeback lane.
+      Title a new session "${inputs.issue} — record learnings"
       and tag it with `["${inputs.issue}", "learnings"]`.
       Record that owner so operator review can direct later documentation corrections to it.
 
@@ -455,7 +457,7 @@ mission "rate_finalize" {
       }
       field "writeback_outcome" {
         type        = "string"
-        description = "recorded | already_documented | blocked from the assessed rate-learning-writeback result, or not_requested when no proposal qualified. A blocked writeback is not a no-lessons result."
+        description = "recorded | already_documented | not_worth_recording | blocked from the assessed rate-learning-writeback result, or not_requested when no source proposed a lesson. A blocked writeback is not a no-lessons result."
         required    = true
       }
       field "destination_pr_urls" {

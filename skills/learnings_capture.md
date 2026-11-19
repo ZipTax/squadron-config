@@ -1,85 +1,54 @@
 # Capture reusable learning
 
-## Ask for discoveries from the work actually performed
+## Collect proposals from the work sessions
 
-Ask the Devin sessions that did the work whether they encountered anything difficult to
-discover and worthwhile to preserve for a future case. Their working context contains the
-failed approaches, unexpected constraints, and decisive evidence that a summary may omit.
-Do not infer lessons from a PR diff, an action-item list, or a ticket outcome alone.
+Ask each distinct Devin session that did the work whether it discovered anything worth
+preserving for the next maintainer. Request a concise proposal: what to do differently,
+when, why, and a supporting evidence reference. “Nothing worth recording” is a complete answer.
+Keep the request read-only; use `delegated_session` to follow up and collect responses.
 
-Use `delegated_session`: follow up with `send_message`, then collect the response with
-`check_session`. Include the task context and the session's part of the work, and make the
-request read-only. Ask for no quota; “nothing worth recording” is a complete answer.
+Do not suggest a lesson for the session to endorse or infer one from a PR diff, audit findings,
+or ticket outcome. If a session is unavailable, retain only lessons it explicitly proposed in
+its recorded report, with attribution. Distinguish an unavailable response from explicit “none.”
+If no source proposes a candidate, report that result without starting a writeback.
 
-Ask for lessons in product terms: what the product does, whom it affects, and the remedy.
-Do not request file paths, queries, or tool output; one evidence reference per lesson is enough.
+## Hand proposals to one writeback owner
 
-For each proposed lesson, ask Devin to explain:
+Use one Devin writeback session for the ticket across repositories. Follow `delegated_session`
+to recover or reuse the owner recorded in the checkpoint's `learning-writeback` lane. When
+starting one, use `devin_code` with the task-supplied playbook and `prompt_mode: "raw"`;
+record its ID in that lane.
 
-- What the product does that was hard to discover, and why it was hard.
-- When it applies: the state, seller, or order conditions.
-- What a future session would do differently, and the mistake or effort that saves.
-- Whether existing guidance already covers it.
+Supply:
 
-Ask for the session's findings without suggesting a lesson it should endorse. Use a bounded
-follow-up when a proposal lacks support. Do not commission a fresh investigation merely to
-produce learning material. If a session is unavailable, use only lessons it explicitly
-proposed in its recorded report, retain that attribution, and disclose the unavailable
-response. An unavailable session is not a session that reported no lessons.
+- Source responses unchanged, or accessible references to their full text, with attribution
+  and supporting evidence.
+- Destination repositories and base branches keyed by repository.
+- This ticket's existing documentation PRs.
 
-## Assess the candidate and destination
+Leave usefulness, deduplication, evidence checks, and editing to the writeback playbook.
+Do not compose an intermediate “accepted lessons” brief or prescribe entries and destinations.
 
-Accept a proposal only when Devin's answers establish difficulty, cited evidence, future
-value, and a gap in maintained guidance. Clarify a missing answer; reject routine fixes,
-obvious facts, generic advice, or duplicate guidance. Keep explanations of one PR's changes
-and unresolved checks with that PR or session rather than creating a ticket document.
+## Review the amendments
 
-Accept guidance about behavior after the fix or a repeatable remedy with clear prerequisites.
-Check it against the final implementation; reject incident recaps and removed defects presented
-as current limitations. Include corrections to related obsolete guidance in the writeback scope.
+Read the returned diffs as guidance for a maintainer unfamiliar with the ticket. Each amendment
+must improve a future action or decision, preserve necessary conditions, and be supported by
+evidence. A shorter account of the ticket is not enough.
 
-Reduce an accepted proposal to its durable part: what a future session should do differently.
-Keep historical details only when they explain a reusable check, remedy, or constraint.
+Check the reported outcome:
 
-Identify the owning repository from the proposal. Use the writeback playbook supplied by
-the task to select the appropriate reference.
+- `recorded`: verify the PRs and their actual amendments.
+- `already_documented`: verify the cited guidance covers the proposals.
+- `not_worth_recording`: accept a supported explanation that no proposal adds useful guidance.
+- `blocked`: identify the failed step and what is needed; do not treat failure as no lessons.
 
-## Separate a supported lesson from unfinished work
+Return specific deficiencies to the same owner. Require an amendment to existing guidance
+unless its search establishes that no suitable home exists. Request omitted detail only when
+its absence makes the instruction wrong or unusable; do not restore code traces, run history,
+or broader scope merely because they appeared in a source response. Do not reopen implementation,
+acceptance testing, or investigation to manufacture a lesson.
 
-A lesson summarizes established evidence; it does not choose an unresolved implementation
-value. If correctness still depends on tracing a consumer, deciding between configuration
-values, or running missing proof, report the gap and its consequence. Do not turn a request
-for learning into instructions to change implementation, data, tests, or workflow state.
-Changing those artifacts can invalidate the evidence on which the lesson would rest.
+## Report the result
 
-Clarify existing evidence read-only when needed. If proving a proposed lesson requires new
-implementation or acceptance testing, leave it unrecorded and report the missing proof.
-
-## Delegate only accepted writebacks
-
-Collect and assess the work sessions' proposals before dispatching a writeback. Use one Devin
-writeback session for the ticket, covering all accepted lessons across repositories. Recover
-and reuse an existing writeback session before starting one; save its ID in the checkpoint's
-`learning-writeback` lane. Send later lessons and revision requests to that session through
-`send_message`.
-
-When none exists, use delegated_session and devin_code with the task-supplied writeback playbook
-and `prompt_mode: "raw"`. Supply all accepted findings, originating sessions, evidence,
-intended future uses, destination repositories, base branches keyed by repository, and the
-ticket's existing documentation PRs; do not supply documentation PRs from other tickets.
-The new session does not inherit that context. If the owner is unavailable, recover its work
-before replacing it; do not start parallel writeback sessions for the same ticket.
-
-The playbook owns documentation scope, destination checks, writing style, and delivery.
-Supply Devin with the finding, why it matters, supporting evidence, intended future use, and
-relevant constraints. Suggested destinations and wording are input to evaluate, not requirements
-to copy; label them as suggestions. Collect Devin’s structured result and assess the actual diff:
-
-- `recorded`: accept only the supplied lesson, supported by cited evidence, in the returned documentation PRs.
-- `already_documented`: verify the cited guidance covers the lesson; no new document is needed.
-- `blocked`: report the failed step and what is needed, without treating failure as no lessons.
-
-Return specific deficiencies for revision, including history that explains no reusable rule,
-repeated explanations, or scope broader than the evidence. Report the work sessions asked, their proposals
-or explicit “none” responses, unavailable responses, and the writeback outcome. If no proposal
-qualifies, finish without starting a writeback.
+Report the sources asked, response references, explicit “none” or unavailable responses,
+and the writeback outcome with any documentation PRs. No worthwhile lesson is a successful outcome.
