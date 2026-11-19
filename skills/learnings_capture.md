@@ -31,10 +31,10 @@ response. An unavailable session is not a session that reported no lessons.
 ## Collect without composing a second brief
 
 Check the recorded investigation, fix, ratevariant-cases, and Bruno owners, including any
-independent verification session that worked on the case. Ask each distinct available session;
-record explicit “none” and unavailable responses separately. Do not silently omit investigation.
-Squadron owns the A/B audit; there is no Devin audit session to ask. Do not forward the audit
-as a source of lessons. Consult it only when needed to verify a session-proposed lesson.
+session that supplied audit analysis or independent verification. Ask each distinct available
+session; record explicit “none” and unavailable responses separately. Do not silently omit
+investigation. Use audit findings only to verify a session-proposed lesson, not as additional
+lesson proposals.
 
 Pass the responses unchanged, or provide accessible references to their full text, with their
 source sessions and evidence. Do not merge them into “accepted lessons,” rewrite them into
