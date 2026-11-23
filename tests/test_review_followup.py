@@ -31,6 +31,15 @@ class ReviewFollowupContract(unittest.TestCase):
         self.assertEqual(recovered['case_state'], 'active')
         self.assertEqual(recovered['slack']['root_message_id'], case['slack']['root_message_id'])
 
+    def test_review_pauses_require_slack_thread_update(self):
+        objective = blocks(mission('rate_finalize')['task'])['review_followup']['objective']
+        self.assertIn('REQUIRED pause update', objective)
+        self.assertIn('builtins.gateway.post', objective)
+        case_slack = (ROOT / 'skills/case_slack.md').read_text()
+        self.assertIn('Review follow-up pauses (required)', case_slack)
+        self.assertIn('Do not publish internal coordination reports', case_slack)
+        self.assertIn('review_followup', (ROOT / 'skills/blocked_run.md').read_text())
+
     def test_bruno_examples_validate_and_production_is_rejected(self):
         schema = json.loads((ROOT / 'devin-playbooks/schemas/bruno-regression.json').read_text())
         Draft202012Validator.check_schema(schema)

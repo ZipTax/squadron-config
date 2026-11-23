@@ -46,15 +46,16 @@ show Slack link syntax so labels become clickable rather than plain PR numbers.
 | Bruno PR ready; pre-deployment CI assessed | Add `<bruno-pr-url\|txc-bruno tests>` to PRs | None |
 | Lessons work starts | Status: :memo: Recording lessons | None |
 | Lessons PR ready | Add `<lessons-pr-url\|squadron-config lessons>` to PRs | None |
-| Review opens | Status: :eyes: Awaiting review | Review prompt for feedback, including: "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix." |
+| Review opens | Status: :eyes: Awaiting review | Short pause-status update (what review awaits), then the review prompt for feedback, including: "Please follow up when the fix is deployed to staging. If applicable, provide any relevant deployment details so I can verify the fix." |
 | Operator confirms staging deployment | Status: :test_tube: Verifying in staging | None; the existing Bruno session reuses a post-deployment attempt or reruns the PR's API Tests check at the same head |
-| Post-deployment CI assessed | Status: :eyes: Awaiting review | None |
+| Post-deployment CI assessed | Status: :eyes: Awaiting review | Short pause-status update with the assessed outcome and what is awaited, e.g. ":warning: Staging verification paused - observed 13.5%, expected 8%; awaiting proc deploy", then the next review ask |
 
 Each PR entry on the root is only a labeled link. Routine progress and expected results
 update the root; detailed findings, implementation, and evidence stay in Jira, PRs, and CI.
 
 If a question blocks work, change the root to `:question: Blocked on question` and use the
-human-ask tool. After accepting the answer, restore the work status without a separate
+human-ask tool. During review follow-up, every ask or pause also gets a short pause-status
+thread update posted just before the ask. After accepting the answer, restore the work status without a separate
 resolution post. Unexpected results are posted only when they block progress; otherwise
 continue corrections and maintain the root status.
 

@@ -502,6 +502,16 @@ mission "rate_finalize" {
       that agent's tool use. If the task agent reports a missing capability,
       obtain its tool error or unavailable-tool details before treating the work as interrupted.
 
+      REQUIRED pause update: whenever this task invokes builtins.human.ask, OR reaches any
+      pause point (e.g. staging verification failed, blocked on deployment, awaiting operator
+      direction), also post a Slack thread update in the case thread through case_slack /
+      builtins.gateway.post. Post it immediately BEFORE the ask, because a no-timeout ask
+      blocks until answered. The human.ask remains the authoritative place
+      for the choices; the thread post ensures the thread is not silent while waiting. Keep
+      it a short status plus what is awaited, and never the ask body verbatim, e.g.
+      ":warning: Staging verification paused - observed X, expected Y; awaiting proc deploy".
+      case_slack's forbidden coordination reports still apply to this post.
+
       # 1. Collect current work and wait
 
       1. Collect current PR states, heads, and session results through delegated_session,
@@ -511,7 +521,7 @@ mission "rate_finalize" {
          case_slack to set root status ":eyes: Awaiting review". End EVERY iteration with
          a delegated builtins.human.ask without timeout_seconds. Wait for the answer through
          the task agent so the operator can direct the next correction, confirm staging
-         deployment, or finish review.
+         deployment, or finish review. Post the required pause update before each ask.
          This is the common return point after steps 2 and 3 and an incomplete merge check.
       3. For the initial ask, summarize readiness with labeled PR links, the accepted A/B
          outcome, Bruno's results before staging deployment, and material limits or open
@@ -550,6 +560,7 @@ mission "rate_finalize" {
          and evidence. Return to step 1 after the requested work is assessed.
 
       Use blocked_run for an operator or product dependency, then resume this review task.
+      Every review_followup pause counts as a blocker and needs the required pause update.
 
       # 3. Verify a reported staging deployment
 

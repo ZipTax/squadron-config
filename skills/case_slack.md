@@ -17,8 +17,10 @@ including `additional_context`.
 - **Do not paste technical reports into Slack:** SQL/schema details, branch names, commit
   hashes, test-case inventories, or raw logs. Link the relevant work and describe the
   product consequence only when the message qualifies under section 1.
-- **Do not duplicate a human ask with a gateway post.** Put the ready-for-review summary
-  in the review ask itself.
+- **Do not duplicate a human ask's body with a gateway post.** Put the ready-for-review
+  summary in the review ask itself. This forbids verbatim duplication only; during
+  `review_followup`, a separate concise pause-status thread update is required alongside
+  every ask (see section 1).
 
 Before sending, check the message against these prohibitions and section 1's allowed
 message types. If it is only a coordination report, **send nothing**. For example,
@@ -39,8 +41,15 @@ in the ticket, PR, and CI.
 
 **Thread messages are only for:**
 
-- Questions requiring human input. Use `builtins.human.ask`; it posts to the thread,
-  so do not duplicate it with a gateway post.
+- Questions requiring human input. Use `builtins.human.ask`; do not repeat its body in
+  a gateway post. In other stages the ask needs no separate thread post.
+- Review follow-up pauses (required): whenever `review_followup` calls `builtins.human.ask`
+  or reaches any pause point, such as failed staging verification, a blocked deployment,
+  or awaiting operator direction, also post a short thread update through
+  `builtins.gateway.post` stating the pause reason and the operator action awaited. Post it
+  before the ask, since a no-timeout ask blocks until answered. For example:
+  ":warning: Staging verification paused - observed 13.5%, expected 8%; awaiting proc deploy".
+  The ask holds the choices; this post keeps the thread from going silent while waiting.
 - Blockers: explain what prevents progress, its consequence, and the action needed.
   Use `blocked_run` when human input is required.
 - The final ready-for-review summary, including the request to follow up after staging
