@@ -505,7 +505,8 @@ mission "rate_finalize" {
       REQUIRED pause update: whenever this task invokes builtins.human.ask, OR reaches any
       pause point (e.g. staging verification failed, blocked on deployment, awaiting operator
       direction), also post a Slack thread update in the case thread through case_slack /
-      builtins.gateway.post at the same time. The human.ask remains the authoritative place
+      builtins.gateway.post. Post it immediately BEFORE the ask, because a no-timeout ask
+      blocks until answered. The human.ask remains the authoritative place
       for the choices; the thread post ensures the thread is not silent while waiting. Keep
       it a short status plus what is awaited, and never the ask body verbatim, e.g.
       ":warning: Staging verification paused - observed X, expected Y; awaiting proc deploy".
@@ -520,7 +521,7 @@ mission "rate_finalize" {
          case_slack to set root status ":eyes: Awaiting review". End EVERY iteration with
          a delegated builtins.human.ask without timeout_seconds. Wait for the answer through
          the task agent so the operator can direct the next correction, confirm staging
-         deployment, or finish review. Post the required pause update with each ask.
+         deployment, or finish review. Post the required pause update before each ask.
          This is the common return point after steps 2 and 3 and an incomplete merge check.
       3. For the initial ask, summarize readiness with labeled PR links, the accepted A/B
          outcome, Bruno's results before staging deployment, and material limits or open

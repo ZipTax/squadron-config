@@ -5,7 +5,7 @@ before the operator ask. Use `rate_case` to save the question, context, and next
 entry in `human_wait`, then `case_slack` with status `:question: Blocked on question`.
 
 Every `review_followup` pause or human ask counts as a blocker for Slack: post
-`case_slack`'s required pause-status thread update alongside the ask, summarizing the
+`case_slack`'s required pause-status thread update immediately before the ask, summarizing the
 pause reason and the operator action awaited without repeating the ask body.
 
 ## Operator choice
