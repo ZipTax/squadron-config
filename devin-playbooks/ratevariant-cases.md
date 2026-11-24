@@ -16,7 +16,7 @@ as item prices are valid. Do not build an assertion framework or harness.
 | Lane and current-head plan | `ratevariant-testing`, including `references/process.md` step 2 |
 | Merchant eligibility, validity gates, and legitimate fixtures | `ratevariant-case-data` |
 | Query construction and read-only execution | `write-taxcloud-sql-query`, then `query-staging-snapshot` |
-| YAML fields and alteration/fixture SQL | `tests/ratevariant-cases/README.md` |
+| YAML fields, reservation keys, and alteration/fixture SQL | `tests/ratevariant-cases/README.md` |
 | Offline loader validation | `ratevariant-testing` |
 
 Read repository instructions and register with `registering-on-the-ticket` under
@@ -48,13 +48,23 @@ metadata; describe that prediction separately as an audit finding.
    focused on the behavior or situation. For Reports/filing inputs backed by existing
    records, use tags supported by the data and report missing or incomplete metadata in
    the handoff. These tags determine which existing cases participate in scoped runs.
-5. Validate with the repository's offline loader procedure, push only lane files, and
+5. Declare `reserves.read` / `reserves.write` on every authored or changed case and each
+   fixture, using the shared resource vocabulary in `tests/ratevariant-cases/README.md`.
+   Inspect both procedure arms, their helpers, input enrichment, and captures for case
+   access; inspect all setup SQL, including source reads, for fixture access. Include
+   `NOLOCK` reads: they can observe another worker's uncommitted changes. Use `write`
+   when the same resource is both read and written. Tags and fixture names do not reserve
+   data. Reuse each named fixture's complete definition, including reservations, unchanged.
+   Choose a documented broader resource when narrower access cannot be established, and
+   explain that limit in the handoff; invented narrow keys can allow conflicting work.
+6. Validate with the repository's offline loader procedure, push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
 
 On adoption, retain existing justified cases and complete the missing work. After a fix
 pivot, compare the new plan/diff with existing cases, report valid/obsolete/missing coverage,
-and update the migration's mirroring alteration when needed.
+and update the migration's mirroring alteration when needed. Recheck reservations whenever
+procedure or fixture access changes, so the declarations still cover both arms.
 
 On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
 selected `states` and `tics` inputs, following
