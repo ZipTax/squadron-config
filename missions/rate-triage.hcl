@@ -525,9 +525,10 @@ mission "rate_triage" {
       operator dependency. Use sme_writeback for supported product findings or questions.
       For a blocking dependency, delegate blocked_run to this task's agent: screen the
       question, put unresolved product questions on Jira, then call builtins.human.ask
-      without timeout_seconds and wait. Have Devin assess the answer and continue the
-      investigation within this task; ask again if a necessary decision remains unresolved.
-      A Slack post or checkpoint is not a live wait. End needs_human only under blocked_run's
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Have Devin assess the answer and continue the investigation within this task; ask
+      again if a necessary decision remains unresolved. Posting to Slack or saving a
+      checkpoint does not satisfy that wait. End needs_human only under blocked_run's
       unresolved-ask exit conditions, saving the investigation entry and confirming any
       required bridge registration. Preserve insufficient_production_evidence when the data
       cannot support a conclusion.

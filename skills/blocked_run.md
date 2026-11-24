@@ -10,10 +10,11 @@ pause reason and the operator action awaited without repeating the ask body.
 
 ## Keep the task waiting for the answer
 
-Call `builtins.human.ask` without `timeout_seconds` and wait for its result within the
-assigned task. The commander must keep that task open while the agent waits, rather than
-submit a terminal outcome or call `task_complete`. A Slack post, saved `human_wait`, or
-checkpoint is context, not a live wait or registered resume trigger.
+Keep the assigned task open by calling `builtins.human.ask` without `timeout_seconds`
+and waiting for its answer. The commander must keep that task open while the agent waits;
+submitting a terminal outcome or calling `task_complete` would end it before the answer.
+Posting to Slack or saving `human_wait` or a checkpoint does not satisfy that wait or
+register a resume trigger.
 
 After an answer, reassess it with the owning Devin session and continue the current task.
 If a necessary decision remains unresolved, ask again within this task. Return an

@@ -360,9 +360,10 @@ mission "rate_fix" {
       Completed work proceeds to case authoring.
       For a blocking human dependency, apply question_screen and delegate blocked_run to
       this task's agent: put unresolved product questions on Jira, call builtins.human.ask
-      without timeout_seconds, and wait. Assess the answer with the owning Devin session
-      and continue develop within this task; ask again if a necessary decision remains.
-      A Slack post or saved checkpoint does not hold the task open. Return needs_human only
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Assess the answer with the owning Devin session and continue develop within this task;
+      ask again if a necessary decision remains. Posting to Slack or saving a checkpoint
+      does not satisfy that wait. Return needs_human only
       after blocked_run's unresolved-ask exit conditions, with next entry develop saved;
       confirm any required bridge registration before ending.
     EOT
@@ -483,9 +484,10 @@ mission "rate_fix" {
       Completed coverage proceeds to audit, including justified limits for the auditor to assess.
       For a blocking human dependency, apply question_screen and delegate blocked_run to
       this task's agent: put unresolved product questions on Jira, call builtins.human.ask
-      without timeout_seconds, and wait. Assess the answer with the owning Devin session
-      and continue author_tests within this task; ask again if a necessary decision remains.
-      A Slack post or saved checkpoint does not hold the task open. Return needs_human only
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Assess the answer with the owning Devin session and continue author_tests within this task;
+      ask again if a necessary decision remains. Posting to Slack or saving a checkpoint
+      does not satisfy that wait. Return needs_human only
       after blocked_run's unresolved-ask exit conditions, with next entry author_tests saved;
       confirm any required bridge registration before ending.
     EOT
@@ -607,10 +609,11 @@ mission "rate_fix" {
       CASES_INADEQUATE or FIX_OR_TICKET_WRONG does not route onward. When a human decision
       is required, delegate blocked_run to this task's agent: screen the question, use Jira
       for an unresolved product question, and call builtins.human.ask without timeout_seconds.
-      Wait, assess the answer, and continue the audit/correction loop within this task.
+      Keep this task open while the agent waits for the answer. Assess it and continue
+      the audit/correction loop within this task; ask again if a necessary decision remains.
       End unresolved only under blocked_run's unresolved-ask exit conditions, saving next
-      entry audit and confirming any required bridge registration. A Slack post or saved
-      checkpoint cannot replace the ask. A coverage limit alone does not warrant a Jira question.
+      entry audit and confirming any required bridge registration. Posting to Slack or saving
+      a checkpoint does not satisfy the wait. A coverage limit alone does not warrant a Jira question.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
@@ -734,9 +737,10 @@ mission "rate_fix" {
       the remaining failures and evidence.
       For a blocking human dependency, apply question_screen and delegate blocked_run to
       this task's agent: put unresolved product questions on Jira, call builtins.human.ask
-      without timeout_seconds, and wait. Assess the answer with the owning Devin session
-      and continue bruno_tests within this task; ask again if a necessary decision remains.
-      A Slack post or saved checkpoint does not hold the task open. Return needs_human only
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Assess the answer with the owning Devin session and continue bruno_tests within this task;
+      ask again if a necessary decision remains. Posting to Slack or saving a checkpoint
+      does not satisfy that wait. Return needs_human only
       after blocked_run's unresolved-ask exit conditions, with next entry bruno_tests saved;
       confirm any required bridge registration before ending.
     EOT
