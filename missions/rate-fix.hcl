@@ -29,8 +29,8 @@ mission "rate_fix" {
   #                      \--> author_tests (a live fix PR only lacks A/B coverage)
   #                      \--> audit        (fix and cases both exist; resume the judgment)
   #                      \--> bruno_tests  (the A/B is settled; only API coverage was outstanding)
-  #   develop     --router--> author_tests (completed; unresolved ask exit checkpoints and ends)
-  #   author_tests --router--> audit       (completed; unresolved ask exit checkpoints and ends)
+  #   develop     --router--> author_tests (fix completed)
+  #   author_tests --router--> audit       (coverage completed)
   #   audit       --router--> bruno_tests            (SATISFACTORY: lock the settled fix in)
   #                      \--> missions.rate_finalize (FIX_IS_NO_OP: the fix changes nothing)
   #   bruno_tests --router--> missions.rate_finalize
@@ -48,9 +48,10 @@ mission "rate_fix" {
   #
   # Blocking on a human: the blocked_run skill, both ends. A stage that hits a
   # dependency first screens it and selects native ask-human for operator
-  # decisions or a Jira question followed by an ask waiting for answers. The current
-  # task continues after an answer; a bridge wait is fallback after the live ask ends.
-  # Save this lane's next stage so a later run resumes without repeating finished work.
+  # decisions or a Jira question followed by an ask waiting for answers. Keep the
+  # current task open on the ask, then assess the answer and continue within that task.
+  # If the ask is cancelled or unavailable, blocked_run preserves the next stage
+  # and handles recovery so a later run need not repeat finished work.
   memories = [memories.rate_checkpoint]
 
   # Cross-mission routes select the entry and supply accepted context; rate_case also retains
