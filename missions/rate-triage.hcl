@@ -523,14 +523,22 @@ mission "rate_triage" {
       limitation writeback described in rate_investigation. EVIDENCE_INCOMPLETE does not proceed.
       Use txc_production_evidence for production-tool gaps and blocked_run for the resulting
       operator dependency. Use sme_writeback for supported product findings or questions.
-      Preserve insufficient_production_evidence when the data cannot support a conclusion.
+      For a blocking dependency, delegate blocked_run to this task's agent: screen the
+      question, put unresolved product questions on Jira, then call builtins.human.ask
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Have Devin assess the answer and continue the investigation within this task; ask
+      again if a necessary decision remains unresolved. Posting to Slack or saving a
+      checkpoint does not satisfy that wait. End needs_human only under blocked_run's
+      unresolved-ask exit conditions, saving the investigation entry and confirming any
+      required bridge registration. Preserve insufficient_production_evidence when the data
+      cannot support a conclusion.
     EOT
     agents = [agents.taxcloud_legacy_sql_investigator]
 
     output {
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human — copied from the Devin result after applying the distinction between a blocking human dependency and a non-blocking follow-up."
+        description = "completed | needs_human — assess Devin’s result; needs_human requires an ended unresolved live ask and recorded blocked_run fallback, not merely a question in that result."
         required    = true
       }
       field "human_questions" {
@@ -650,7 +658,8 @@ mission "rate_triage" {
           and unknowns to open_questions.
         EOT
       }
-      # `needs_human` and EVIDENCE_INCOMPLETE are terminal because this stage records their state.
+      # `needs_human` exits only after the live ask ends unresolved and fallback is recorded.
+      # EVIDENCE_INCOMPLETE cannot route onward as a supported finding.
     }
   }
 }

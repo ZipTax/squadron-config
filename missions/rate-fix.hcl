@@ -29,8 +29,8 @@ mission "rate_fix" {
   #                      \--> author_tests (a live fix PR only lacks A/B coverage)
   #                      \--> audit        (fix and cases both exist; resume the judgment)
   #                      \--> bruno_tests  (the A/B is settled; only API coverage was outstanding)
-  #   develop     --router--> author_tests (completed; needs_human checkpoints and ends)
-  #   author_tests --router--> audit       (completed; needs_human checkpoints and ends)
+  #   develop     --router--> author_tests (fix completed)
+  #   author_tests --router--> audit       (coverage completed)
   #   audit       --router--> bruno_tests            (SATISFACTORY: lock the settled fix in)
   #                      \--> missions.rate_finalize (FIX_IS_NO_OP: the fix changes nothing)
   #   bruno_tests --router--> missions.rate_finalize
@@ -48,8 +48,10 @@ mission "rate_fix" {
   #
   # Blocking on a human: the blocked_run skill, both ends. A stage that hits a
   # dependency first screens it and selects native ask-human for operator
-  # decisions or a Jira bridge wait for ticket evidence. A Jira wait records this
-  # lane's next stage so rate_triage can resume without repeating finished work.
+  # decisions or a Jira question followed by an ask waiting for answers. Keep the
+  # current task open on the ask, then assess the answer and continue within that task.
+  # If the ask is cancelled or unavailable, blocked_run preserves the next stage
+  # and handles recovery so a later run need not repeat finished work.
   memories = [memories.rate_checkpoint]
 
   # Cross-mission routes select the entry and supply accepted context; rate_case also retains
@@ -355,15 +357,22 @@ mission "rate_fix" {
       If findings need revision, have the investigation session assess them before changing
       the accepted Cause.
 
-      Completed work proceeds to case authoring. For needs_human, use blocked_run and
-      rate_checkpoint with next entry develop.
+      Completed work proceeds to case authoring.
+      For a blocking human dependency, apply question_screen and delegate blocked_run to
+      this task's agent: put unresolved product questions on Jira, call builtins.human.ask
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Assess the answer with the owning Devin session and continue develop within this task;
+      ask again if a necessary decision remains. Posting to Slack or saving a checkpoint
+      does not satisfy that wait. Return needs_human only
+      after blocked_run's unresolved-ask exit conditions, with next entry develop saved;
+      confirm any required bridge registration before ending.
     EOT
     agents  = [agents.taxcloud_legacy_sql_implementer]
 
     output {
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human — the fix lane's typed completion state."
+        description = "completed | needs_human — needs_human only after the live ask ends unresolved and blocked_run fallback is recorded."
         required    = true
       }
       field "human_questions" {
@@ -423,7 +432,7 @@ mission "rate_fix" {
         target    = tasks.author_tests
         condition = "outcome == completed"
       }
-      # `needs_human` has no route because develop records the blocker before returning.
+      # `needs_human` has no route; emit it only after the live ask ends unresolved and fallback is recorded.
     }
   }
 
@@ -473,14 +482,21 @@ mission "rate_fix" {
       Keep the root's PR links current using case_slack.
 
       Completed coverage proceeds to audit, including justified limits for the auditor to assess.
-      For needs_human, use blocked_run and rate_checkpoint with next entry author_tests.
+      For a blocking human dependency, apply question_screen and delegate blocked_run to
+      this task's agent: put unresolved product questions on Jira, call builtins.human.ask
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Assess the answer with the owning Devin session and continue author_tests within this task;
+      ask again if a necessary decision remains. Posting to Slack or saving a checkpoint
+      does not satisfy that wait. Return needs_human only
+      after blocked_run's unresolved-ask exit conditions, with next entry author_tests saved;
+      confirm any required bridge registration before ending.
     EOT
     agents  = [agents.test_authoring_coordinator]
 
     output {
       field "outcome" {
         type        = "string"
-        description = "completed | needs_human — the case-authoring lane's typed completion state."
+        description = "completed | needs_human — needs_human only after the live ask ends unresolved and blocked_run fallback is recorded."
         required    = true
       }
       field "human_questions" {
@@ -520,7 +536,7 @@ mission "rate_fix" {
         target    = tasks.audit
         condition = "outcome == completed"
       }
-      # `needs_human` has no route because author_tests records the blocker before returning.
+      # `needs_human` has no route; emit it only after the live ask ends unresolved and fallback is recorded.
     }
   }
 
@@ -590,9 +606,14 @@ mission "rate_fix" {
       read-only, post the product-level finding using writing-ticket-updates, and add a PR note;
       do not close or revert the PR. Stop further case work.
 
-      Terminal CASES_INADEQUATE or FIX_OR_TICKET_WRONG does not proceed. Use blocked_run and
-      rate_checkpoint when a human answer is needed. A coverage limit for a reviewer does not
-      require inventing a Jira question.
+      CASES_INADEQUATE or FIX_OR_TICKET_WRONG does not route onward. When a human decision
+      is required, delegate blocked_run to this task's agent: screen the question, use Jira
+      for an unresolved product question, and call builtins.human.ask without timeout_seconds.
+      Keep this task open while the agent waits for the answer. Assess it and continue
+      the audit/correction loop within this task; ask again if a necessary decision remains.
+      End unresolved only under blocked_run's unresolved-ask exit conditions, saving next
+      entry audit and confirming any required bridge registration. Posting to Slack or saving
+      a checkpoint does not satisfy the wait. A coverage limit alone does not warrant a Jira question.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
@@ -714,8 +735,14 @@ mission "rate_fix" {
       Completed work proceeds to finalization. Continue technical corrections while making
       progress. If progress stalls or more information is needed, ask the operator with
       the remaining failures and evidence.
-      Save failed work with next entry bruno_tests so it can resume after direction.
-      For needs_human, use blocked_run and rate_checkpoint with next entry bruno_tests.
+      For a blocking human dependency, apply question_screen and delegate blocked_run to
+      this task's agent: put unresolved product questions on Jira, call builtins.human.ask
+      without timeout_seconds. Keep this task open while the agent waits for the answer.
+      Assess the answer with the owning Devin session and continue bruno_tests within this task;
+      ask again if a necessary decision remains. Posting to Slack or saving a checkpoint
+      does not satisfy that wait. Return needs_human only
+      after blocked_run's unresolved-ask exit conditions, with next entry bruno_tests saved;
+      confirm any required bridge registration before ending.
     EOT
     agents  = [agents.test_authoring_coordinator]
 
@@ -728,7 +755,7 @@ mission "rate_fix" {
 
       field "outcome" {
         type        = "string"
-        description = "completed | failed | needs_human - completed means authored tests and reviewed CI results match deployment state; expected pre-deployment failures are successful completion."
+        description = "completed | failed | needs_human - completed means authored tests and reviewed CI results match deployment state; expected pre-deployment failures are successful completion. needs_human requires an ended unresolved ask and recorded blocked_run fallback."
         required    = true
       }
       field "human_questions" {

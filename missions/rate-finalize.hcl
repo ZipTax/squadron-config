@@ -320,8 +320,15 @@ mission "rate_finalize" {
       Preserve the prior reasoning and evidenced rebuttal as a challenge, not a predetermined
       answer. Ask Devin to annotate the prior comment as under investigation. At a repeated
       standoff, use blocked_run and rate_checkpoint to ask for the decision with both positions
-      and their evidence, rather than re-firing. Use the same pause workflow if the verification
-      itself needs a human answer; do not manufacture confirmation or refutation.
+      and their evidence, rather than re-firing. Use the same workflow if verification needs
+      a human answer: delegate blocked_run to this task's agent, screen the question, put
+      unresolved product questions on Jira, and call builtins.human.ask without timeout_seconds.
+      Keep this task open while the agent waits for the answer. Have Devin assess the answer
+      and continue verification within this task; ask again if a necessary decision remains.
+      Posting to Slack or saving a checkpoint does not satisfy that wait.
+      End unresolved only under blocked_run's unresolved-ask exit conditions,
+      saving next entry verify_wai and confirming any required bridge registration;
+      do not manufacture confirmation or refutation to complete the output.
     EOT
     agents = [agents.taxcloud_legacy_sql_reviewer]
 
@@ -424,8 +431,14 @@ mission "rate_finalize" {
       If a failure prevents completion or a returned finding calls close-out into question,
       apply question_screen, then use builtins.human.ask when an operator decision is needed.
       Explain the failure, available evidence, and the decision needed to proceed. Follow
-      blocked_run's operator-wait handling; do not turn learning-step failures into Jira questions
-      or automatically restart investigation or audit. No qualifying lessons is a successful outcome.
+      blocked_run's operator-wait handling through this task's agent: call the ask without
+      timeout_seconds and keep this task open while the agent waits for the answer. Assess
+      the answer and continue within this task; ask again if a necessary decision remains.
+      Posting to Slack or saving a checkpoint does not satisfy that wait.
+      End unresolved only under blocked_run's unresolved-ask
+      exit conditions with next entry record_learnings saved. Do not turn learning-step failures
+      into Jira questions or automatically restart investigation or audit.
+      No qualifying lessons is a successful outcome.
 
       Add accepted lessons PRs as labeled links in the root using case_slack.
 
