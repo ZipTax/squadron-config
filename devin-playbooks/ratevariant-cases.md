@@ -16,7 +16,8 @@ as item prices are valid. Do not build an assertion framework or harness.
 | Lane and current-head plan | `ratevariant-testing`, including `references/process.md` step 2 |
 | Merchant eligibility, validity gates, and legitimate fixtures | `ratevariant-case-data` |
 | Query construction and read-only execution | `write-taxcloud-sql-query`, then `query-staging-snapshot` |
-| YAML fields, reservation keys, and alteration/fixture SQL | `tests/ratevariant-cases/README.md` |
+| YAML fields and alteration/fixture SQL | `tests/ratevariant-cases/README.md` |
+| Reservation key meanings, access tracing, and fallbacks | `tests/ratevariant-cases/reservations.md` (follow its proposal status before migrating declarations) |
 | Offline loader validation | `ratevariant-testing` |
 
 Read repository instructions and register with `registering-on-the-ticket` under
@@ -49,7 +50,9 @@ metadata; describe that prediction separately as an audit finding.
    records, use tags supported by the data and report missing or incomplete metadata in
    the handoff. These tags determine which existing cases participate in scoped runs.
 5. Declare `reserves.read` / `reserves.write` on every authored or changed case and each
-   fixture, using the shared resource vocabulary in `tests/ratevariant-cases/README.md`.
+   fixture, using `tests/ratevariant-cases/reservations.md` as the shared key reference.
+   While that vocabulary is under review, propose declarations for agreement rather than
+   applying the proposed migration.
    Inspect both procedure arms, their helpers, input enrichment, and captures for case
    access; inspect all setup SQL, including source reads, for fixture access. Include
    `NOLOCK` reads: they can observe another worker's uncommitted changes. Use `write`
