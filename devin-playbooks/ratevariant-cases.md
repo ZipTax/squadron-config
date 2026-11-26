@@ -17,7 +17,7 @@ as item prices are valid. Do not build an assertion framework or harness.
 | Merchant eligibility, validity gates, and legitimate fixtures | `ratevariant-case-data` |
 | Query construction and read-only execution | `write-taxcloud-sql-query`, then `query-staging-snapshot` |
 | YAML fields and alteration/fixture SQL | `tests/ratevariant-cases/README.md` |
-| Reservation key meanings, access tracing, and fallbacks | `tests/ratevariant-cases/reservations.md` |
+| Case/fixture access tracing, reservation scope, and conflict checks | `ratevariant-reservations` |
 | Offline loader validation | `ratevariant-testing` |
 
 Read repository instructions and register with `registering-on-the-ticket` under
@@ -49,30 +49,11 @@ metadata; describe that prediction separately as an audit finding.
    focused on the behavior or situation. For Reports/filing inputs backed by existing
    records, use tags supported by the data and report missing or incomplete metadata in
    the handoff. These tags determine which existing cases participate in scoped runs.
-5. Declare `reserves.read` / `reserves.write` on every authored or changed case and each
-   fixture, using `tests/ratevariant-cases/reservations.md` as the shared key reference.
-   Inspect both procedure arms, their helpers, input enrichment, and captures for case
-   access; inspect all setup SQL, including source reads, for fixture access. Include
-   `NOLOCK` reads: they can observe another worker's uncommitted changes. Use `write`
-   when the same resource is both read and written. Tags and fixture names do not reserve
-   data. Reuse each named fixture's complete definition, including reservations, unchanged.
-   Choose a documented broader resource when narrower access cannot be established, and
-   explain that limit in the handoff; invented narrow keys can allow conflicting work.
-   Narrow from actual predicates and values, including absent-row checks and copy sources;
-   update readers and writers together when extending the vocabulary. A table reference
-   alone does not justify a global claim, and a state/TIC tag does not prove a narrow one.
-   For fixed-transaction fixtures, verify the transaction's owning URL in the run snapshot
-   and reserve both `tx/<uuid>` and `tx/url/<URLID>`; moves protect old and new URLs. Recheck
-   ownership when the transaction ID or snapshot changes. Token-isolated carts use their
-   generated transaction scope under the reference's precise capture requirements;
-   do not copy that exception to imports or existing-transaction fixtures. Configuration
-   `url/<ID>` is distinct from transaction `tx/url/<ID>`. Unknown complete access and
-   persistent DDL require exclusive `reserves: {}`, not an invented table-only substitute.
-6. Validate with the repository's offline loader procedure and reservation conflict checks;
-   loading must not execute cases or fixtures. Request regression coverage from the harness
-   owner if a new resource relationship needs checks outside this lane. Push only lane files, and
-   return the attached schema: mode, authored files, per-root coverage, fixture decisions,
-   and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
+5. Use `ratevariant-reservations` to declare and review access on every authored or changed
+   case and fixture. Include retained broad scopes and their reasons in the handoff.
+6. Validate offline using the repository skills, push only lane files, and return the
+   attached schema: mode, authored files, per-root coverage, fixture decisions, and coverage
+   gaps. Never commit credentials; use the loader's runtime key resolution.
 
 On adoption, retain existing justified cases and complete the missing work. After a fix
 pivot, compare the new plan/diff with existing cases, report valid/obsolete/missing coverage,
