@@ -82,14 +82,11 @@ procedure or fixture access changes, so the declarations still cover both arms.
 On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
 selected `states` and `tics` inputs, following
 [ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
-For reservation/capture changes, start with a focused selection exercising shared fixtures,
-independent transactions on one connection, and independent connections; expand only when
-coverage or failures justify it. Case-only execution requires manual `execute_cases=true`,
+Case-only execution requires manual `execute_cases=true`,
 not the run label or a plan artifact. Procedure/alteration runs still need the current-head
 plan. Follow the run to completion and return the automatic result comment, tested SQL and
 runner revisions, counts, and captures to Squadron for review. Investigate failures before
-retrying; do not present a subset pass as full-suite coverage. Compare phase wall times
-separately from preparation and summed worker time when assessing performance. If dispatch is
+retrying; do not present a subset pass as full-suite coverage. If dispatch is
 unavailable, report the tool or permission limitation so Squadron can arrange the run.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
