@@ -58,7 +58,19 @@ metadata; describe that prediction separately as an audit finding.
    data. Reuse each named fixture's complete definition, including reservations, unchanged.
    Choose a documented broader resource when narrower access cannot be established, and
    explain that limit in the handoff; invented narrow keys can allow conflicting work.
-6. Validate with the repository's offline loader procedure, push only lane files, and
+   Narrow from actual predicates and values, including absent-row checks and copy sources;
+   update readers and writers together when extending the vocabulary. A table reference
+   alone does not justify a global claim, and a state/TIC tag does not prove a narrow one.
+   For fixed-transaction fixtures, verify the transaction's owning URL in the run snapshot
+   and reserve both `tx/<uuid>` and `tx/url/<URLID>`; moves protect old and new URLs. Recheck
+   ownership when the transaction ID or snapshot changes. Token-isolated carts use their
+   generated transaction scope under the reference's precise capture requirements;
+   do not copy that exception to imports or existing-transaction fixtures. Configuration
+   `url/<ID>` is distinct from transaction `tx/url/<ID>`. Unknown complete access and
+   persistent DDL require exclusive `reserves: {}`, not an invented table-only substitute.
+6. Validate with the repository's offline loader procedure and reservation conflict checks;
+   loading must not execute cases or fixtures. Request regression coverage from the harness
+   owner if a new resource relationship needs checks outside this lane. Push only lane files, and
    return the attached schema: mode, authored files, per-root coverage, fixture decisions,
    and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
 
@@ -70,7 +82,14 @@ procedure or fixture access changes, so the declarations still cover both arms.
 On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
 selected `states` and `tics` inputs, following
 [ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
-Return the automatic result comment and captures to Squadron for review. If dispatch is
+For reservation/capture changes, start with a focused selection exercising shared fixtures,
+independent transactions on one connection, and independent connections; expand only when
+coverage or failures justify it. Case-only execution requires manual `execute_cases=true`,
+not the run label or a plan artifact. Procedure/alteration runs still need the current-head
+plan. Follow the run to completion and return the automatic result comment, tested SQL and
+runner revisions, counts, and captures to Squadron for review. Investigate failures before
+retrying; do not present a subset pass as full-suite coverage. Compare phase wall times
+separately from preparation and summed worker time when assessing performance. If dispatch is
 unavailable, report the tool or permission limitation so Squadron can arrange the run.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
