@@ -17,6 +17,7 @@ as item prices are valid. Do not build an assertion framework or harness.
 | Merchant eligibility, validity gates, and legitimate fixtures | `ratevariant-case-data` |
 | Query construction and read-only execution | `write-taxcloud-sql-query`, then `query-staging-snapshot` |
 | YAML fields and alteration/fixture SQL | `tests/ratevariant-cases/README.md` |
+| Case/fixture access tracing, reservation scope, and conflict checks | `ratevariant-reservations` |
 | Offline loader validation | `ratevariant-testing` |
 
 Read repository instructions and register with `registering-on-the-ticket` under
@@ -48,18 +49,25 @@ metadata; describe that prediction separately as an audit finding.
    focused on the behavior or situation. For Reports/filing inputs backed by existing
    records, use tags supported by the data and report missing or incomplete metadata in
    the handoff. These tags determine which existing cases participate in scoped runs.
-5. Validate with the repository's offline loader procedure, push only lane files, and
-   return the attached schema: mode, authored files, per-root coverage, fixture decisions,
-   and coverage gaps. Never commit credentials; use the loader's runtime key resolution.
+5. Use `ratevariant-reservations` to declare and review access on every authored or changed
+   case and fixture. Include retained broad scopes and their reasons in the handoff.
+6. Validate offline using the repository skills, push only lane files, and return the
+   attached schema: mode, authored files, per-root coverage, fixture decisions, and coverage
+   gaps. Never commit credentials; use the loader's runtime key resolution.
 
 On adoption, retain existing justified cases and complete the missing work. After a fix
 pivot, compare the new plan/diff with existing cases, report valid/obsolete/missing coverage,
-and update the migration's mirroring alteration when needed.
+and update the migration's mirroring alteration when needed. Recheck reservations whenever
+procedure or fixture access changes, so the declarations still cover both arms.
 
 On Squadron's request, dispatch `ratevariant-run.yml` against the fix PR branch with its
 selected `states` and `tics` inputs, following
 [ratevariant-testing](https://github.com/FedTax/txc-sqlserver-database/blob/main/.claude/skills/ratevariant-testing/SKILL.md#choose-and-pass-the-case-scope).
-Return the automatic result comment and captures to Squadron for review. If dispatch is
+Case-only execution requires manual `execute_cases=true`,
+not the run label or a plan artifact. Procedure/alteration runs still need the current-head
+plan. Follow the run to completion and return the automatic result comment, tested SQL and
+runner revisions, counts, and captures to Squadron for review. Investigate failures before
+retrying; do not present a subset pass as full-suite coverage. If dispatch is
 unavailable, report the tool or permission limitation so Squadron can arrange the run.
 
 Return `outcome: needs_human` with exact question-and-context pairs only when a person's
